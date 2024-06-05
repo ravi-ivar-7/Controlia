@@ -68,7 +68,6 @@ router.get('/checkJobStatus/:jobId', checkJobStatus);
 router.get('/getAllJobs',getAllJobs)
 router.get('/cleanQueue',cleanQueue)
 router.get('/getAllQueues',getAllQueues)
-
 router.post('/imageProcess',imageProcess)
 
 

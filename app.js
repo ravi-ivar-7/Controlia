@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const bodyParser = require('body-parser');
-const routes = require('./src/routes/route'); // Assuming your router file is named router.js
+const routes = require('./src/routes/route'); 
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
@@ -51,10 +51,8 @@ http.createServer(app).listen(HTTP_PORT, () => {
   console.log(`HTTP SERVER LISTENING ON ${HOST}:${HTTP_PORT}`);
 });
 
-// Use routes defined in router.js
 app.use('/user', routes);
 
-// 404 Error Handling
 app.all('*', (req, res, next) => {
   console.log('Page not found');
   return res.status(404).json({ message: `Can't find ${req.url} on the server` });

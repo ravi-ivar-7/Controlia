@@ -20,7 +20,6 @@ const { massDataExtraction} = require('../controllers/puppeteer/massDataExtracti
 // not working
 const {scrapingAmazonBasics} = require('../controllers/puppeteer/scrappingAmazonBasics')
 const {takingPDF} = require('../controllers/puppeteer/takingPDF')
-const {githubTesting} = require('../controllers/puppeteer/githubTesting')
 
 const {backForwardFakeGeolocation } = require('../controllers/puppeteer/backForwardFakeGeolocation')
 
@@ -53,7 +52,6 @@ router.get('/massDataExtraction',massDataExtraction)
 router.get('/backForwardFakeGeolocation',backForwardFakeGeolocation)
 router.get('/scrapingAmazonBasics',scrapingAmazonBasics)
 router.get('/takingPDF',takingPDF)
-router.get('/githubTesting',githubTesting)
 
 
 // node scheduler

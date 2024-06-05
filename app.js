@@ -1,4 +1,5 @@
 require('dotenv').config({path:'./config/keys/.env'});
+const path = require("path");
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -18,6 +19,10 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+const fileUpload = require("express-fileupload");
+app.use(express.static("public"));
+app.use(fileUpload());
 
 // FOR USING SSL/TLS:
 let options;
@@ -53,7 +58,25 @@ http.createServer(app).listen(HTTP_PORT, () => {
 
 app.use('/user', routes);
 
+
+// rendering ejs
+app.get("/form", function (req, res) {res.render("form")});
+app.get("/result", (req, res) => {
+  const imgDirPath = path.join(__dirname, "./public/images");
+  if (!fs.existsSync(imgDirPath)) {
+    fs.mkdirSync(imgDirPath);
+  }
+  const imgFiles = fs.readdirSync(imgDirPath).map((image) => `images/${image}`);
+  res.render("result", { imgFiles });
+});
+
+// end
+
+
 app.all('*', (req, res, next) => {
-  console.log('Page not found');
+  console.log( `Can't find ${req.url} on the server`);
   return res.status(404).json({ message: `Can't find ${req.url} on the server` });
 });
+
+
+

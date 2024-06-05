@@ -1,0 +1,13 @@
+Start the server : index.js
+
+Start the worker: worker.js
+
+App can still offload time-intensive tasks even if the worker is not running.
+When worker starts, time-intensive tasks will be processed automatically from queue
+
+start window subsystem linux as: wsl
+
+for redis:
+sudo service redis-server status
+sudo service redis-server start
+sudo service redis-server stop

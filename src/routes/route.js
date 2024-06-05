@@ -29,7 +29,10 @@ const { scheduleApiCall} = require('../controllers/nodeScheduler/nodeSchedulerAP
 
 
 // bull background worker
-// const { } = require('../controllers/')
+const {checkJobStatus,getAllJobs,getAllQueues ,cleanQueue} = require('../services/jobsQueuesStatus')
+
+const {imageProcess } = require('../controllers/bullMQ/imageProcess')
+
 // const { } = require('../controllers/')
 // const { } = require('../controllers/')
 
@@ -50,8 +53,8 @@ router.get('/findBrokenLinks',findBrokenLinks)
 router.get('/findWebpageElements',findWebpageElements)
 router.get('/massDataExtraction',massDataExtraction)
 router.get('/backForwardFakeGeolocation',backForwardFakeGeolocation)
-router.get('/scrapingAmazonBasics',scrapingAmazonBasics)
-router.get('/takingPDF',takingPDF)
+router.get('/scrapingAmazonBasics',scrapingAmazonBasics) //
+router.get('/takingPDF',takingPDF)//
 
 
 // node scheduler
@@ -61,16 +64,12 @@ router.get('/cancelRecurringJob',cancelRecurringJob)
 router.get('/scheduleApiCall',scheduleApiCall)
 
 // bull background worker
+router.get('/checkJobStatus/:jobId', checkJobStatus);
+router.get('/getAllJobs',getAllJobs)
+router.get('/cleanQueue',cleanQueue)
+router.get('/getAllQueues',getAllQueues)
 
-router.get('/',)
-
-router.get('/',)
-router.get('/',)
-
-
-
-
-
+router.post('/imageProcess',imageProcess)
 
 
 

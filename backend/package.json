@@ -1,0 +1,29 @@
+{
+	"name": "raz-pay",
+	"version": "1.0.0",
+	"description": "Integrating Razorpay Payment Gateway with Nodejs",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js"
+	},
+	"author": "",
+	"license": "",
+	"dependencies": {
+		"body-parser": "^1.20.2",
+		"cors": "^2.8.5",
+		"express": "^4.19.2",
+		"express-rate-limit": "^7.3.1",
+		"mongoose": "^8.4.4",
+		"nanoid": "^5.0.7",
+		"razorpay": "^2.9.4",
+		"uuid": "^10.0.0"
+	},
+	"devDependencies": {
+		"dotenv": "^8.2.0",
+		"nodemon": "^2.0.7"
+	},
+	"engines": {
+		"node": "20.x"
+	}
+}

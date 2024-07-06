@@ -8,15 +8,11 @@ const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
 
-const routes =   require('./src/routes/route'); // HTTP routes
-const wsRoutes = require('./src/routes/wsRoute'); // WebSocket routes
-const {cppServer} = require('./src/controllers/executes/cppServer');
+const routes =   require('./src/routes/route'); 
+const wsRoutes = require('./src/routes/wsRoute');
 
-
-
-
-const HTTP_PORT = process.env.HTTP_PORT || 3000;
-const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+const HTTP_PORT = process.env.HTTP_PORT || 3001;
+const HTTPS_PORT = process.env.HTTPS_PORT || 3002;
 const HOST = 'localhost';
 
 const app = express();

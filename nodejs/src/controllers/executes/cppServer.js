@@ -1,25 +1,53 @@
+const { spawn } = require('child_process');
 
 const cppServer = async (data, socket) => {
 
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-    console.log('Received data in cppServer.handleMessage:', data);
+    const commands = `
+        echo "Script started..."
+        echo "Enter name:"
+    `;
 
-    const res1 = { step: 1, data: '3' };
-    socket.send(JSON.stringify(res1));
+    const child = spawn('bash', ['-c', commands], {
+        stdio: ['pipe', 'pipe', 'pipe']
+    });
 
 
-    await sleep(1000)
+    // Handle stdout from the child process
+    child.stdout.on('data', (data) => {
+        socket.send(JSON.stringify({ data: `STDOUT: ${data.toString()}` }));
+    });
 
-    const res2 = { step: 2, data: 5434 };
-    socket.send(JSON.stringify(res2));
+    // Handle stderr from the child process
+    child.stderr.on('data', (data) => {
+        socket.send(JSON.stringify({ data: `STDERR: ${data.toString()}` }));
+    });
 
-    await sleep(2000)
+    // Handle the close event of the child process
+    child.on('close' || 'exit', (code) => {
+        socket.send(JSON.stringify({ data: `CHILD PROCESS CLOSED WITH CODE: ${code}` }));
+    });
 
-    // Finally
-    const response = { success: true, data: 'Processed data' }; // Example response
-    console.log('Response from cppServer.handleMessage:', response);
+    // Handle errors in the child process
+    child.on('error', (err) => {
+        console.error(`Child process error: ${err}`);
+        socket.send(JSON.stringify({ data: `CHILD PROCESS ERROR: ${err.message}` }));
+    });
 
-    socket.send(JSON.stringify(response));
+
+    socket.on('message', async (message) => {
+        try {
+            const parsedMessage = JSON.parse(message.toString('utf8'));
+            console.log('Message from client:', parsedMessage);
+            if (child) {
+                console.log(`Sending input to child process: ${parsedMessage.data}`);
+                child.stdin.write(parsedMessage.data + '\n');
+            }
+
+
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    });
 };
 
 module.exports = { cppServer };

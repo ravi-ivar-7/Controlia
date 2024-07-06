@@ -6,7 +6,9 @@ export const WsTest = () => {
   const [response, setResponse] = useState('');
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:3001');
+    const socket = new WebSocket(process.env.REACT_APP_NODEJS_WS);
+
+    console.log(process.env.REACT_APP_NODEJS_WS)
 
     socket.onopen = () => {
       console.log('WebSocket Client Connected');

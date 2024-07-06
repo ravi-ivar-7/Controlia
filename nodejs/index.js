@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const routes =   require('./src/routes/route'); // HTTP routes
 const wsRoutes = require('./src/routes/wsRoute'); // WebSocket routes
-const cppServer = require('./src/controllers/executes/cppServer');
+const {cppServer} = require('./src/controllers/executes/cppServer');
 
 
 
@@ -85,6 +85,7 @@ function handleWebSocketMessage(message, socket) {
 function handleWebSocketConnection(socket) {
   console.log('WS CONNECTED');
 
+  // cppServer(socket)
   socket.on('open', () => {
     console.log('WS OPENED');
   });

@@ -9,19 +9,25 @@ import {
 } from 'cdbreact';
 import { NavLink } from 'react-router-dom';
 
+import { useSidebar } from '../../context/SidebarContext'; // Import useSidebar hook
+
 const Sidebar = () => {
+  const { isSidebarOpen } = useSidebar(); // Access sidebar state from context
+
+  // Conditional rendering based on sidebar state
   return (
+
     <div
-      style={{ display: 'flex', height: '100vh', overflow: 'scroll initial' }}
+      style={{ display: isSidebarOpen ? 'flex' : 'none', height: '100vh', overflow: 'scroll initial' }}
     >
-      <CDBSidebar textColor="#fff" backgroundColor="#244855">
+      <CDBSidebar textColor="#fff" backgroundColor="#244855" >
         <CDBSidebarHeader prefix={<i className="fa fa-bars fa-large"></i>}>
           <a
             href="/"
             className="text-decoration-none"
             style={{ color: 'inherit' }}
           >
-            Auto Admin
+            Controlia
           </a>
         </CDBSidebarHeader>
 
@@ -41,7 +47,7 @@ const Sidebar = () => {
                 Analytics
               </CDBSidebarMenuItem>
             </NavLink>
-      
+
           </CDBSidebarMenu>
         </CDBSidebarContent>
 
@@ -51,11 +57,12 @@ const Sidebar = () => {
               padding: '20px 5px',
             }}
           >
-            © Auto Admin
+            © Controlia
           </div>
         </CDBSidebarFooter>
       </CDBSidebar>
     </div>
+
   );
 };
 

@@ -1,25 +1,45 @@
-.App {
-  display: flex;
-  height: 100vh;
-  font-family: Arial, sans-serif; /* Example: Use your preferred font family */
+/* Reset default margin and padding */
+body, html {
+  margin: 0;
+  padding: 0;
 }
 
+/* Basic styling for the app container */
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensure full height */
+}
+
+/* Styling for the header */
+.header {
+  background-color: #333;
+  color: white;
+  /* padding: 1px 2px; */
+  width: 100%;
+}
+
+/* Styling for the footer */
+.footer {
+  background-color: #333;
+  color: white;
+  /* padding: 1px 2px; */
+  width: 100%;
+}
+
+/* Flexbox layout for the main content and sidebar */
+.main-content {
+  display: flex;
+  flex: 1; /* Take remaining vertical space */
+}
+
+/* Styling for the sidebar */
 .sidebar {
 
 }
 
+/* Styling for the main content area */
 .main {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px; /* Example: Add padding for content area */
+  flex: 1; /* Take remaining horizontal space */
+  padding: 20px;
 }
-
-.main h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.main p {
-  line-height: 1.6;
-}
-

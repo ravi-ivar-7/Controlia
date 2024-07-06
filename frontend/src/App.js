@@ -1,28 +1,46 @@
 import './App.css';
-import Sidebar from './components/sidebar/Sidebar';
+import Sidebar from './components/navbars/Sidebar';
 import { Toaster } from 'react-hot-toast';
-import MatomoTracker from './utils/matonoTracker';
-
+import MatomoTracker from './utils/matomoTracker';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-
+import Header from './components/navbars/Header';
+import Footer from './components/navbars/Footer';
+import { SidebarProvider } from './context/SidebarContext'; // Import SidebarProvider
 
 function App() {
   return (
     <div className="App">
-  <BrowserRouter>
-    <MatomoTracker />
-    <Toaster />
-    <div className="sidebar">
-      <Sidebar />
+      <BrowserRouter>
+        <SidebarProvider>
+
+          <MatomoTracker />
+          <Toaster />
+          <SpeedInsights />
+
+          <div className='header'>
+            <Header />
+          </div>
+
+          <div className='main-content'>
+            <div className='sidebar'>
+              <Sidebar />
+            </div>
+
+            <div className='main'>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+              </Routes>
+            </div>
+          </div>
+
+          <div className='footer'>
+            <Footer />
+          </div>
+        </SidebarProvider>
+      </BrowserRouter>
     </div>
-    <div className="main">
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-      </Routes>
-    </div>
-  </BrowserRouter>
-</div>
   );
 }
 

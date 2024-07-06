@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Header from './components/navbars/Header';
 import Footer from './components/navbars/Footer';
 import { SidebarProvider } from './context/SidebarContext'; // Import SidebarProvider
+import { CppServer } from './pages/executes/CppServer'; // Import CppServer component
+import { WsTest } from './pages/executes/WsTest';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
             <div className='main'>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/wstest" element={<WsTest />} />
+                <Route path="/cppserver" element={<CppServer />} />
               </Routes>
             </div>
           </div>

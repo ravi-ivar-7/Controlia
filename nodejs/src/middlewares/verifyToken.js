@@ -11,14 +11,14 @@ const verifyToken = (req, res, next) => {
   if (!token) {
       return res.status(209).json({ message: 'NO TOKEN IN BEARER' });
   }
-
   try {
     const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
-    req.data = decodedToken;
+
+    req.body = {...req.body,decodedToken};
+
   } catch (err) {
     return res.status(209).json({error : "CANNOT VERIFY TOKEN: INVALID OR EXPIRED TOKEN"} );
   }
-
   return next();
 };
 

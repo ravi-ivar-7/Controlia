@@ -1,47 +1,57 @@
 import './App.css';
+import React from 'react';
+import { BrowserRouter, Route, Routes ,useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/navbars/Sidebar';
 import { Toaster } from 'react-hot-toast';
 import MatomoTracker from './utils/matomoTracker';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/dashboard/Dashboard';
 import Header from './components/navbars/Header';
 import Footer from './components/navbars/Footer';
-import { SidebarProvider } from './context/SidebarContext'; // Import SidebarProvider
-import { CppServer } from './pages/executes/CppServer'; // Import CppServer component
+import { SidebarProvider } from './context/SidebarContext';
 import { WsTest } from './pages/executes/WsTest';
+import ExecuteScript from './pages/executes/ExecuteScript';
+import LoginWarningModal from './components/modals/LoginWarningModal'; // Import the LoginModal component
+import LoginModal from './components/modals/LoginModal';
+import RegisterModal from './components/modals/RegisterModal';
+
 
 function App() {
+  // const { user } = useAuth();
+  const user = localStorage.getItem('user')
+  console.log(localStorage.getItem('token'))
+console.log(user, 'user')
   return (
     <div className="App">
       <BrowserRouter>
         <SidebarProvider>
-
           <MatomoTracker />
           <Toaster />
           <SpeedInsights />
 
-          <div className='header'>
-            <Header />
-          </div>
+          <Header />
 
-          <div className='main-content'>
-            <div className='sidebar'>
-              <Sidebar />
-            </div>
+          <div className="main-content">
+            <Sidebar />
 
-            <div className='main'>
+            <div className="main">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/wstest" element={<WsTest />} />
-                <Route path="/cppserver" element={<CppServer />} />
+                {/* <Route path="/execute-script" element={<ExecuteScript />} /> */}
+
+                {/* Protected route example */}
+                
+                <Route path="/wstest" element={user ? <WsTest /> : <LoginWarningModal isOpen={true} />}/>
+                <Route path="/execute-script" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
+
+                <Route path="/login" element={<LoginModal isOpen={true} />}/>
+                <Route path="/register" element={<RegisterModal isOpen={true} />} />
               </Routes>
             </div>
           </div>
 
-          <div className='footer'>
-            <Footer />
-          </div>
+          <Footer />
         </SidebarProvider>
       </BrowserRouter>
     </div>

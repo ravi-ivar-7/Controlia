@@ -18,7 +18,7 @@ const Sidebar = () => {
   return (
 
     <div
-      style={{ display: isSidebarOpen ? 'flex' : 'none', height: '100vh', overflow: 'scroll initial' }}
+      style={{ display: isSidebarOpen ? 'flex' : 'none', height: '100vh', overflow: 'scroll initial'}}
     >
       <CDBSidebar textColor="#fff" backgroundColor="#244855" >
         <CDBSidebarHeader prefix={<i className="fa fa-bars fa-large"></i>}>
@@ -36,16 +36,14 @@ const Sidebar = () => {
             <NavLink exact to="/" activeClassName="activeClicked">
               <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
             </NavLink>
-            <NavLink exact to="/tables" activeClassName="activeClicked">
-              <CDBSidebarMenuItem icon="table">Tables</CDBSidebarMenuItem>
+            <NavLink exact to="/execute" activeClassName="activeClicked">
+              <CDBSidebarMenuItem icon="play-circle">Execute</CDBSidebarMenuItem>
             </NavLink>
-            <NavLink exact to="/profile" activeClassName="activeClicked">
-              <CDBSidebarMenuItem icon="user">Profile page</CDBSidebarMenuItem>
+            <NavLink exact to="/schedule" activeClassName="activeClicked">
+              <CDBSidebarMenuItem icon="calendar-alt">Schedule</CDBSidebarMenuItem>
             </NavLink>
             <NavLink exact to="/analytics" activeClassName="activeClicked">
-              <CDBSidebarMenuItem icon="chart-line">
-                Analytics
-              </CDBSidebarMenuItem>
+              <CDBSidebarMenuItem icon="chart-pie">Analytics</CDBSidebarMenuItem>
             </NavLink>
 
           </CDBSidebarMenu>

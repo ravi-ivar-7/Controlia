@@ -3,13 +3,13 @@ const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 require('dotenv').config({path:'./config/keys/.env'});
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URL;
 
 async function connectToSchemaLessDatabase(databaseName, collectionName) {
-  const client = new MongoClient(uri);
+  const client = new MongoClient(uri,);
   try {
     await client.connect();
-    const db = client.db(dbName);
+    const db = client.db(databaseName);
     const collection = db.collection(collectionName);
     return { client, collection };
   } catch (error) {

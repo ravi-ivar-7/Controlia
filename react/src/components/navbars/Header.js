@@ -14,7 +14,9 @@ const Header = () => {
     padding: '1rem',
     flexWrap: 'wrap',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    position: 'relative', // Ensure relative position for button overlay
+    position: 'fixed', // Fixed position
+    width: '100%', // Full width
+    zIndex: 1000, // Ensure it's above other content
   };
 
   const brandStyle = {
@@ -79,8 +81,7 @@ const Header = () => {
       <div style={linksContainerStyle}>
         <ul style={linksStyle}>
           <li style={linkItemStyle}>
-            <Link
-              to="/"
+            <Link to="/"
               style={linkStyle}
               onMouseOver={(e) =>
                 (e.target.style.backgroundColor =
@@ -88,7 +89,7 @@ const Header = () => {
               }
               onMouseOut={(e) => (e.target.style.backgroundColor = 'transparent')}
             >
-              Home
+              Dashboard
             </Link>
           </li>
          

@@ -4,15 +4,14 @@ const jwt = require('jsonwebtoken');
 const generateToken = (data) => {
     try {
         const payload = {
-            data:data,
-            issuedAt: Date.now()
+            ...data
         };
 
-        const options = {
-            expiresIn: process.env.EXPIRES_IN || '90'
-        };
+        // const options = {
+        //     expiresIn:  '90m'
+        // };
         
-        const token = jwt.sign(payload, process.env.SECRET_KEY, options);
+        const token = jwt.sign(payload, process.env.SECRET_KEY);
         
         return token
     } catch (err) {

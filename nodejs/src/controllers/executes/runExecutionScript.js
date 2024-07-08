@@ -1,12 +1,18 @@
 const { spawn } = require('child_process');
+const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
 
-const cppServer = async (data, decodedToken, socket) => {
 
-    const script = 3// from db
-    const language = data.language
-    
+const runExecutionScript = async (data, decodedToken, socket) => {
 
-    const child = spawn('bash', ['-c', commands], {
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    client = dbClient;
+
+    const scriptDocument = await collection.findOne({ userId: decodedToken.userId, scriptId: data.scriptId })
+
+    const script = scriptDocument.script
+    const language = scriptDocument.language
+
+    const child = spawn(language, ['-c', script], {
         stdio: ['pipe', 'pipe', 'pipe']
     });
 
@@ -49,4 +55,4 @@ const cppServer = async (data, decodedToken, socket) => {
     });
 };
 
-module.exports = { cppServer };
+module.exports = { runExecutionScript };

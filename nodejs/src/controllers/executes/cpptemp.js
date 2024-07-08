@@ -1,10 +1,11 @@
 const { spawn } = require('child_process');
 
-const cppServer = async (data, decodedToken, socket) => {
+const cppServer = async (data,decodedToken, socket) => {
 
-    const script = 3// from db
-    const language = data.language
-    
+    const commands = `
+        echo "Script started..."
+        echo "Enter name:"
+    `;
 
     const child = spawn('bash', ['-c', commands], {
         stdio: ['pipe', 'pipe', 'pipe']

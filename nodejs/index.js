@@ -7,8 +7,9 @@ const https = require('https');
 const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
+const jwt = require('jsonwebtoken'); // Add this line
 
-const routes =   require('./src/routes/route'); 
+const routes = require('./src/routes/route');
 const wsRoutes = require('./src/routes/wsRoute');
 
 const HTTP_PORT = process.env.HTTP_PORT || 3001;
@@ -62,13 +63,13 @@ httpServer.listen(HTTP_PORT, () => {
 });
 
 // WebSocket message handler
-function handleWebSocketMessage(message, socket) {
+function handleWebSocketMessage(message,decodedToken, socket) {
   try {
     const parsedMessage = JSON.parse(message);
     const { route, data } = parsedMessage;
-
+  
     if (wsRoutes[route]) {
-      wsRoutes[route](data, socket); 
+      wsRoutes[route](data, decodedToken,socket);
     } else {
       socket.send(JSON.stringify({ error: 'Unknown route' }));
     }
@@ -77,17 +78,40 @@ function handleWebSocketMessage(message, socket) {
   }
 }
 
+// Token verification function
+function verifyToken(token) {
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+}
 
-function handleWebSocketConnection(socket) {
+function handleWebSocketConnection(socket, request) {
   console.log('WS CONNECTED');
+  socket.send(JSON.stringify({ data:'WS CONNECTED'}));
+  const params = new URLSearchParams(request.url.split('?')[1]);
+  const token = params.get('token');
 
-  // cppServer(socket)
-  socket.on('open', () => {
-    console.log('WS OPENED');
+  if (!token) {
+    socket.close(4001, 'Token not provided');
+    return;
+  }
+
+  const decodedToken = verifyToken(token);
+
+  if (!decodedToken) {
+    socket.close(4002, 'Invalid token');
+    return;
+  }
+
+  socket.on('open', (message) => {
+    console.log('open ws', message);
   });
 
   socket.on('message', (message) => {
-    handleWebSocketMessage(message, socket);
+    handleWebSocketMessage(message, decodedToken, socket);
   });
 
   socket.on('close', (code, reason) => {

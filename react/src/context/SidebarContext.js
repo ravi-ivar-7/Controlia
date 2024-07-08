@@ -8,7 +8,7 @@ export const useSidebar = () => useContext(SidebarContext);
 
 // Context provider component
 export const SidebarProvider = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Initial state: sidebar is open
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Function to toggle sidebar state
   const toggleSidebar = () => {

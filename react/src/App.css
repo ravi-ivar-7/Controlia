@@ -1,45 +1,28 @@
-/* Reset default margin and padding */
-body, html {
-  margin: 0;
-  padding: 0;
-}
-
-/* Basic styling for the app container */
 .App {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Ensure full height */
+  min-height: 100vh;
 }
 
-/* Styling for the header */
 .header {
-  background-color: #333;
-  color: white;
-  /* padding: 1px 2px; */
   width: 100%;
 }
 
-/* Styling for the footer */
-.footer {
-  background-color: #333;
-  color: white;
-  /* padding: 1px 2px; */
-  width: 100%;
-}
-
-/* Flexbox layout for the main content and sidebar */
 .main-content {
   display: flex;
-  flex: 1; /* Take remaining vertical space */
+  flex: 1;
 }
 
-/* Styling for the sidebar */
-.sidebar {
-
+.sidebar{
+  background-color: black;
 }
 
-/* Styling for the main content area */
 .main {
-  flex: 1; /* Take remaining horizontal space */
-  padding: 20px;
+  flex: 1;
+}
+
+.footer {
+  width: 100%;
+ 
+  text-align: center;
 }

@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 
+import { CodeiumEditor } from "@codeium/react-code-editor";
 const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript }) => {
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('');
@@ -46,21 +47,24 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
               onChange={(e) => setLanguage(e.target.value)}
             >
               <option value="">Select Language</option>
-              <option value="bash">Bash</option>
+              <option value="shell">Bash</option>
               <option value="python">Python</option>
-              <option value="node">JavaScript/Nodejs</option>
-              <option value="c++">C++</option>
+              <option value="javascript">JavaScript/Nodejs</option>
+              <option value="cpp">C++</option>
             </Form.Select>
           </Form.Group>
+
           <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
             <Form.Label>Script</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
+            <CodeiumEditor
+              language={language}
+              theme="vs-dark"
               value={script}
-              onChange={(e) => setScript(e.target.value)}
+              onChange={(value) => setScript(value)}
+              logo={<></>}
             />
           </Form.Group>
+
         </Form>
       </Modal.Body>
       <Modal.Footer>

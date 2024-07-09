@@ -10,7 +10,6 @@ import Dashboard from './pages/dashboard/Dashboard';
 import Header from './components/navbars/Header';
 import Footer from './components/navbars/Footer';
 import { SidebarProvider } from './context/SidebarContext';
-import { WsTest } from './pages/executes/WsTest';
 import ExecuteScript from './pages/executes/ExecuteScript';
 import LoginWarningModal from './components/modals/LoginWarningModal'; // Import the LoginModal component
 import LoginModal from './components/modals/LoginModal';

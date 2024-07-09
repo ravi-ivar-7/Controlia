@@ -16,12 +16,14 @@ const { addExecuteScript } = require('../controllers/executes/addExecuteScript')
 const { getExecuteScript } = require('../controllers/executes/getExecuteScript');
 const {deleteExecuteScript} = require('../controllers/executes/deleteExecuteScript')
 const {editExecuteScript} = require('../controllers/executes/editExecuteScript')
-
+const {getExecuteLayouts, saveExecuteLayouts} = require('../controllers/executes/executeLayouts')
 
 router.post('/get-execute-script', verifyToken,getExecuteScript);
 router.post('/add-execute-script',verifyToken, addExecuteScript)
 router.post('/delete-execute-script',verifyToken, deleteExecuteScript)
 router.post('/edit-execute-script',verifyToken, editExecuteScript)
+router.get('/get-execute-layout',verifyToken, getExecuteLayouts)
+router.post('/save-execute-layout',verifyToken, saveExecuteLayouts)
 
 router.get('/validate-token', verifyToken, (req, res) => { return res.status(200).json({ message: 'Token is valid', userData: req.data }); });
 

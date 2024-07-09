@@ -1,58 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import ResponsiveGrid from '../../utils/responsiveGrid';
+import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Button, Nav, Form } from 'react-bootstrap';
 import AddExecutionScriptModal from '../../components/modals/AddExecutionScriptModal';
 import axiosInstance from '../../utils/axiosInstance';
 import { v4 as uuidv4 } from 'uuid';
 import useToast from '../../hooks/useToast';
+import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ExecuteScriptUtils';
 
-const initialLayouts = {
-  lg: [
-    { i: 'cppserver1', x: 0, y: 0, w: 600, h: 600 }, // 50% height
-    { i: 'cppserver2', x: 600, y: 0, w: 600, h: 600 }, // 50% height
-  ],
-  md: [
-    { i: 'cppserver', x: 0, y: 0, w: 4, h: 10 },
-  ],
-  sm: [
-    { i: 'cppserver', x: 0, y: 0, w: 6, h: 10 },
-  ],
-  xs: [
-    { i: 'cppserver', x: 0, y: 0, w: 4, h: 10 },
-  ],
-  xxs: [
-    { i: 'cppserver', x: 0, y: 0, w: 2, h: 24 }, // 60% height
-  ],
-  cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
-  rowHeight: 30,
-};
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const mainStyle = {
-  minHeight: 'calc(100vh - 70px)', // Adjusted to accommodate fixed header
-  backgroundColor: 'black',
-  color: 'white',
-  padding: '1rem',
-  marginTop: '70px', // Adjust top margin to accommodate fixed header
-};
-
-const cardStyle = {
-  backgroundColor: '#1C3334',
-  color: 'white',
-  marginBottom: '10px'
-};
-
-const headerFooterStyle = {
-  backgroundColor: '#124E66',
-  color: 'white'
-};
-
-const bodySectionStyle1 = {
-  backgroundColor: '#2C3E50',
-  color: 'white',
-  padding: '10px',
-  borderBottom: '1px solid #34495E'
-};
 
 const ExecuteScript = () => {
   const [ws, setWs] = useState(null);
@@ -64,32 +23,101 @@ const ExecuteScript = () => {
   const { showToast } = useToast();
   const [connectedScriptId, setConnectedScriptId] = useState('');
   const [editingScript, setEditingScript] = useState(null);
+  const [layouts, setLayouts] = useState();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No token found in local storage');
+  const token = localStorage.getItem('token');
+
+  const fetchData = useCallback(async (token) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/get-execute-script', {}, {
+        headers: {
+          authorization: `Bearer ${token}`,
         }
-        const response = await axiosInstance.post('/get-execute-script', {}, {
-          headers: {
-            authorization: `Bearer ${token}`,
-          }
-        });
-        console.log(response)
-        const { scripts } = response.data || [];
-        setScripts(scripts);
-      } catch (error) {
-        console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
-      } finally {
-        setLoading(false);
-      }
+      });
+      console.log(response);
+      const { scripts } = response.data || [];
+      setScripts(scripts);
+    } catch (error) {
+      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const generateLayouts = useCallback((scripts) => {
+    const initialLayouts = {
+      lg: [],
+      md: [],
+      sm: [],
     };
 
-    fetchData();
+    scripts.forEach((script, index) => {
+      initialLayouts.lg.push({ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 4 });
+      initialLayouts.md.push({ i: script.scriptId, x: (index % 2) * 4, y: Math.floor(index / 2) * 4, w: 4, h: 4 });
+      initialLayouts.sm.push({ i: script.scriptId, x: 0, y: index, w: 1, h: 4 });
+    });
+
+    return initialLayouts;
   }, []);
+
+  const fetchLayout = useCallback(async (token) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/get-execute-layout', {
+        headers: {
+          authorization: `Bearer ${token}`,
+        }
+      });
+      console.log(response);
+      const { layouts } = response.data || { layouts: generateLayouts(scripts) };
+      setLayouts(layouts);
+      console.log('layout fetched', layouts)
+    } catch (error) {
+      console.error('CAN NOT GET LAYOUT:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const saveLayout = useCallback(async (token, layouts) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/save-execute-layout', {
+        layouts,
+      }, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+      showToast('Layout saved.')
+    } catch (error) {
+      console.error('CAN NOT CONNECT TO SERVER:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) {
+      console.error('No token found in local storage');
+      return;
+    }
+
+    fetchData(token);
+    fetchLayout(token);
+  }, [fetchData, fetchLayout, token]);
+
+  useEffect(() => {
+    if (!token) {
+      console.error('No token found in local storage');
+      return;
+    }
+
+    if (layouts) {
+      saveLayout(token, layouts);
+    }
+  }, [layouts, saveLayout, token]);
 
   const handleWebSocketConnection = (scriptId) => {
     const token = localStorage.getItem('token');
@@ -100,7 +128,7 @@ const ExecuteScript = () => {
     socket.onopen = () => {
       console.log('WS CONNECTED');
       setWs(socket);
-      setScriptMessages({ ...scriptMessages, [scriptId]: [] }); // Initialize message array for this script
+      setScriptMessages({ ...scriptMessages, [scriptId]: [] });
     };
 
     socket.onmessage = (event) => {
@@ -166,7 +194,7 @@ const ExecuteScript = () => {
   const handleDeleteScript = async (scriptId) => {
     if (!window.confirm(`Delete script ${scriptId}`)) {
       return;
-  }
+    }
 
     setLoading(true);
     try {
@@ -208,7 +236,7 @@ const ExecuteScript = () => {
       });
 
       if (response.status === 200) {
-        const {updatedScript} = response.data;
+        const { updatedScript } = response.data;
         setScripts(prevScripts => prevScripts.map(script => script.scriptId === updatedScript.scriptId ? updatedScript : script));
       } else {
         console.error('Error updating execution script:', response);
@@ -221,6 +249,13 @@ const ExecuteScript = () => {
     }
   };
 
+  const handleDragStop = useCallback((layout, oldItem, newItem, placeholder, e, element) => {
+    setLayouts(layout);
+  }, []);
+
+  const handleResizeStop = useCallback((layout, oldItem, newItem, placeholder, e, element) => {
+    setLayouts(layout);
+  }, []);
 
   return (
     <div style={mainStyle}>
@@ -228,9 +263,18 @@ const ExecuteScript = () => {
         <h2>Execution Dashboard</h2>
         <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
       </div>
-      <ResponsiveGrid pageId="executionpage" initialLayouts={initialLayouts}>
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layouts}
+        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+        cols={{ lg: 12, md: 8, sm: 1 }}
+        rowHeight={100}
+        draggableHandle=".draggable-handle"
+        onDragStop={handleDragStop}
+        onResizeStop={handleResizeStop}
+      >
         {scripts.map((script, index) => (
-          <div key={`executescript-${index}`} className="grid-item">
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
@@ -246,16 +290,16 @@ const ExecuteScript = () => {
                 </Nav>
               </Card.Header>
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px' }}>
-                <Card.Title>Input</Card.Title>
-                <Card.Text style={{ height: '100%', overflowY: 'auto', backgroundColor: '#234756' }}>
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                <Card.Title >Input</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
                   Script: {script.script}
                 </Card.Text>
               </Card.Body>
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px' }}>
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
                 <Card.Title>Output</Card.Title>
-                <Card.Text style={{ height: '100%', overflowY: 'auto', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
                   {scriptMessages[script.scriptId]?.map((message, index) => (
                     <div key={`message-${index}`}>
                       {message}
@@ -272,11 +316,11 @@ const ExecuteScript = () => {
                 </Nav>
 
                 <Nav className="d-flex align-items-center">
-                <Button variant="primary" size="sm" onClick={() =>{setEditingScript(script); setShowModal(true)}}>
-                      <Nav.Item style={{ color: 'white', padding: 0 }}>
-                        Edit
-                      </Nav.Item>
-                    </Button>
+                  <Button variant="primary" size="sm" onClick={() => { setEditingScript(script); setShowModal(true) }}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>
+                      Edit
+                    </Nav.Item>
+                  </Button>
                   <div style={{ marginLeft: '10px' }}>
                     <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
                       <Nav.Item style={{ color: 'white', padding: 0 }}>
@@ -299,7 +343,7 @@ const ExecuteScript = () => {
                     />
                     <Button variant="info" size="sm" onClick={handleWebSocketMessage} style={{ marginLeft: '10px' }}>
                       <Nav.Item style={{ color: 'white', padding: 0 }}>
-                       Execute
+                        Execute
                       </Nav.Item>
                     </Button>
                   </Form.Group>
@@ -309,9 +353,10 @@ const ExecuteScript = () => {
             </Card>
           </div>
         ))}
-      </ResponsiveGrid>
 
-<AddExecutionScriptModal
+      </ResponsiveGridLayout>
+
+      <AddExecutionScriptModal
         show={showModal}
         handleClose={() => setShowModal(false)}
         onSubmit={editingScript ? handleEditScript : handleAddScript}
@@ -319,7 +364,6 @@ const ExecuteScript = () => {
         initialLanguage={editingScript ? editingScript.language : ''}
         initialScript={editingScript ? editingScript.script : ''}
       />
-
 
     </div>
   );

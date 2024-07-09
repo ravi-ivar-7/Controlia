@@ -1,5 +1,4 @@
 const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
-const {verifyToken} = require('../../middlewares/verifyToken')
 
 const getExecuteScript = async (req, res) => {
   let client;

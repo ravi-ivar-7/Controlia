@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 
-const AddExecutionScriptModal = ({ show, handleClose, onSubmit }) => {
+const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript }) => {
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('');
   const [script, setScript] = useState('');
+
+  useEffect(() => {
+    if (show) {
+      setTitle(initialTitle);
+      setLanguage(initialLanguage);
+      setScript(initialScript);
+    }
+  }, [show, initialTitle, initialLanguage, initialScript]);
 
   const handleAdd = () => {
     const scriptData = { title, language, script };
@@ -40,7 +48,8 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit }) => {
               <option value="">Select Language</option>
               <option value="bash">Bash</option>
               <option value="python">Python</option>
-              <option value="cpp">C++</option>
+              <option value="node">JavaScript/Nodejs</option>
+              <option value="c++">C++</option>
             </Form.Select>
           </Form.Group>
           <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
@@ -59,7 +68,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit }) => {
           Close
         </Button>
         <Button variant="primary" onClick={handleAdd}>
-          Add
+          Add/Edit
         </Button>
       </Modal.Footer>
     </Modal>

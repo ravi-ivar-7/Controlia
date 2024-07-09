@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       // axios.defaults.headers.common['authorization'] = `Bearer ${token}`;
-      const response = axiosInstance.get('/admin/validate-token')
+      const response = axiosInstance.get('/validate-token')
       if (response.status === 200) {
         setUser(response.data.user);
         // navigate('/', { state: {} });
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.post('/admin/register', userData);
+      const response = await axiosInstance.post('/register', userData);
       if (response.status === 200) {
         const { token, user } = response.data;
         localStorage.setItem('token', token);
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.post('/admin/login', credentials);
+      const response = await axiosInstance.post('/login', credentials);
       if (response.status === 200) {
         const { token, user } = response.data;
         console.log('login token',token)

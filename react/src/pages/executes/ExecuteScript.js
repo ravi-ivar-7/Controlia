@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ResponsiveGrid from '../../utils/responsiveGrid';
 import Card from 'react-bootstrap/Card';
 import { Button, Nav, Form } from 'react-bootstrap';
-import AddExecutionScriptModal from '../../components/modals/ExecutionModal';
+import AddExecutionScriptModal from '../../components/modals/AddExecutionScriptModal';
 import axiosInstance from '../../utils/axiosInstance';
 import { v4 as uuidv4 } from 'uuid';
 import useToast from '../../hooks/useToast';
@@ -63,6 +63,7 @@ const ExecuteScript = () => {
   const [scripts, setScripts] = useState([]);
   const { showToast } = useToast();
   const [connectedScriptId, setConnectedScriptId] = useState('');
+  const [editingScript, setEditingScript] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,11 +73,12 @@ const ExecuteScript = () => {
         if (!token) {
           throw new Error('No token found in local storage');
         }
-        const response = await axiosInstance.post('/admin/get-execution-script', {}, {
+        const response = await axiosInstance.post('/get-execute-script', {}, {
           headers: {
             authorization: `Bearer ${token}`,
           }
         });
+        console.log(response)
         const { scripts } = response.data || [];
         setScripts(scripts);
       } catch (error) {
@@ -125,7 +127,7 @@ const ExecuteScript = () => {
 
   const handleWebSocketMessage = () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      const messageToSend = JSON.stringify({ route: '/run-execution-script', data: { message, scriptId: connectedScriptId } });
+      const messageToSend = JSON.stringify({ route: '/run-execute-script', data: { message, scriptId: connectedScriptId } });
       ws.send(messageToSend);
       setMessage('');
     } else {
@@ -139,7 +141,7 @@ const ExecuteScript = () => {
       const token = localStorage.getItem('token');
       const scriptId = uuidv4();
       const scriptInfo = { ...scriptData, scriptId };
-      const response = await axiosInstance.post('/admin/add-execution-script', {
+      const response = await axiosInstance.post('/add-execute-script', {
         scriptInfo,
       }, {
         headers: {
@@ -148,8 +150,9 @@ const ExecuteScript = () => {
       });
 
       if (response.status === 200) {
-        const { scripts } = response.data;
-        setScripts(prevScripts => [...prevScripts, scripts]);
+        const { newScript } = response.data;
+        console.log(newScript)
+        setScripts(prevScripts => [...prevScripts, newScript]);
       } else {
         console.error('Error adding execution script:', response);
       }
@@ -160,26 +163,85 @@ const ExecuteScript = () => {
     }
   };
 
+  const handleDeleteScript = async (scriptId) => {
+    if (!window.confirm(`Delete script ${scriptId}`)) {
+      return;
+  }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const scriptInfo = { scriptId };
+      console.log('executed')
+      const response = await axiosInstance.post('/delete-execute-script', {
+        scriptInfo,
+      }, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
+        setScripts(scripts.filter(script => script.scriptId !== scriptId));
+        showToast('Successfully deleted.')
+      }
+      else {
+        console.error('Error deleting execution script:', response);
+      }
+    } catch (error) {
+      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleEditScript = async (scriptData) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const scriptInfo = { ...scriptData, scriptId: editingScript.scriptId };
+      const response = await axiosInstance.post('/edit-execute-script', {
+        scriptInfo,
+      }, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const {updatedScript} = response.data;
+        setScripts(prevScripts => prevScripts.map(script => script.scriptId === updatedScript.scriptId ? updatedScript : script));
+      } else {
+        console.error('Error updating execution script:', response);
+      }
+    } catch (error) {
+      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+    } finally {
+      setLoading(false);
+      setEditingScript(null)
+    }
+  };
+
+
   return (
     <div style={mainStyle}>
-    <div className="d-flex justify-content-between align-items-center mb-3">
-      <h2>Execution Dashboard</h2>
-      <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
-    </div>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Execution Dashboard</h2>
+        <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
+      </div>
       <ResponsiveGrid pageId="executionpage" initialLayouts={initialLayouts}>
         {scripts.map((script, index) => (
           <div key={`executescript-${index}`} className="grid-item">
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
-                  <Nav.Item>
-                    <Nav.Link style={{ color: 'white' }}>{script.title}</Nav.Link>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.title}
                   </Nav.Item>
                 </Nav>
-        
+
                 <Nav>
-                  <Nav.Item>
-                    <Nav.Link style={{ color: 'white' }}>{script.language}</Nav.Link>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.language}
                   </Nav.Item>
                 </Nav>
               </Card.Header>
@@ -205,22 +267,20 @@ const ExecuteScript = () => {
               <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
                   <Button variant="info" size="sm" onClick={() => handleWebSocketConnection(script.scriptId)}>
-                    <Nav.Item>
-                      <Nav.Link href="" style={{ color: 'white', padding: 0 }}>Connect</Nav.Link>
-                    </Nav.Item>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}> Connect</Nav.Item>
                   </Button>
                 </Nav>
 
                 <Nav className="d-flex align-items-center">
-                  <Button variant="warning" size="sm">
-                    <Nav.Item>
-                      <Nav.Link href="#first" style={{ color: 'white', padding: 0 }}>Edit</Nav.Link>
-                    </Nav.Item>
-                  </Button>
+                <Button variant="primary" size="sm" onClick={() =>{setEditingScript(script); setShowModal(true)}}>
+                      <Nav.Item style={{ color: 'white', padding: 0 }}>
+                        Edit
+                      </Nav.Item>
+                    </Button>
                   <div style={{ marginLeft: '10px' }}>
-                    <Button variant="danger" size="sm">
-                      <Nav.Item>
-                        <Nav.Link href="#first" style={{ color: 'white', padding: 0 }}>Delete</Nav.Link>
+                    <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
+                      <Nav.Item style={{ color: 'white', padding: 0 }}>
+                        Delete
                       </Nav.Item>
                     </Button>
                   </div>
@@ -238,8 +298,8 @@ const ExecuteScript = () => {
                       className='flex-grow-1 mr-2'
                     />
                     <Button variant="info" size="sm" onClick={handleWebSocketMessage} style={{ marginLeft: '10px' }}>
-                      <Nav.Item>
-                        <Nav.Link href="" style={{ color: 'white', padding: 0 }}>Execute</Nav.Link>
+                      <Nav.Item style={{ color: 'white', padding: 0 }}>
+                       Execute
                       </Nav.Item>
                     </Button>
                   </Form.Group>
@@ -251,12 +311,16 @@ const ExecuteScript = () => {
         ))}
       </ResponsiveGrid>
 
-      {/* Modal for adding execution script */}
-      <AddExecutionScriptModal
+<AddExecutionScriptModal
         show={showModal}
         handleClose={() => setShowModal(false)}
-        onSubmit={handleAddScript}
+        onSubmit={editingScript ? handleEditScript : handleAddScript}
+        initialTitle={editingScript ? editingScript.title : ''}
+        initialLanguage={editingScript ? editingScript.language : ''}
+        initialScript={editingScript ? editingScript.script : ''}
       />
+
+
     </div>
   );
 };

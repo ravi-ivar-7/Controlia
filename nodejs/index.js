@@ -134,7 +134,6 @@ if (httpsServer) {
 
 // HTTP/s routes
 app.use('/', routes);
-app.use('/admin', routes);
 
 app.all('*', (req, res) => {
   console.log(`Can't find ${req.url} on the server`);

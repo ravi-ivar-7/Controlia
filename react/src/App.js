@@ -38,12 +38,8 @@ console.log(user, 'user')
             <div className="main">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                {/* <Route path="/execute-script" element={<ExecuteScript />} /> */}
-
-                {/* Protected route example */}
                 
-                <Route path="/wstest" element={user ? <WsTest /> : <LoginWarningModal isOpen={true} />}/>
-                <Route path="/execute-script" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
+                <Route path="/execute" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
 
                 <Route path="/login" element={<LoginModal isOpen={true} />}/>
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />

@@ -1,13 +1,12 @@
 const os = require('os');
 
-const serverCheck =  async (req, res) => {
+const checkServer =  async (req, res) => {
     const uptime = process.uptime(); // Server uptime in seconds
     const hostname = os.hostname(); 
     const loadavg = os.loadavg();    // Load average over 1, 5, and 15 minutes
     const memoryUsage = process.memoryUsage();
 
     res.status(200).json({
-        message: "pong",
         status: "ok",
         uptime: `${Math.floor(uptime / 60)} minutes`,
         hostname: hostname,
@@ -22,4 +21,4 @@ const serverCheck =  async (req, res) => {
     });
 }
 
-module.exports = {serverCheck}
+module.exports = {checkServer}

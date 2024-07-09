@@ -7,16 +7,16 @@ const getExecutionScript = async (req, res) => {
   try {
     const {decodedToken} = req.body;
 
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'schedulescript');
     client = dbClient;
 
 
-    const scripts = await collection.find({ userId: decodedToken.userId, type: 'executionscript' }).toArray() || []
+    const scripts = await collection.find({ userId: decodedToken.userId, type: 'schedulescript' }).toArray() || []
 
     res.status(200).json({scripts}); 
 
   } catch (error) {
-    console.error('ERROR IN GET EXECUTION SCRIPT: ', error);
+    console.error('ERROR IN GET SCHEDULE SCRIPT: ', error);
     res.status(500).json({ error: 'INTERNAL SERVER ERROR' });
   } finally {
     if (client) {

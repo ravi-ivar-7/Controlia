@@ -29,6 +29,7 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
       scriptData.schedule = scheduleRecurring();
       scriptData.scheduleType = 'recurring';
     }
+    setScheduleType('')
     onSubmit(scriptData);
     handleClose();
   };

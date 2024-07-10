@@ -4,21 +4,30 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 
 import { CodeiumEditor } from "@codeium/react-code-editor";
-const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript }) => {
+
+const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript, initialArgumentsList }) => {
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('');
   const [script, setScript] = useState('');
+  const [argumentsList, setArgumentsList] = useState([]);
 
   useEffect(() => {
     if (show) {
       setTitle(initialTitle);
       setLanguage(initialLanguage);
       setScript(initialScript);
+      setArgumentsList(initialArgumentsList);
     }
-  }, [show, initialTitle, initialLanguage, initialScript]);
+  }, [show, initialTitle, initialLanguage, initialScript, initialArgumentsList]);
+
+  const handleArgumentsChange = (value) => {
+    // Split the value by new lines and trim each line
+    const args = value.split('\n').map(line => line.trim()).filter(line => line !== '');
+    setArgumentsList(args);
+  };
 
   const handleAdd = () => {
-    const scriptData = { title, language, script };
+    const scriptData = { title, language, script, argumentsList };
     onSubmit(scriptData);
     handleClose();
   };
@@ -61,6 +70,17 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
               theme="vs-dark"
               value={script}
               onChange={(value) => setScript(value)}
+              logo={<></>}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea2">
+            <Form.Label>Arguments</Form.Label>
+            <CodeiumEditor
+              language="text"
+              theme="vs-dark"
+              value={argumentsList ? argumentsList.join('\n') : ''}
+              onChange={handleArgumentsChange}
               logo={<></>}
             />
           </Form.Group>

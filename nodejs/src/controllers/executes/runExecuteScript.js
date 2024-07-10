@@ -26,6 +26,8 @@ const runExecuteScript = async (data, decodedToken, socket) => {
 
     const script = scriptDocument.script;
     const language = scriptDocument.language;
+    const argumentsList = scriptDocument.argumentsList;
+
     let filePath;
 
     if (language === 'cpp') {
@@ -35,8 +37,9 @@ const runExecuteScript = async (data, decodedToken, socket) => {
       compile.on('close', (code) => {
         if (code === 0) {
           socket.send(JSON.stringify({ data: 'Successfully compiled' }));
-          child = spawn('./output', [], { stdio: 'pipe' });
+          child = spawn('./output', argumentsList, { stdio: 'pipe' });
           attachChildProcessListeners(child, socket);
+
         } else {
           socket.send(JSON.stringify({ data: `Compilation failed with code ${code}` }));
         }
@@ -51,18 +54,45 @@ const runExecuteScript = async (data, decodedToken, socket) => {
         console.error(`Compile Error: ${data}`);
         socket.send(JSON.stringify({ data: `STDERR: ${data}` }));
       });
+
     } else if (language === 'node' || language === 'javascript') {
       filePath = writeScriptToFile(script, '.js');
-      child = spawn('node', [filePath], { stdio: 'pipe' });
+      child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);
+    } else if (['python', 'python3'].includes(language)) {
+      const command = 'python';
+      child = spawn(command, ['-c', script, ...argumentsList], { stdio: 'pipe' });
+      socket.send(JSON.stringify({ data: 'Process started...' }));
+      attachChildProcessListeners(child, socket);
+    }
 
-    } else if (['bash', 'python', 'python3', 'shell'].includes(language)) {
-      const command = (language === 'bash' || language === 'shell') ? 'sh' : 'python3';
-      child = spawn(command, ['-c', script], { stdio: 'pipe' });
+    else if (['bash', 'shell'].includes(language)) {
+      const command = 'bash';
+
+      // Remove Windows-style line endings
+      const cleanedScript = script.replace(/\r/g, '');
+
+      // Construct command string with script and arguments
+      const argsString = argumentsList.map(arg => `"${arg}"`).join(' ');
+      const commandString = `${cleanedScript} ${argsString}`;
+
+      console.log('Command to execute:', commandString);
+
+      // Spawn the bash process with the cleaned script content and arguments
+      const child = spawn(command, ['-c', script], { stdio: 'pipe' });
+
       socket.send(JSON.stringify({ data: 'Process started...' }));
+
+      // Attach listeners to the child process
       attachChildProcessListeners(child, socket);
-    } else {
+    }
+
+
+
+
+
+    else {
       socket.send(JSON.stringify({ data: 'Unsupported script language' }));
     }
 

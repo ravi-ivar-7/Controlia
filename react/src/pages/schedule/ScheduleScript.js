@@ -238,7 +238,7 @@ const ScheduleScript = () => {
 
       </div>
 
-      <Card.Title style={{padding:'15px', backgroundColor:'grey'}}>Scheduled Scripts</Card.Title>
+      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Scheduled Scripts</Card.Title>
 
       <ResponsiveGridLayout
         className="layout"
@@ -275,7 +275,7 @@ const ScheduleScript = () => {
 
                 <Nav>
                   <Nav.Item style={{ color: 'white' }}>
-                    {script.schedule ?'Schedule: '+ script.schedule : 'Not Scheduled'}
+                    {script.schedule ? 'Schedule: ' + script.schedule : 'Not Scheduled'}
                   </Nav.Item>
                 </Nav>
               </Card.Header>
@@ -301,27 +301,18 @@ const ScheduleScript = () => {
               </Card.Body>
 
 
-
               <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-
-
+                <Nav className="d-flex align-items-center">
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Delete</Nav.Item>
+                  </Button>
+                </Nav>
                 <Nav className="d-flex align-items-center">
                   <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>
-                      Edit
-                    </Nav.Item>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Edit</Nav.Item>
                   </Button>
-                  <div style={{ marginLeft: '10px' }}>
-                    <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
-                      <Nav.Item style={{ color: 'white', padding: 0 }}>
-                        Delete
-                      </Nav.Item>
-                    </Button>
-                  </div>
                 </Nav>
               </Card.Footer>
-
-
 
             </Card>
           </div>
@@ -330,7 +321,7 @@ const ScheduleScript = () => {
       </ResponsiveGridLayout>
 
 
-      <Card.Title style={{padding:'15px', backgroundColor:'grey'}}>Unscheduled Scripts</Card.Title>
+      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Unscheduled Scripts</Card.Title>
 
       <ResponsiveGridLayout
         className="layout"
@@ -367,7 +358,7 @@ const ScheduleScript = () => {
 
                 <Nav>
                   <Nav.Item style={{ color: 'white' }}>
-                    {script.schedule ?'Schedule: '+ script.schedule : 'Not Scheduled'}
+                    {script.schedule ? 'Schedule: ' + script.schedule : 'Not Scheduled'}
                   </Nav.Item>
                 </Nav>
               </Card.Header>
@@ -392,28 +383,14 @@ const ScheduleScript = () => {
                 </Card.Text>
               </Card.Body>
 
-
-
               <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-
-
+                <div></div> {/* This empty div creates space to align content */}
                 <Nav className="d-flex align-items-center">
                   <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>
-                      Add to schedule
-                    </Nav.Item>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Add to Schedule</Nav.Item>
                   </Button>
-                  <div style={{ marginLeft: '10px' }}>
-                    <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
-                      <Nav.Item style={{ color: 'white', padding: 0 }}>
-                        Delete
-                      </Nav.Item>
-                    </Button>
-                  </div>
                 </Nav>
               </Card.Footer>
-
-
 
             </Card>
           </div>

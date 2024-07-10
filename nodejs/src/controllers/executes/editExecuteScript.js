@@ -13,6 +13,7 @@ const editExecuteScript = async (req, res) => {
         title: scriptInfo.title,
         language: scriptInfo.language,
         script: scriptInfo.script,
+        argumentsList:scriptInfo.argumentsList,
         date: new Date(),
       }
     };

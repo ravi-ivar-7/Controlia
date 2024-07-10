@@ -88,7 +88,7 @@ const ExecuteScript = () => {
     } finally {
       setLoading(false);
     }
-  }, []); 
+  }, []);
 
   const saveLayout = useCallback(async (token, layouts) => {
     setLoading(true);
@@ -120,7 +120,7 @@ const ExecuteScript = () => {
 
   useEffect(() => {
     if (layouts) {
-      localStorage.setItem('executeLayouts',layouts)
+      localStorage.setItem('executeLayouts', layouts)
     }
   }, [layouts]);
 
@@ -264,7 +264,7 @@ const ExecuteScript = () => {
     setLayouts(layout);
   }, []);
 
-  const handleLayoutSave = ()=>{
+  const handleLayoutSave = () => {
     const token = localStorage.getItem('token')
     if (!token) {
       console.error('No token found in local storage. Cannot save.');
@@ -279,19 +279,19 @@ const ExecuteScript = () => {
 
   return (
     <div style={mainStyle}>
-     <div className="container">
-      <div className="row mb-3">
-        <div className="col-12 col-lg-6 mb-2 mb-lg-0 d-flex align-items-center">
-          <h4>Execution Dashboard</h4>
-        </div>
-        <div className="col-6 col-lg-3 d-flex justify-content-start mb-2 mb-lg-0">
-          <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
-        </div>
-        <div className="col-6 col-lg-3 d-flex justify-content-end">
-          <Button variant="success" size="sm" onClick={handleLayoutSave}>Save Layout</Button>
+      <div className="container">
+        <div className="row mb-3">
+          <div className="col-12 col-lg-6 mb-2 mb-lg-0 d-flex align-items-center">
+            <h4>Execution Dashboard</h4>
+          </div>
+          <div className="col-6 col-lg-3 d-flex justify-content-start mb-2 mb-lg-0">
+            <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
+          </div>
+          <div className="col-6 col-lg-3 d-flex justify-content-end">
+            <Button variant="success" size="sm" onClick={handleLayoutSave}>Save Layout</Button>
+          </div>
         </div>
       </div>
-    </div>
 
       <ResponsiveGridLayout
         className="layout"
@@ -323,7 +323,7 @@ const ExecuteScript = () => {
               <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
                 <Card.Title >Script</Card.Title>
                 <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                <CodeiumEditor
+                  <CodeiumEditor
                     language={script.language}
                     theme="vs-dark"
                     value={script.script}
@@ -332,6 +332,21 @@ const ExecuteScript = () => {
                   />
                 </Card.Text>
               </Card.Body>
+
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                <Card.Title>Arguments</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                  <CodeiumEditor
+                    language='text'
+                    theme="vs-dark"
+                    value={script.argumentsList.join('\n')}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
+                </Card.Text>
+              </Card.Body>
+
+
 
               <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
                 <Card.Title>Output</Card.Title>
@@ -350,39 +365,22 @@ const ExecuteScript = () => {
                     <Nav.Item style={{ color: 'white', padding: 0 }}> Connect</Nav.Item>
                   </Button>
                 </Nav>
-
-                <Nav className="d-flex align-items-center">
-                  <Button variant="primary" size="sm" onClick={() => { setEditingScript(script); setShowModal(true) }}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>
-                      Edit
-                    </Nav.Item>
+                <Nav>
+                  <Button variant="info" size="sm" onClick={handleWebSocketMessage}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Execute</Nav.Item>
                   </Button>
-                  <div style={{ marginLeft: '10px' }}>
-                    <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
-                      <Nav.Item style={{ color: 'white', padding: 0 }}>
-                        Delete
-                      </Nav.Item>
-                    </Button>
-                  </div>
                 </Nav>
               </Card.Footer>
-
               <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                <Nav className="d-flex align-items-center">
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Delete</Nav.Item>
+                  </Button>
+                </Nav>
                 <Nav>
-                  <Form.Group controlId="messageInput" className="d-flex align-items-center">
-                    <Form.Control
-                      type="text"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Enter your message"
-                      className='flex-grow-1 mr-2'
-                    />
-                    <Button variant="info" size="sm" onClick={handleWebSocketMessage} style={{ marginLeft: '10px' }}>
-                      <Nav.Item style={{ color: 'white', padding: 0 }}>
-                        Execute
-                      </Nav.Item>
-                    </Button>
-                  </Form.Group>
+                  <Button variant="primary" size="sm" onClick={() => { setEditingScript(script); setShowModal(true) }}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Edit</Nav.Item>
+                  </Button>
                 </Nav>
               </Card.Footer>
 
@@ -399,6 +397,7 @@ const ExecuteScript = () => {
         initialTitle={editingScript ? editingScript.title : ''}
         initialLanguage={editingScript ? editingScript.language : ''}
         initialScript={editingScript ? editingScript.script : ''}
+        initialArgumentsList={editingScript ? editingScript.argumentsList : []}
       />
 
     </div>

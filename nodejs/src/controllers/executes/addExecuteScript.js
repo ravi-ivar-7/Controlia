@@ -16,6 +16,7 @@ const addExecuteScript = async (req, res) => {
       title: scriptInfo.title,
       language: scriptInfo.language,
       script: scriptInfo.script,
+      argumentsList:scriptInfo.argumentsList,
       schedule:'',
       scheduleType:'',
       scheduleJobName:'',

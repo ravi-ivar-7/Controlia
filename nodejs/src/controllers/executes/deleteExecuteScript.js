@@ -7,16 +7,16 @@ const deleteExecuteScript = async (req, res) => {
   try {
     const { decodedToken, scriptInfo } = req.body;
 
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'scripts');
     client = dbClient;
 
     const result = await collection.findOneAndDelete({
       userId: decodedToken.userId,
-      type: 'executionscript',
+      type: 'scripts',
       scriptId: scriptInfo.scriptId
     });
 
-    const scripts = await collection.find({ userId: decodedToken.userId, type: 'executionscript' }).toArray() || [];
+    const scripts = await collection.find({ userId: decodedToken.userId, type: 'scripts' }).toArray() || [];
 
     res.status(200).json({ scripts });
 

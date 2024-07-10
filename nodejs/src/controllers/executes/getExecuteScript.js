@@ -6,11 +6,11 @@ const getExecuteScript = async (req, res) => {
   try {
     const {decodedToken} = req.body;
 
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'scripts');
     client = dbClient;
 
 
-    const scripts = await collection.find({ userId: decodedToken.userId, type: 'executionscript' }).toArray() || []
+    const scripts = await collection.find({ userId: decodedToken.userId, type: 'scripts' }).toArray() || []
 
     res.status(200).json({scripts}); 
 

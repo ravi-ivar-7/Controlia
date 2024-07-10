@@ -47,7 +47,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
               onChange={(e) => setLanguage(e.target.value)}
             >
               <option value="">Select Language</option>
-              <option value="shell">Bash</option>
+              <option value="shell">Shell/Bash</option>
               <option value="python">Python</option>
               <option value="javascript">JavaScript/Nodejs</option>
               <option value="cpp">C++</option>

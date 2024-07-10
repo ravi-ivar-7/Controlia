@@ -5,7 +5,7 @@ const editExecuteScript = async (req, res) => {
 
   try {
     const { scriptInfo, decodedToken } = req.body;
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'scripts');
     client = dbClient;
 
     const updateFields = {

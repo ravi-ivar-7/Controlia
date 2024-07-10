@@ -1,6 +1,6 @@
 const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
 
-const getExecuteLayouts = async (req, res) => {
+const getScheduleLayouts = async (req, res) => {
   let client;
 
   try {
@@ -10,12 +10,12 @@ const getExecuteLayouts = async (req, res) => {
     client = dbClient;
 
 
-    const layouts = await collection.find({ userId: decodedToken.userId, type: 'executeLayout' })
+    const layouts = await collection.find({ userId: decodedToken.userId, type: 'scheduleLayout' })
 
     res.status(200).json({layouts}); 
 
   } catch (error) {
-    console.error('ERROR IN GET EXECUTION LAYOUT: ', error);
+    console.error('ERROR IN GET SCHEDULE LAYOUT: ', error);
     res.status(500).json({ error: 'INTERNAL SERVER ERROR' });
   } finally {
     if (client) {
@@ -26,7 +26,7 @@ const getExecuteLayouts = async (req, res) => {
 
 
 
-const saveExecuteLayouts = async (req, res) => {
+const saveScheduleLayouts = async (req, res) => {
     let client;
   
     try {
@@ -35,7 +35,7 @@ const saveExecuteLayouts = async (req, res) => {
       client = dbClient;
   
       const newLayouts = {
-        type: 'executeLayout',
+        type: 'scheduleLayout',
         userId: decodedToken.userId,
         layouts:layouts,
         date: new Date(),
@@ -47,7 +47,7 @@ const saveExecuteLayouts = async (req, res) => {
       res.status(200).json({message:'saved layout.'}); 
   
     } catch (error) {
-      console.error('ERROR IN SAVING EXECUTION LAYOUT: ', error);
+      console.error('ERROR IN SAVING SCHEDULE LAYOUT: ', error);
       res.status(500).json({ error: 'INTERNAL SERVER ERROR' });
     } finally {
       if (client) {
@@ -58,6 +58,6 @@ const saveExecuteLayouts = async (req, res) => {
 
 
 module.exports = { 
-  getExecuteLayouts,
-  saveExecuteLayouts
+  getScheduleLayouts,
+  saveScheduleLayouts
  };

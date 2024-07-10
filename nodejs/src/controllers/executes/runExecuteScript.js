@@ -14,7 +14,7 @@ const runExecuteScript = async (data, decodedToken, socket) => {
   let child;
 
   try {
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'scripts');
     client = dbClient;
 
     const scriptDocument = await collection.findOne({ userId: decodedToken.userId, scriptId: data.scriptId });
@@ -28,7 +28,7 @@ const runExecuteScript = async (data, decodedToken, socket) => {
     const language = scriptDocument.language;
     let filePath;
 
-    if (language === 'c++') {
+    if (language === 'cpp') {
       filePath = writeScriptToFile(script, '.cpp');
       const compile = spawn('g++', [filePath, '-o', 'output'], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Compiling...' }));
@@ -51,13 +51,14 @@ const runExecuteScript = async (data, decodedToken, socket) => {
         console.error(`Compile Error: ${data}`);
         socket.send(JSON.stringify({ data: `STDERR: ${data}` }));
       });
-    } else if (language === 'node') {
+    } else if (language === 'node' || language === 'javascript') {
       filePath = writeScriptToFile(script, '.js');
       child = spawn('node', [filePath], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);
-    } else if (['bash', 'python', 'python3'].includes(language)) {
-      const command = language;
+
+    } else if (['bash', 'python', 'python3', 'shell'].includes(language)) {
+      const command = (language === 'bash' || language === 'shell') ? 'sh' : 'python3';
       child = spawn(command, ['-c', script], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);

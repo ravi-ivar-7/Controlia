@@ -6,6 +6,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { v4 as uuidv4 } from 'uuid';
 import useToast from '../../hooks/useToast';
 import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ExecuteScriptUtils';
+import { CodeiumEditor } from "@codeium/react-code-editor";
 
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -70,15 +71,24 @@ const ExecuteScript = () => {
         }
       });
       console.log(response);
-      const { layouts } = response.data || { layouts: generateLayouts(scripts) };
+      const { layouts } = response.data;
       setLayouts(layouts);
-      console.log('layout fetched', layouts)
+      console.log('Layouts fetched:', layouts);
     } catch (error) {
-      console.error('CAN NOT GET LAYOUT:', error);
+      console.error('Failed to fetch layouts from API:', error);
+      const storedLayouts = localStorage.getItem('executeLayouts');
+      if (storedLayouts) {
+        console.log('Using layouts from localStorage:', storedLayouts);
+        setLayouts(JSON.parse(storedLayouts));
+      } else {
+        const generatedLayouts = generateLayouts(scripts);
+        console.log('Generating default layouts:', generatedLayouts);
+        setLayouts(generatedLayouts);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); 
 
   const saveLayout = useCallback(async (token, layouts) => {
     setLoading(true);
@@ -109,15 +119,12 @@ const ExecuteScript = () => {
   }, [fetchData, fetchLayout, token]);
 
   useEffect(() => {
-    if (!token) {
-      console.error('No token found in local storage');
-      return;
-    }
-
     if (layouts) {
-      saveLayout(token, layouts);
+      localStorage.setItem('executeLayouts',layouts)
     }
-  }, [layouts, saveLayout, token]);
+  }, [layouts]);
+
+
 
   const handleWebSocketConnection = (scriptId) => {
     const token = localStorage.getItem('token');
@@ -257,12 +264,35 @@ const ExecuteScript = () => {
     setLayouts(layout);
   }, []);
 
+  const handleLayoutSave = ()=>{
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('No token found in local storage. Cannot save.');
+      return;
+    }
+
+    if (layouts) {
+      saveLayout(token, layouts);
+    }
+  }
+
+
   return (
     <div style={mainStyle}>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Execution Dashboard</h2>
-        <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
+     <div className="container">
+      <div className="row mb-3">
+        <div className="col-12 col-lg-6 mb-2 mb-lg-0 d-flex align-items-center">
+          <h4>Execution Dashboard</h4>
+        </div>
+        <div className="col-6 col-lg-3 d-flex justify-content-start mb-2 mb-lg-0">
+          <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
+        </div>
+        <div className="col-6 col-lg-3 d-flex justify-content-end">
+          <Button variant="success" size="sm" onClick={handleLayoutSave}>Save Layout</Button>
+        </div>
       </div>
+    </div>
+
       <ResponsiveGridLayout
         className="layout"
         layouts={layouts}
@@ -291,9 +321,15 @@ const ExecuteScript = () => {
               </Card.Header>
 
               <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
-                <Card.Title >Input</Card.Title>
+                <Card.Title >Script</Card.Title>
                 <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  Script: {script.script}
+                <CodeiumEditor
+                    language={script.language}
+                    theme="vs-dark"
+                    value={script.script}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
                 </Card.Text>
               </Card.Body>
 

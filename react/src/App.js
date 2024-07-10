@@ -14,6 +14,7 @@ import ExecuteScript from './pages/executes/ExecuteScript';
 import LoginWarningModal from './components/modals/LoginWarningModal'; // Import the LoginModal component
 import LoginModal from './components/modals/LoginModal';
 import RegisterModal from './components/modals/RegisterModal';
+import ScheduleScript from './pages/schedule/ScheduleScript';
 
 
 function App() {
@@ -39,6 +40,7 @@ console.log(user, 'user')
                 <Route path="/" element={<Dashboard />} />
                 
                 <Route path="/execute" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
+                <Route path="/schedule" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} />}/>
 
                 <Route path="/login" element={<LoginModal isOpen={true} />}/>
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />

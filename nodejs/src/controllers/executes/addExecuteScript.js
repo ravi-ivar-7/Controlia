@@ -5,28 +5,28 @@ const addExecuteScript = async (req, res) => {
 
   try {
 
-
-    // If you are expecting form data, it will be in req.body (assuming body-parser is used)
     const { scriptInfo, decodedToken } = req.body;
-    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
+    const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'scripts');
     client = dbClient;
 
-    // Create the new script object
     const newScript = {
-      type: 'executionscript',
+      type: 'scripts',
       userId: decodedToken.userId,
       scriptId: scriptInfo.scriptId,
       title: scriptInfo.title,
       language: scriptInfo.language,
       script: scriptInfo.script,
+      schedule:'',
+      scheduleType:'',
+      scheduleJobName:'',
       date: new Date(),
 
     };
 
     await collection.insertOne(newScript);
 
-    const scripts = await collection.find({ userId: decodedToken.userId, type: 'executionscript' }).toArray() || [];
-    // console.log(scripts)
+    const scripts = await collection.find({ userId: decodedToken.userId, type: 'scripts' }).toArray() || [];
+    
     res.status(200).json({newScript}); 
 
   } catch (error) {

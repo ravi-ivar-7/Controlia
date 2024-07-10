@@ -304,7 +304,7 @@ const ExecuteScript = () => {
         onResizeStop={handleResizeStop}
       >
         {scripts.map((script, index) => (
-          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8}}>
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>

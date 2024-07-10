@@ -3,10 +3,15 @@ const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
 const fs = require('fs');
 const path = require('path');
 
-function writeScriptToFile(scriptContent, extension) {
-  const tempFilePath = path.join(__dirname, `tempScript${extension}`);
-  fs.writeFileSync(tempFilePath, scriptContent);
-  return tempFilePath;
+function getDirToStoreFile() {
+  return path.resolve(__dirname, '../../../temp');
+}
+
+function writeScriptToFile(scriptContent, fileName) {
+  const dirToStoreFile = getDirToStoreFile();
+  const absoluteFilePath = path.join(dirToStoreFile, fileName);
+  fs.writeFileSync(absoluteFilePath, scriptContent);
+  return absoluteFilePath;
 }
 
 const runExecuteScript = async (data, decodedToken, socket) => {
@@ -29,17 +34,19 @@ const runExecuteScript = async (data, decodedToken, socket) => {
     const argumentsList = scriptDocument.argumentsList;
 
     let filePath;
+    let dirToStoreFile = getDirToStoreFile();
 
     if (language === 'cpp') {
-      filePath = writeScriptToFile(script, '.cpp');
-      const compile = spawn('g++', [filePath, '-o', 'output'], { stdio: 'pipe' });
+      filePath = writeScriptToFile(script, 'tempcpp.cpp');
+
+      const compile = spawn('g++', [filePath, '-o', path.join(dirToStoreFile, 'output')], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Compiling...' }));
+
       compile.on('close', (code) => {
         if (code === 0) {
           socket.send(JSON.stringify({ data: 'Successfully compiled' }));
-          child = spawn('./output', argumentsList, { stdio: 'pipe' });
+          const child = spawn(path.join(dirToStoreFile, 'output'), argumentsList, { stdio: 'pipe' });
           attachChildProcessListeners(child, socket);
-
         } else {
           socket.send(JSON.stringify({ data: `Compilation failed with code ${code}` }));
         }
@@ -56,7 +63,7 @@ const runExecuteScript = async (data, decodedToken, socket) => {
       });
 
     } else if (language === 'node' || language === 'javascript') {
-      filePath = writeScriptToFile(script, '.js');
+      filePath = writeScriptToFile(script, 'tempjs.js');
       child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);
@@ -68,29 +75,15 @@ const runExecuteScript = async (data, decodedToken, socket) => {
     }
 
     else if (['bash', 'shell'].includes(language)) {
-      const command = 'bash';
+      const filePath = writeScriptToFile(script, 'bashtemp.sh');
 
-      // Remove Windows-style line endings
-      const cleanedScript = script.replace(/\r/g, '');
+      fs.chmodSync(filePath, '755');
+      const dirToStoreFile = getDirToStoreFile();
 
-      // Construct command string with script and arguments
-      const argsString = argumentsList.map(arg => `"${arg}"`).join(' ');
-      const commandString = `${cleanedScript} ${argsString}`;
-
-      console.log('Command to execute:', commandString);
-
-      // Spawn the bash process with the cleaned script content and arguments
-      const child = spawn(command, ['-c', script], { stdio: 'pipe' });
-
+      const child = spawn('bash', ['temp/bashtemp.sh', ...argumentsList], { stdio: 'pipe' }); // requres relative path to project
       socket.send(JSON.stringify({ data: 'Process started...' }));
-
-      // Attach listeners to the child process
       attachChildProcessListeners(child, socket);
     }
-
-
-
-
 
     else {
       socket.send(JSON.stringify({ data: 'Unsupported script language' }));

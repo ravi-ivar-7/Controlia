@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
 
 
-const runExecutionScript = async (data, decodedToken, socket) => {
+const runScheduleScript = async (scriptInfo) => {
 
     const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'executionscript');
     client = dbClient;
@@ -15,7 +15,6 @@ const runExecutionScript = async (data, decodedToken, socket) => {
     let child;
 
     if (language === 'c++') {
-        // Compile the C++ code
         const compile = spawn('g++', [script, '-o', 'output'], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
@@ -127,4 +126,4 @@ const runExecutionScript = async (data, decodedToken, socket) => {
 
 };
 
-module.exports = { runExecutionScript };
+module.exports = { runScheduleScript };

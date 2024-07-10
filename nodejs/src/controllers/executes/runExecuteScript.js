@@ -67,15 +67,15 @@ const runExecuteScript = async (data, decodedToken, socket) => {
       child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);
+      
     } else if (['python', 'python3'].includes(language)) {
       const command = 'python';
       child = spawn(command, ['-c', script, ...argumentsList], { stdio: 'pipe' });
       socket.send(JSON.stringify({ data: 'Process started...' }));
       attachChildProcessListeners(child, socket);
     }
-
     else if (['bash', 'shell'].includes(language)) {
-      const filePath = writeScriptToFile(script, 'bashtemp.sh');
+      filePath = writeScriptToFile(script, 'bashtemp.sh');
 
       fs.chmodSync(filePath, '755');
       const dirToStoreFile = getDirToStoreFile();

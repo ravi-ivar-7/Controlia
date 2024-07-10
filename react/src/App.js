@@ -16,7 +16,6 @@ import LoginModal from './components/modals/LoginModal';
 import RegisterModal from './components/modals/RegisterModal';
 import ScheduleScript from './pages/schedule/ScheduleScript';
 
-
 function App() {
   // const { user } = useAuth();
   const user = localStorage.getItem('user')

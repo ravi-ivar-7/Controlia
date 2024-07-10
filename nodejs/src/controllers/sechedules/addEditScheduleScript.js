@@ -1,58 +1,63 @@
-require('dotenv').config({path:'../../../config/env/.env'});
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const schedule = require('node-schedule');
+const { sendMail } = require('../../utils/sendMail');
+const { runScheduleScript } = require('./runScheduleScript')
+require('dotenv').config({ path: '../../../config/env/.env' });
 
 const formateDateTime = async (dateTime) => {
   const newDateTime = new Date(dateTime);
-
   const year = newDateTime.getFullYear();
   const month = ('0' + (newDateTime.getMonth() + 1)).slice(-2); // Months are zero indexed
   const day = ('0' + newDateTime.getDate()).slice(-2);
   const hours = ('0' + newDateTime.getHours()).slice(-2);
   const minutes = ('0' + newDateTime.getMinutes()).slice(-2);
-
   const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-
   return formattedDateTime;
 };
 
 const addEditScheduleScript = async (req, res) => {
+  const { decodedToken, scriptInfo } = req.body;
+
+  if (!decodedToken || !scriptInfo) {
+    return res.status(400).json({ error: 'Invalid request format' });
+  }
+
   const client = new MongoClient(process.env.MONGODB_URL);
-  let message;
 
   try {
-    const { decodedToken, scriptInfo } = req.body;
-
     await client.connect();
 
     const db = client.db("controlia");
     const jobCollection = db.collection('schedules');
-    const scriptCollection = db.collection('scripts')
+    const scriptCollection = db.collection('scripts');
 
-    const scheduledScript = await jobCollection.findOne({ userId: decodedToken.userId, scriptId: scriptInfo.scriptId });
-    
+    const scheduledScript = await jobCollection.findOne({
+      userId: decodedToken.userId,
+      scriptId: scriptInfo.scriptId
+    });
 
     const callback = () => {
       console.log('Scheduled job executed:', scriptInfo.scriptId);
-      // Add logic to execute the script here
+      runScheduleScript(scriptInfo);
     };
 
     let newScheduleJob;
     let jobName;
+
     if (scriptInfo.scheduleType === 'fixed') {
       const dateTime = await formateDateTime(scriptInfo.schedule);
-      jobName = `${scriptInfo.scriptId}?${dateTime}?fixed`; 
+      jobName = `${scriptInfo.scriptId}?${dateTime}?fixed`;
       newScheduleJob = schedule.scheduleJob(jobName, dateTime, callback);
     } else if (scriptInfo.scheduleType === 'recurring') {
-      jobName = `${scriptInfo.scriptId}?${scriptInfo.schedule}?recurring`; 
+      jobName = `${scriptInfo.scriptId}?${scriptInfo.schedule}?recurring`;
       newScheduleJob = schedule.scheduleJob(jobName, scriptInfo.schedule, callback);
     } else {
       return res.status(400).json({ message: 'Unsupported scheduling input.' });
     }
-    console.log(scriptInfo.schedule)
+
     if (scheduledScript) {
       schedule.cancelJob(scheduledScript.scheduleJobName);
-      
+
       const scheduleUpdateFields = {
         $set: {
           schedule: scriptInfo.schedule,
@@ -62,7 +67,7 @@ const addEditScheduleScript = async (req, res) => {
         }
       };
 
-      const updatedSchedule = await jobCollection.findOneAndUpdate(
+      await jobCollection.findOneAndUpdate(
         { userId: decodedToken.userId, scriptId: scriptInfo.scriptId },
         scheduleUpdateFields,
         { returnDocument: 'after', upsert: true }
@@ -79,7 +84,7 @@ const addEditScheduleScript = async (req, res) => {
         date: new Date(),
       };
 
-      const newSchedule = await jobCollection.insertOne(scheduleDocument);
+      await jobCollection.insertOne(scheduleDocument);
 
       message = 'Schedule added.';
     }
@@ -93,11 +98,20 @@ const addEditScheduleScript = async (req, res) => {
       }
     };
 
-    const updatedScript = await scriptCollection.findOneAndUpdate(
+    await scriptCollection.findOneAndUpdate(
       { userId: decodedToken.userId, scriptId: scriptInfo.scriptId },
       scriptUpdateFields,
       { returnDocument: 'after', upsert: true }
     );
+
+    let mailOptions = {
+      from: 'ravi404606@gmail.com',
+      subject: 'Job scheduled',
+      to: 'xotivar5@gmail.com',
+      text: `Title: ${scriptInfo.title} . \nJobName: ${jobName} . \nSchedule: ${scriptInfo.schedule} .`,
+    };
+
+    await sendMail(mailOptions);
 
     const scripts = await scriptCollection.find({ userId: decodedToken.userId }).toArray() || [];
 

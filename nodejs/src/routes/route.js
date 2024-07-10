@@ -19,6 +19,7 @@ const {deleteScheduleScript} = require('../controllers/sechedules/deleteSchedule
 const {addEditScheduleScript} = require('../controllers/sechedules/addEditScheduleScript')
 const {getScheduleLayouts, saveScheduleLayouts} = require('../controllers/sechedules/scheduleLayouts')
 
+const {convertNotebook} = require('../controllers/jupyter/convertNotebook')
 
 
 
@@ -26,6 +27,8 @@ router.get('/', async (req, res) => { res.status(200).json({ status: "ok", ip: r
 router.get('/check-server', checkServer)
 router.get('/validate-token', verifyToken, (req, res) => { return res.status(200).json({ message: 'Token is valid', userData: req.data }); });
 
+router.post('/login', loginUser);
+router.post('/register', registerUser);
 
 router.post('/get-execute-script', verifyToken,getExecuteScript);
 router.post('/add-execute-script',verifyToken, addExecuteScript)
@@ -39,10 +42,9 @@ router.post('/delete-schedule-script',verifyToken, deleteScheduleScript)
 router.get('/get-schedule-layout',verifyToken, getScheduleLayouts)
 router.post('/save-schedule-layout',verifyToken, saveScheduleLayouts)
 
+router.post('/convert-notebook',convertNotebook )
 
 
 
-router.post('/login', loginUser);
-router.post('/register', registerUser);
 
 module.exports = router;

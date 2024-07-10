@@ -293,10 +293,16 @@ const ScheduleScript = () => {
                 </Card.Text>
               </Card.Body>
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
-                <Card.Title >Arguments</Card.Title>
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                <Card.Title>Arguments</Card.Title>
                 <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  {script.arguments}
+                  <CodeiumEditor
+                    language='text'
+                    theme="vs-dark"
+                    value={script.argumentsList.join('\n')}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
                 </Card.Text>
               </Card.Body>
 
@@ -334,7 +340,7 @@ const ScheduleScript = () => {
         onResizeStop={handleResizeStop}
       >
         {executeScripts.map((script, index) => (
-          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
@@ -376,10 +382,16 @@ const ScheduleScript = () => {
                 </Card.Text>
               </Card.Body>
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
-                <Card.Title >Arguments</Card.Title>
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                <Card.Title>Arguments</Card.Title>
                 <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  {script.arguments}
+                  <CodeiumEditor
+                    language='text'
+                    theme="vs-dark"
+                    value={script.argumentsList.join('\n')}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
                 </Card.Text>
               </Card.Body>
 

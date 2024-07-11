@@ -1,9 +1,7 @@
-
-
-const { runExecuteScript } = require('../controllers/executes/runExecuteScript');
+const { runExecuteScript } = require('../controllers/executeScripts/runExecuteScript');
 
 const wsRoutes = {
-  '/run-execute-script': (data, decodedToken, socket) => {runExecuteScript(data,decodedToken, socket);},
+  '/run-execute-script': (scriptInfo, decodedToken, socket) => {runExecuteScript(scriptInfo,decodedToken, socket);},
 
 };
 

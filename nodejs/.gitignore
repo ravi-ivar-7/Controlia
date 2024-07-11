@@ -5,4 +5,4 @@ privateKey.pem
 key.pem
 server.crt
 .vercel
-temp
+*temp

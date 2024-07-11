@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import { BrowserRouter, Route, Routes ,useLocation, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+// import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/navbars/Sidebar';
 import { Toaster } from 'react-hot-toast';
 import MatomoTracker from './utils/matomoTracker';
@@ -10,11 +10,11 @@ import Dashboard from './pages/dashboard/Dashboard';
 import Header from './components/navbars/Header';
 import Footer from './components/navbars/Footer';
 import { SidebarProvider } from './context/SidebarContext';
-import ExecuteScript from './pages/executes/ExecuteScript';
-import LoginWarningModal from './components/modals/LoginWarningModal'; // Import the LoginModal component
-import LoginModal from './components/modals/LoginModal';
-import RegisterModal from './components/modals/RegisterModal';
-import ScheduleScript from './pages/schedule/ScheduleScript';
+import ExecuteScript from './pages/executeScripts/ExecuteScript';
+import LoginWarningModal from './components/userModals/LoginWarningModal'; // Import the LoginModal component
+import LoginModal from './components/userModals/LoginModal';
+import RegisterModal from './components/userModals/RegisterModal';
+import ScheduleScript from './pages/scheduleScripts/ScheduleScript';
 
 function App() {
   // const { user } = useAuth();
@@ -38,8 +38,8 @@ console.log(user, 'user')
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 
-                <Route path="/execute" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
-                <Route path="/schedule" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} />}/>
+                <Route path="/execute-scripts" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
+                <Route path="/schedule-scripts" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} />}/>
 
                 <Route path="/login" element={<LoginModal isOpen={true} />}/>
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />

@@ -1,18 +1,19 @@
-const { connectToSchemaLessDatabase } = require('../../databases/mongoDB');
+require('dotenv').config({ path: '../../../.env' });
+const { MongoClient } = require('mongodb');
 const { generateToken } = require('../../middlewares/generateToken');
-const bcrypt = require('bcryptjs'); // Assuming you're using bcryptjs for hashing
+const bcrypt = require('bcryptjs');
 
 const registerUser = async (req, res) => {
-    let client;
-
+    const client = new MongoClient(process.env.MONGODB_URL);
     try {
+
         const { userId, email, name, password } = req.body;
         if (!(email && name && userId && password)) {
             return res.status(209).json({ message: "All fields are required!" });
         }
-
-        const { client: dbClient, collection } = await connectToSchemaLessDatabase('controlia', 'user');
-        client = dbClient;
+        await client.connect();
+        const db = client.db("controlia");
+        const userCollection = db.collection('user');
 
         const existingUser = await collection.findOne({ $or: [{ email: email }, { userId: userId }] });
 
@@ -31,10 +32,10 @@ const registerUser = async (req, res) => {
 
         await collection.insertOne(newUser); // Await the insert operation
 
-        const tokenData = {userId,name}
+        const tokenData = { email, userId, name }
         const token = generateToken(tokenData);
 
-        return res.status(200).json({ message: "Account created successfully", token , user:tokenData});
+        return res.status(200).json({ message: "Account created successfully", token, user: tokenData });
 
     } catch (error) {
         console.error('ERROR DURING REGISTRATION: ', error);

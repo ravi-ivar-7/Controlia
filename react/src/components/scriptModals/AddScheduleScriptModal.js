@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 
-const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) => {
+const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData }) => {
   const [scheduleType, setScheduleType] = useState(''); 
   const [dateTime, setDateTime] = useState('');
   const [cronFields, setCronFields] = useState({
@@ -23,13 +23,15 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
 
   const handleAdd = () => {
     if (scheduleType === 'fixed' && dateTime) {
-      scriptData.schedule = dateTime;
+      scriptData.scheduleRule = dateTime;
       scriptData.scheduleType = 'fixed';
     } else if (scheduleType === 'recurring') {
-      scriptData.schedule = scheduleRecurring();
+      scriptData.scheduleRule = scheduleRecurring();
       scriptData.scheduleType = 'recurring';
+    } else {
+      return;
     }
-    setScheduleType('')
+
     onSubmit(scriptData);
     handleClose();
   };
@@ -38,11 +40,27 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
     setCronFields({ ...cronFields, [field]: value });
   };
 
+  const isFormValid = () => {
+    if (scheduleType === 'fixed' && dateTime) {
+      return true;
+    } else if (scheduleType === 'recurring') {
+      const { second, minute, hour, dayOfMonth, month, dayOfWeek } = cronFields;
+      return (
+        second.trim() !== '' ||
+        minute.trim() !== '' ||
+        hour.trim() !== '' ||
+        dayOfMonth.trim() !== '' ||
+        month.trim() !== '' ||
+        dayOfWeek.trim() !== ''
+      );
+    }
+    return false;
+  };
+
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title> {scriptData.title}</Modal.Title>
-        {/* <Modal.Title>Language: {scriptData.language}</Modal.Title> */}
+        <Modal.Title>{scriptData.title}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -72,7 +90,6 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               }}
               disabled={scheduleType === 'fixed'}
             />
-
             <Form.Control
               type="text"
               placeholder="Minute (0 - 59), use * for every Minute"
@@ -80,7 +97,6 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               onChange={(e) => handleFieldChange('minute', e.target.value)}
               disabled={scheduleType === 'fixed'}
             />
-
             <Form.Control
               type="text"
               placeholder="Hour (0 - 23), use * for every Hour"
@@ -88,7 +104,6 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               onChange={(e) => handleFieldChange('hour', e.target.value)}
               disabled={scheduleType === 'fixed'}
             />
-
             <Form.Control
               type="text"
               placeholder="Day of Week (0 - 7, Sun 0 or 7), use * for every Day of Week"
@@ -96,7 +111,6 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               onChange={(e) => handleFieldChange('dayOfWeek', e.target.value)}
               disabled={scheduleType === 'fixed'}
             />
-
             <Form.Control
               type="text"
               placeholder="Day of Month (1 - 31), use * for every Day of Month"
@@ -104,7 +118,6 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               onChange={(e) => handleFieldChange('dayOfMonth', e.target.value)}
               disabled={scheduleType === 'fixed'}
             />
-
             <Form.Control
               type="text"
               placeholder="Month (1 - 12), use * for every Month"
@@ -113,16 +126,16 @@ const AddScheduleScriptModal = ({ show, handleClose, onSubmit, scriptData, }) =>
               disabled={scheduleType === 'fixed'}
             />
           </Form.Group>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleAdd} disabled={!isFormValid()}>
+              Add/Edit
+            </Button>
+          </Modal.Footer>
         </Form>
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={handleAdd}>
-          Add/Edit
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 };

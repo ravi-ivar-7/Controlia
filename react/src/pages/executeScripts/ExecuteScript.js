@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
-import { Button, Nav, Form } from 'react-bootstrap';
-import AddExecutionScriptModal from '../../components/modals/AddExecutionScriptModal';
+import { Button, Nav } from 'react-bootstrap';
+import AddExecutionScriptModal from '../../components/scriptModals/AddExecuteScriptModal';
 import axiosInstance from '../../utils/axiosInstance';
-import { v4 as uuidv4 } from 'uuid';
 import useToast from '../../hooks/useToast';
 import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ExecuteScriptUtils';
 import { CodeiumEditor } from "@codeium/react-code-editor";
@@ -17,15 +16,15 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 const ExecuteScript = () => {
   const [ws, setWs] = useState(null);
   const [message, setMessage] = useState('');
-  const [scriptMessages, setScriptMessages] = useState({});
+  const [socketMessages, setSocketMessages] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scripts, setScripts] = useState([]);
-  const { showToast } = useToast();
   const [connectedScriptId, setConnectedScriptId] = useState('');
   const [editingScript, setEditingScript] = useState(null);
   const [layouts, setLayouts] = useState();
 
+  const { showErrorToast, showSuccessToast } = useToast();
   const token = localStorage.getItem('token');
 
   const fetchData = useCallback(async (token) => {
@@ -33,76 +32,22 @@ const ExecuteScript = () => {
     try {
       const response = await axiosInstance.post('/get-execute-script', {}, {
         headers: {
-          authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         }
       });
-      console.log(response);
-      const { scripts } = response.data || [];
-      setScripts(scripts);
-    } catch (error) {
-      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  const generateLayouts = useCallback((scripts) => {
-    const initialLayouts = {
-      lg: [],
-      md: [],
-      sm: [],
-    };
-
-    scripts.forEach((script, index) => {
-      initialLayouts.lg.push({ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 4 });
-      initialLayouts.md.push({ i: script.scriptId, x: (index % 2) * 4, y: Math.floor(index / 2) * 4, w: 4, h: 4 });
-      initialLayouts.sm.push({ i: script.scriptId, x: 0, y: index, w: 1, h: 4 });
-    });
-
-    return initialLayouts;
-  }, []);
-
-  const fetchLayout = useCallback(async (token) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get('/get-execute-layout', {
-        headers: {
-          authorization: `Bearer ${token}`,
+      if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
         }
-      });
-      console.log(response);
-      const { layouts } = response.data;
-      setLayouts(layouts);
-      console.log('Layouts fetched:', layouts);
-    } catch (error) {
-      console.error('Failed to fetch layouts from API:', error);
-      const storedLayouts = localStorage.getItem('executeLayouts');
-      if (storedLayouts) {
-        console.log('Using layouts from localStorage:', storedLayouts);
-        setLayouts(JSON.parse(storedLayouts));
+        setScripts(response.data.scripts || []);
       } else {
-        const generatedLayouts = generateLayouts(scripts);
-        console.log('Generating default layouts:', generatedLayouts);
-        setLayouts(generatedLayouts);
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const saveLayout = useCallback(async (token, layouts) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.post('/save-execute-layout', {
-        layouts,
-      }, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      showToast('Layout saved.')
     } catch (error) {
-      console.error('CAN NOT CONNECT TO SERVER:', error);
+      console.error('Failed to fetch execute scripts.', error);
+      showErrorToast('Failed to fetch execute scripts.');
     } finally {
       setLoading(false);
     }
@@ -111,19 +56,17 @@ const ExecuteScript = () => {
   useEffect(() => {
     if (!token) {
       console.error('No token found in local storage');
+      showErrorToast('No token found. Failed to fetch  data.')
       return;
     }
-
     fetchData(token);
-    fetchLayout(token);
-  }, [fetchData, fetchLayout, token]);
+  }, []);
 
   useEffect(() => {
     if (layouts) {
       localStorage.setItem('executeLayouts', layouts)
     }
   }, [layouts]);
-
 
 
   const handleWebSocketConnection = (scriptId) => {
@@ -133,25 +76,25 @@ const ExecuteScript = () => {
     setConnectedScriptId(scriptId);
 
     socket.onopen = () => {
-      console.log('WS CONNECTED');
+      showSuccessToast('Connected')
       setWs(socket);
-      setScriptMessages({ ...scriptMessages, [scriptId]: [] });
+      setSocketMessages({ ...socketMessages, [scriptId]: [] });
     };
 
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       const newData = message.data;
-      setScriptMessages(prevScriptMessages => ({
-        ...prevScriptMessages,
-        [scriptId]: [...(prevScriptMessages[scriptId] || []), newData]
-      }));
+      console.log(message.message)
+      setSocketMessages(prevSocketMessages => ({ ...prevSocketMessages, [scriptId]: [...(prevSocketMessages[scriptId] || []), newData] }));
     };
 
     socket.onclose = (event) => {
+      showErrorToast('Disconnected')
       console.log(`WS DISCONNECTED: ${event.reason}`);
     };
 
     socket.onerror = (error) => {
+      showErrorToast('Connection error.')
       console.error('WS ERROR:', error);
     };
 
@@ -166,6 +109,7 @@ const ExecuteScript = () => {
       ws.send(messageToSend);
       setMessage('');
     } else {
+      showErrorToast('Connection is not open.')
       console.error('WS IS NOT OPEN');
     }
   };
@@ -174,8 +118,7 @@ const ExecuteScript = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const scriptId = uuidv4();
-      const scriptInfo = { ...scriptData, scriptId };
+      const scriptInfo = { ...scriptData };
       const response = await axiosInstance.post('/add-execute-script', {
         scriptInfo,
       }, {
@@ -183,16 +126,21 @@ const ExecuteScript = () => {
           authorization: `Bearer ${token}`,
         },
       });
-
+      console.log(response.status)
       if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
+        }
         const { newScript } = response.data;
-        console.log(newScript)
         setScripts(prevScripts => [...prevScripts, newScript]);
-      } else {
-        console.error('Error adding execution script:', response);
+      }
+      else {
+        console.error('Internal Server Error', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+      console.error('Failed to add new execute scripts.', error);
+      showErrorToast('Failed to add new execute scripts.');
     } finally {
       setLoading(false);
     }
@@ -216,18 +164,22 @@ const ExecuteScript = () => {
         },
       });
       if (response.status === 200) {
-        setScripts(scripts.filter(script => script.scriptId !== scriptId));
-        showToast('Successfully deleted.')
-      }
-      else {
-        console.error('Error deleting execution script:', response);
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
+        }
+        setScripts(prevScripts => prevScripts.filter(script => script.scriptId !== scriptInfo.scriptId));
+      } else {
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+      console.error('Failed to delete execute scripts.', error);
+      showErrorToast('Failed to delete execute scripts.');
     } finally {
       setLoading(false);
+     
     }
-  }
+  };
 
   const handleEditScript = async (scriptData) => {
     setLoading(true);
@@ -243,16 +195,22 @@ const ExecuteScript = () => {
       });
 
       if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
+        }
         const { updatedScript } = response.data;
         setScripts(prevScripts => prevScripts.map(script => script.scriptId === updatedScript.scriptId ? updatedScript : script));
-      } else {
-        console.error('Error updating execution script:', response);
+      }
+      else {
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO EXECUTION SERVER:', error);
+      console.error('Failed to edit execute scripts.', error);
+      showErrorToast('Failed to edit execute scripts.');
     } finally {
       setLoading(false);
-      setEditingScript(null)
+      setEditingScript('')
     }
   };
 
@@ -264,34 +222,19 @@ const ExecuteScript = () => {
     setLayouts(layout);
   }, []);
 
-  const handleLayoutSave = () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.error('No token found in local storage. Cannot save.');
-      return;
-    }
-
-    if (layouts) {
-      saveLayout(token, layouts);
-    }
-  }
-
-
   return (
     <div style={mainStyle}>
       <div className="container">
         <div className="row mb-3">
-          <div className="col-12 col-lg-6 mb-2 mb-lg-0 d-flex align-items-center">
+          <div className="col-8 d-flex align-items-center">
             <h4>Execution Dashboard</h4>
           </div>
-          <div className="col-6 col-lg-3 d-flex justify-content-start mb-2 mb-lg-0">
+          <div className="col-4 d-flex justify-content-end">
             <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Add</Button>
-          </div>
-          <div className="col-6 col-lg-3 d-flex justify-content-end">
-            <Button variant="success" size="sm" onClick={handleLayoutSave}>Save Layout</Button>
           </div>
         </div>
       </div>
+
 
       <ResponsiveGridLayout
         className="layout"
@@ -304,7 +247,7 @@ const ExecuteScript = () => {
         onResizeStop={handleResizeStop}
       >
         {scripts.map((script, index) => (
-          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8}}>
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
@@ -351,8 +294,8 @@ const ExecuteScript = () => {
               <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
                 <Card.Title>Output</Card.Title>
                 <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  {scriptMessages[script.scriptId]?.map((message, index) => (
-                    <div key={`message-${index}`}>
+                  {socketMessages[script.scriptId]?.map((message, index) => (
+                    <div key={`socket-message-${index}`}>
                       {message}
                     </div>
                   ))}

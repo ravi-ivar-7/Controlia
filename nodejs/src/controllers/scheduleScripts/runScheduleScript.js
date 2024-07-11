@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../../../config/env/.env' });
+require('dotenv').config({ path: '../../../.env' });
 const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
@@ -11,23 +11,23 @@ const attachChildProcessListeners = (child) => {
 
         child.stdout.on('data', (data) => {
             console.log(`STDOUT: ${data}`);
-            outputData.push(`${new Date().toISOString()}, STDOUT: ${data}`);
+            outputData.push(`${new Date().toISOString()},${data}`);
         });
 
         child.stderr.on('data', (data) => {
             console.log(`STDERR: ${data}`);
-            outputData.push(`${new Date().toISOString()}, STDERR: ${data}`);
+            outputData.push(`${new Date().toISOString()}, ${data}`);
         });
 
         child.on('close', (code) => {
             console.log(`CHILD PROCESS CLOSED WITH CODE: ${code}`);
-            outputData.push(`${new Date().toISOString()}, CHILD PROCESS CLOSED WITH CODE: ${code}`);
+            outputData.push(`${new Date().toISOString()}, PROCESS CLOSED WITH CODE: ${code}`);
             resolve(outputData);
         });
 
         child.on('error', (err) => {
             console.error(`Child process error: ${err}`);
-            outputData.push(`${new Date().toISOString()}, Child process error: ${err}`);
+            outputData.push(`${new Date().toISOString()},PROCESS ERROR: ${err}`);
             reject(outputData);
         });
     });
@@ -35,39 +35,42 @@ const attachChildProcessListeners = (child) => {
 
 const runScheduleScript = async (scriptInfo) => {
     const client = new MongoClient(process.env.MONGODB_URL);
+    const dirToStoreFile = path.join(__dirname, '../../../temp')
     let outputData = [];
-    let scheduleJobName;
+    let scheduleId;
+    let toMail;
 
     try {
         await client.connect();
 
         const db = client.db("controlia");
-        const jobCollection = db.collection('schedules');
-        const scriptCollection = db.collection('scripts');
+        const scheduleCollection = db.collection('scheduleScripts');
+        
 
-        const scriptDocument = await scriptCollection.findOne({ userId: scriptInfo.userId, scriptId: scriptInfo.scriptId });
+        const scriptDocument = await scheduleCollection.findOne({ userId: scriptInfo.userId, scriptId: scriptInfo.scriptId });
 
         if (!scriptDocument) {
             console.log('Script not found');
             return;
         }
 
-        scheduleJobName = scriptDocument.scheduleJobName;
+        scheduleId = scriptDocument.scheduleId;
+        toMail = scriptDocument.email;
 
         if (scriptDocument.scheduleType === 'fixed') {
-            await jobCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId, scheduleJobName: scriptDocument.scheduleJobName });
+            console.log('deleting')
+            await scheduleCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId});
 
             const scheduleUpdateFields = {
                 $set: {
-                    schedule: '',
-                    scheduleType: '',
-                    scheduleJobName: '',
+                    scheduleId: '',
                     date: new Date(),
                 }
             };
 
+            const scriptCollection = db.collection('executeScripts');
             await scriptCollection.findOneAndUpdate(
-                { userId: scriptInfo.userId, scriptId: scriptInfo.scriptId },
+                { userId: scriptDocument.userId, scriptId: scriptDocument.scriptId },
                 scheduleUpdateFields,
                 { returnDocument: 'after', upsert: true }
             );
@@ -78,15 +81,15 @@ const runScheduleScript = async (scriptInfo) => {
         const language = scriptDocument.language;
         const argumentsList = scriptDocument.argumentsList;
 
-        console.log(`Executing schedule job ${scriptInfo.scheduleJobName}`);
-        outputData.push(`${new Date().toISOString()}, Executing schedule job ${scriptInfo.scheduleJobName}`);
+        console.log(`Executing schedule job ${scriptDocument.scheduleId}`);
+        outputData.push(`${new Date().toISOString()}, Executing schedule job ${scriptDocument.scheduleId}`);
 
         let child;
         if (language === 'cpp') {
-            const filePath = path.join(__dirname, 'tempcpp.cpp');
+            const filePath = path.join(dirToStoreFile, 'tempcpp.cpp');
             await fs.writeFile(filePath, script);
 
-            const compile = spawn('g++', [filePath, '-o', path.join(__dirname, 'output')], { stdio: 'pipe' });
+            const compile = spawn('g++', [filePath, '-o', path.join(dirToStoreFile, 'output')], { stdio: 'pipe' });
 
             console.log('Compiling...');
             outputData.push(`${new Date().toISOString()}, Compiling...`);
@@ -96,7 +99,7 @@ const runScheduleScript = async (scriptInfo) => {
                     if (code === 0) {
                         console.log('Successfully compiled');
                         outputData.push(`${new Date().toISOString()}, Successfully compiled...`);
-                        child = spawn(path.join(__dirname, 'output'), argumentsList, { stdio: 'pipe' });
+                        child = spawn(path.join(dirToStoreFile, 'output'), argumentsList, { stdio: 'pipe' });
                         resolve();
                     } else {
                         console.log(`Compilation failed with code ${code}`);
@@ -117,7 +120,7 @@ const runScheduleScript = async (scriptInfo) => {
             });
 
         } else if (language === 'node' || language === 'javascript') {
-            const filePath = path.join(__dirname, 'tempjs.js');
+            const filePath = path.join(dirToStoreFile, 'tempjs.js');
             await fs.writeFile(filePath, script);
             child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
             console.log('Process started...');
@@ -127,7 +130,7 @@ const runScheduleScript = async (scriptInfo) => {
             console.log('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
         } else if (['bash', 'shell'].includes(language)) {
-            const filePath = path.join(__dirname, 'bashtemp.sh');
+            const filePath = path.join(dirToStoreFile, 'bashtemp.sh');
             await fs.writeFile(filePath, script);
             await fs.chmod(filePath, '755');
             child = spawn('bash', ['temp/bashtemp.sh', ...argumentsList], { stdio: 'pipe' });
@@ -154,10 +157,10 @@ const runScheduleScript = async (scriptInfo) => {
             const csvBuffer = Buffer.from(`Date-time,Output\n${csvContent}`, 'utf-8');
 
             const mailOptions = {
-                from: 'ravi404606@gmail.com',
-                to: 'xotivar5@gmail.com',
+                from: process.env.RUN_SCHEDULE_EMAIL,
+                to: toMail,
                 subject: 'Job executed',
-                text: `Your job name ${scheduleJobName} has been executed with the following output`,
+                text: `Your job  ${scheduleId} has been executed with the following output`,
                 attachments: [
                     {
                         filename: 'output.csv',

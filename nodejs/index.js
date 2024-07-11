@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './config/env/.env' });
+require('dotenv').config({ path: '.env' });
 const path = require("path");
 const express = require('express');
 const cors = require('cors');
@@ -90,18 +90,20 @@ function verifyToken(token) {
 
 function handleWebSocketConnection(socket, request) {
   console.log('WS CONNECTED');
-  socket.send(JSON.stringify({ data:'WS CONNECTED'}));
+  socket.send(JSON.stringify({ data:'Connected...'}));
   const params = new URLSearchParams(request.url.split('?')[1]);
   const token = params.get('token');
 
   if (!token) {
-    socket.close(4001, 'Token not provided');
+    console.log('No token')
+    socket.close(4001,'Token not provided');
     return;
   }
 
   const decodedToken = verifyToken(token);
 
   if (!decodedToken) {
+    console.log('invalid deocded token')
     socket.close(4002, 'Invalid token');
     return;
   }

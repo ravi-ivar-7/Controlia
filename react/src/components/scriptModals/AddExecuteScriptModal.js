@@ -5,11 +5,12 @@ import Modal from 'react-bootstrap/Modal';
 
 import { CodeiumEditor } from "@codeium/react-code-editor";
 
-const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript, initialArgumentsList }) => {
+const AddExecuteScriptModal = ({ show, handleClose, onSubmit, initialTitle, initialLanguage, initialScript, initialArgumentsList }) => {
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('');
   const [script, setScript] = useState('');
   const [argumentsList, setArgumentsList] = useState([]);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     if (show) {
@@ -17,13 +18,35 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
       setLanguage(initialLanguage);
       setScript(initialScript);
       setArgumentsList(initialArgumentsList);
+      validateForm(initialTitle, initialLanguage, initialScript);
     }
   }, [show, initialTitle, initialLanguage, initialScript, initialArgumentsList]);
 
   const handleArgumentsChange = (value) => {
-    // Split the value by new lines and trim each line
     const args = value.split('\n').map(line => line.trim()).filter(line => line !== '');
     setArgumentsList(args);
+  };
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    validateForm(newTitle, language, script);
+  };
+
+  const handleLanguageChange = (e) => {
+    const newLanguage = e.target.value;
+    setLanguage(newLanguage);
+    validateForm(title, newLanguage, script);
+  };
+
+  const handleScriptChange = (value) => {
+    setScript(value);
+    validateForm(title, language, value);
+  };
+
+  const validateForm = (title, language, script) => {
+    const isValid = title.trim() !== '' && language.trim() !== '' && script.trim() !== '';
+    setIsFormValid(isValid);
   };
 
   const handleAdd = () => {
@@ -33,7 +56,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
   };
 
   return (
-    <Modal show={show} onHide={handleClose}>
+    <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Add Execution Script</Modal.Title>
       </Modal.Header>
@@ -45,7 +68,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
               type="text"
               placeholder="Execute server start"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
               autoFocus
             />
           </Form.Group>
@@ -53,7 +76,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
             <Form.Label>Language</Form.Label>
             <Form.Select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={handleLanguageChange}
             >
               <option value="">Select Language</option>
               <option value="shell">Shell/Bash</option>
@@ -69,7 +92,7 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
               language={language}
               theme="vs-dark"
               value={script}
-              onChange={(value) => setScript(value)}
+              onChange={handleScriptChange}
               logo={<></>}
             />
           </Form.Group>
@@ -85,18 +108,20 @@ const AddExecutionScriptModal = ({ show, handleClose, onSubmit, initialTitle, in
             />
           </Form.Group>
 
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleAdd} disabled={!isFormValid}>
+              Add/Edit
+            </Button>
+          </Modal.Footer>
+
         </Form>
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={handleAdd}>
-          Add/Edit
-        </Button>
-      </Modal.Footer>
+
     </Modal>
   );
 };
 
-export default AddExecutionScriptModal;
+export default AddExecuteScriptModal;

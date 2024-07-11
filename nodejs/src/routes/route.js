@@ -9,15 +9,16 @@ const { verifyToken } = require('../middlewares/verifyToken')
 const { loginUser } = require('../controllers/user/login');
 const { registerUser } = require('../controllers/user/register');
 
-const { addExecuteScript } = require('../controllers/executes/addExecuteScript');
-const { getExecuteScript } = require('../controllers/executes/getExecuteScript');
-const {deleteExecuteScript} = require('../controllers/executes/deleteExecuteScript')
-const {editExecuteScript} = require('../controllers/executes/editExecuteScript')
-const {getExecuteLayouts, saveExecuteLayouts} = require('../controllers/executes/executeLayouts')
+const { addExecuteScript } = require('../controllers/executeScripts/addExecuteScript');
+const { getExecuteScript } = require('../controllers/executeScripts/getExecuteScript');
+const {deleteExecuteScript} = require('../controllers/executeScripts/deleteExecuteScript')
+const {editExecuteScript} = require('../controllers/executeScripts/editExecuteScript')
+const {getExecuteLayouts, saveExecuteLayouts} = require('../controllers/executeScripts/layoutExecuteScript')
 
-const {deleteScheduleScript} = require('../controllers/sechedules/deleteScheduleScript')
-const {addEditScheduleScript} = require('../controllers/sechedules/addEditScheduleScript')
-const {getScheduleLayouts, saveScheduleLayouts} = require('../controllers/sechedules/scheduleLayouts')
+const {deleteScheduleScript} = require('../controllers/scheduleScripts/deleteScheduleScript')
+const {addEditScheduleScript} = require('../controllers/scheduleScripts/addEditScheduleScript')
+const {getScheduleLayouts, saveScheduleLayouts} = require('../controllers/scheduleScripts/layoutScheduleScript')
+const {getScheduleScript} = require('../controllers/scheduleScripts/getScheduleScript')
 
 const {convertNotebook} = require('../controllers/jupyter/convertNotebook')
 
@@ -37,6 +38,7 @@ router.post('/edit-execute-script',verifyToken, editExecuteScript)
 router.get('/get-execute-layout',verifyToken, getExecuteLayouts)
 router.post('/save-execute-layout',verifyToken, saveExecuteLayouts)
 
+router.get('/get-schedule-script', verifyToken, getScheduleScript)
 router.post('/add-edit-schedule-script',verifyToken, addEditScheduleScript)
 router.post('/delete-schedule-script',verifyToken, deleteScheduleScript)
 router.get('/get-schedule-layout',verifyToken, getScheduleLayouts)

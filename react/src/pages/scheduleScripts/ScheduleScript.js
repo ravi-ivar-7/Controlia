@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
-import { Button, Nav, Form } from 'react-bootstrap';
-import AddScheduleScriptModal from '../../components/modals/AddScheduleScriptModal';
+import { Button, Nav } from 'react-bootstrap';
+import AddScheduleScriptModal from '../../components/scriptModals/AddScheduleScriptModal';
 import axiosInstance from '../../utils/axiosInstance';
-import { v4 as uuidv4 } from 'uuid';
 import useToast from '../../hooks/useToast';
 import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ScheduleScriptUtils';
 import { CodeiumEditor } from "@codeium/react-code-editor";
@@ -17,41 +16,53 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 const ScheduleScript = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [scripts, setScripts] = useState([]);
-  const [executeScripts, setExecuteScripts] = useState([]);
+  const [nonScheduleScripts, setNonScheduleScripts] = useState([]);
   const [scheduleScripts, setScheduleScripts] = useState([]);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [layouts, setLayouts] = useState();
-  const { showToast } = useToast();
 
-  const token = localStorage.getItem('token');
+  const { showErrorToast, showSuccessToast } = useToast();
 
-  const fetchData = useCallback(async (token) => {
+  
+  const fetchData = useCallback(async () => {
     setLoading(true);
+    const token = localStorage.getItem('token');
     try {
-      const response = await axiosInstance.post('/get-execute-script', {}, {
+      const response = await axiosInstance.get('/get-schedule-script', {
         headers: {
           authorization: `Bearer ${token}`,
         }
       });
-      console.log('fetched response data');
-      console.log(response.data);
 
-      const { scripts } = response.data || [];
-
-      const executeScripts = scripts.filter(script => script.schedule === '');
-      const scheduleScripts = scripts.filter(script => script.schedule !== '');
-
-      setExecuteScripts(executeScripts);
-      setScheduleScripts(scheduleScripts);
-      console.log('scheudle len', scheduleScripts.length, 'execute scripts', executeScripts.length)
-
+      if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
+        }
+        const { scheduleScripts, nonScheduleScripts } = response.data;
+        setScheduleScripts(scheduleScripts || []);
+        setNonScheduleScripts(nonScheduleScripts || []);
+      } else {
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
+      }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO SCHEDULE/EXECUTE SERVER:', error);
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ ]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+
+  useEffect(() => {
+    if (layouts) {
+      localStorage.setItem('scheduleLayouts', layouts)
+    }
+  }, [layouts]);
 
   const handleAddEditSchedule = async (scriptData) => {
     setLoading(true);
@@ -65,25 +76,26 @@ const ScheduleScript = () => {
           authorization: `Bearer ${token}`,
         },
       });
-      console.log(response.data)
-      if (response.status === 200) {
-        const { scripts } = response.data;
-        setScripts(scripts)
-        const executeScripts = scripts.filter(script => script.schedule === '');
-        const scheduleScripts = scripts.filter(script => script.schedule !== '');
 
-        setExecuteScripts(executeScripts);
+      if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
+        }
+        const { scheduleScripts, nonScheduleScripts } = response.data;
         setScheduleScripts(scheduleScripts);
+        setNonScheduleScripts(nonScheduleScripts)
       } else {
-        console.error('Error adding /updating schedule script:', response);
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO SCHEDULE SERVER:', error);
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
     } finally {
       setLoading(false);
-      setEditingSchedule(null)
+      
     }
-  };
+  }
 
 
   const handleDeleteScript = async (scriptId) => {
@@ -102,111 +114,28 @@ const ScheduleScript = () => {
           authorization: `Bearer ${token}`,
         },
       });
-      if (response.status === 200) {
-        if (response.status === 200) {
-          const { scripts } = response.data || [];
-          setScripts(scripts)
-          showToast('Successfully deleted.')
-          const executeScripts = scripts.filter(script => script.schedule === '');
-          const scheduleScripts = scripts.filter(script => script.schedule !== '');
 
-          setExecuteScripts(executeScripts);
-          setScheduleScripts(scheduleScripts);
+      if (response.status === 200) {
+        if (response.data && response.data.message) {
+          showSuccessToast(response.data.message);
         }
-        else {
-          console.error('Error deleting schedule script:', response);
-        }
+        const { updatedScript } = response.data;
+
+        setScheduleScripts(prevScheduleScripts => prevScheduleScripts.filter(script => script.scriptId !== updatedScript.scriptId));
+        setNonScheduleScripts(prevNonScheduleScripts => [...prevNonScheduleScripts, updatedScript]);
+
+      } else {
+        console.error('Internal Server Error:', response.data.info);
+        showErrorToast(response.data.info || 'Internal Server Error');
       }
     } catch (error) {
-      console.error('CAN NOT CONNECT TO SCHEDULE SERVER:', error);
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
     } finally {
       setLoading(false);
     }
   }
 
-
-  useEffect(() => {
-    fetchData(token);
-  }, []);
-
-  const generateLayouts = useCallback((scripts) => {
-    const initialLayouts = {
-      lg: [],
-      md: [],
-      sm: [],
-    };
-
-    scripts.forEach((script, index) => {
-      initialLayouts.lg.push({ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 4 });
-      initialLayouts.md.push({ i: script.scriptId, x: (index % 2) * 4, y: Math.floor(index / 2) * 4, w: 4, h: 4 });
-      initialLayouts.sm.push({ i: script.scriptId, x: 0, y: index, w: 1, h: 4 });
-    });
-
-    return initialLayouts;
-  }, []);
-
-
-  const fetchLayout = useCallback(async (token) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get('/get-schedule-layout', {
-        headers: {
-          authorization: `Bearer ${token}`,
-        }
-      });
-      console.log(response);
-      const { layouts } = response.data;
-      setLayouts(layouts);
-      console.log('Layouts fetched:', layouts);
-    } catch (error) {
-      console.error('Failed to fetch layouts from API:', error);
-      const storedLayouts = localStorage.getItem('scheduleLayouts');
-      if (storedLayouts) {
-        console.log('Using layouts from localStorage:', storedLayouts);
-        setLayouts(JSON.parse(storedLayouts));
-      } else {
-        const generatedLayouts = generateLayouts(executeScripts.concat(scheduleScripts));
-        console.log('Generating default layouts:', generatedLayouts);
-        setLayouts(generatedLayouts);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const saveLayout = useCallback(async (token, layouts) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.post('/save-schedule-layout', {
-        layouts,
-      }, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      showToast('Layout saved.')
-    } catch (error) {
-      console.error('CAN NOT CONNECT TO SERVER:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!token) {
-      console.error('No token found in local storage');
-      return;
-    }
-
-    fetchData(token);
-    fetchLayout(token);
-  }, [fetchData, fetchLayout, token]);
-
-  useEffect(() => {
-    if (layouts) {
-      localStorage.setItem('scheduleLayouts', layouts)
-    }
-  }, [layouts]);
 
 
   const handleDragStop = useCallback((layout, oldItem, newItem, placeholder, e, element) => {
@@ -217,24 +146,14 @@ const ScheduleScript = () => {
     setLayouts(layout);
   }, []);
 
-  const handleLayoutSave = () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.error('No token found in local storage. Cannot save.');
-      return;
-    }
 
-    if (layouts) {
-      saveLayout(token, layouts);
-    }
-  }
 
 
   return (
     <div style={mainStyle}>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>Schedule Dashboard</h2>
-        <Button variant="success" size="sm" onClick={() => handleLayoutSave()}>Save Layout</Button>
+        {/* <Button variant="success" size="sm" onClick={() => handleLayoutSave()}>Save Layout</Button> */}
 
       </div>
 
@@ -275,7 +194,7 @@ const ScheduleScript = () => {
 
                 <Nav>
                   <Nav.Item style={{ color: 'white' }}>
-                    {script.schedule ? 'Schedule: ' + script.schedule : 'Not Scheduled'}
+                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
                   </Nav.Item>
                 </Nav>
               </Card.Header>
@@ -299,7 +218,7 @@ const ScheduleScript = () => {
                   <CodeiumEditor
                     language='text'
                     theme="vs-dark"
-                    value={script.argumentsList.join('\n')}
+                    value={(script.argumentsList || []).join('\n')}
                     // onChange={(value) => setScript(value)}
                     logo={<></>}
                   />
@@ -339,7 +258,7 @@ const ScheduleScript = () => {
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
       >
-        {executeScripts.map((script, index) => (
+        {nonScheduleScripts.map((script, index) => (
           <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
             <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
               <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
@@ -364,7 +283,7 @@ const ScheduleScript = () => {
 
                 <Nav>
                   <Nav.Item style={{ color: 'white' }}>
-                    {script.schedule ? 'Schedule: ' + script.schedule : 'Not Scheduled'}
+                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
                   </Nav.Item>
                 </Nav>
               </Card.Header>
@@ -388,7 +307,7 @@ const ScheduleScript = () => {
                   <CodeiumEditor
                     language='text'
                     theme="vs-dark"
-                    value={script.argumentsList.join('\n')}
+                    value={(script.argumentsList || []).join('\n')}
                     // onChange={(value) => setScript(value)}
                     logo={<></>}
                   />

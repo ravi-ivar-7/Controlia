@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import axiosInstance from '../../services/axiosInstance';
+import useToast from '../../hooks/useToast';
+import { useUser } from '../../context/UserContext';
 
-const LoginModal = ({ isOpen }) => {
+const LoginModal = ({ isOpen, onClose }) => {
   const [credentials, setCredentials] = useState({ userId: '', password: '' });
-  const { login, loading, error } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { showErrorToast, showSuccessToast } = useToast();
+  const { setUser } = useUser();
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -16,8 +23,27 @@ const LoginModal = ({ isOpen }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(credentials);
-    
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/login', credentials);
+      if (response.status === 200) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        setUser(user);
+        showSuccessToast('Login successful');
+
+        // Extract redirect path from URL query parameters
+        const params = new URLSearchParams(location.search);
+        const redirectPath = params.get('redirect') || '/';
+        navigate(redirectPath);
+      } else {
+        showErrorToast(response.data.info);
+      }
+    } catch (err) {
+      showErrorToast(`Login error: ${err}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleShowPassword = () => {
@@ -31,7 +57,7 @@ const LoginModal = ({ isOpen }) => {
   if (!isOpen) return null;
 
   return (
-    <Modal show={isOpen}>
+    <Modal show={isOpen} onHide={onClose}>
       <Modal.Header closeButton>
         <Modal.Title>Login</Modal.Title>
       </Modal.Header>
@@ -68,15 +94,14 @@ const LoginModal = ({ isOpen }) => {
               </button>
             </div>
           </div>
-          {error && <p className="text-danger">{error}</p>}
-         <Modal.Footer>
-      <Button variant="primary" type="submit" disabled={loading}> {loading ? 'Logging in...' : 'Login'}</Button>
-
-        <Button variant="secondary" onClick={handleBack}>Back</Button>
-      </Modal.Footer>
+          <Modal.Footer>
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </Button>
+            <Button variant="secondary" onClick={handleBack}>Back</Button>
+          </Modal.Footer>
         </form>
       </Modal.Body>
-      
     </Modal>
   );
 };

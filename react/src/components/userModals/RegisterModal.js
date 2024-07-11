@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import useToast from '../../hooks/useToast';
+import axiosInstance from '../../services/axiosInstance';
+import { useUser } from '../../context/UserContext';
 
 const RegisterModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
@@ -16,8 +18,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
         forgotPasswordChecked: false,
         passwordMatchError: ''
     });
-    const { register, loading, error } = useAuth();
+    const [loading, setLoading] = useState(false);
+    const { showErrorToast, showSuccessToast } = useToast();
+    const { setUser } = useUser();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -35,15 +40,31 @@ const RegisterModal = ({ isOpen, onClose }) => {
             setFormData({ ...formData, passwordMatchError: 'Passwords do not match' });
             return;
         }
-        // Perform validation if needed
-        await register({ userId, email, name, password });
-        if (!error) {
-            console.log('no error in registration');
+        setLoading(true);
+        try {
+          const response = await axiosInstance.post('/register', formData);
+          if (response.status === 200) {
+            const { token, user } = response.data;
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            setUser(user);
+            showSuccessToast('Registration successful');
+
+            const params = new URLSearchParams(location.search);
+            const redirectPath = params.get('redirect') || '/';
+            navigate(redirectPath);
+          } else {
+            showErrorToast(response.data.info);
+          }
+        } catch (err) {
+           showErrorToast(`Registration error: ${err}`);
+        } finally {
+          setLoading(false);
         }
     };
 
     const handleForgotPassword = () => {
-        console.log('shortly adding this feature');
+        console.log('Feature will be added shortly');
     };
 
     const handleBack = () => {
@@ -53,7 +74,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <Modal show={isOpen} >
+        <Modal show={isOpen} onHide={onClose}>
             <Modal.Header closeButton>
                 <Modal.Title>Register</Modal.Title>
             </Modal.Header>
@@ -120,8 +141,6 @@ const RegisterModal = ({ isOpen, onClose }) => {
                         {formData.passwordMatchError && <p className="text-danger">{formData.passwordMatchError}</p>}
                     </Form.Group>
 
-                    {error && <p className="text-danger">{error}</p>}
-
                     <Modal.Footer>
                         <div className="mr-auto">
                             <Form.Group controlId="termsChecked" className="mb-0">
@@ -153,14 +172,8 @@ const RegisterModal = ({ isOpen, onClose }) => {
                             </Button>
                         </div>
                     </Modal.Footer>
-
-
-
-
-
                 </Form>
             </Modal.Body>
-
         </Modal>
     );
 };

@@ -1,27 +1,26 @@
 import './App.css';
 import React from 'react';
-import { BrowserRouter, Route, Routes ,useLocation, useNavigate } from 'react-router-dom';
-// import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/navbars/Sidebar';
 import { Toaster } from 'react-hot-toast';
-import MatomoTracker from './utils/matomoTracker';
+import MatomoTracker from './services/matomoTracker';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import Dashboard from './pages/dashboard/Dashboard';
 import Header from './components/navbars/Header';
 import Footer from './components/navbars/Footer';
 import { SidebarProvider } from './context/SidebarContext';
 import ExecuteScript from './pages/executeScripts/ExecuteScript';
-import LoginWarningModal from './components/userModals/LoginWarningModal'; // Import the LoginModal component
+import LoginWarningModal from './components/userModals/LoginWarningModal';
 import LoginModal from './components/userModals/LoginModal';
 import RegisterModal from './components/userModals/RegisterModal';
 import ScheduleScript from './pages/scheduleScripts/ScheduleScript';
+import { useUser } from './context/UserContext';
 
 function App() {
-  // const { user } = useAuth();
-  const user = localStorage.getItem('user')
-  console.log(localStorage.getItem('token'))
-console.log(user, 'user')
+  const { user } = useUser();
+  console.log(user)
   return (
+
     <div className="App">
       <BrowserRouter>
         <SidebarProvider>
@@ -37,11 +36,9 @@ console.log(user, 'user')
             <div className="main">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                
-                <Route path="/execute-scripts" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} />}/>
-                <Route path="/schedule-scripts" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} />}/>
-
-                <Route path="/login" element={<LoginModal isOpen={true} />}/>
+                <Route path="/execute-scripts" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} redirectPath="/execute-scripts" />} />
+                <Route path="/schedule-scripts" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
+                <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
               </Routes>
             </div>

@@ -1,176 +1,344 @@
-import React from "react";
-import ResponsiveGrid from '../../utils/responsiveGrid';
+import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
-import Nav from 'react-bootstrap/Nav';
-import Button from 'react-bootstrap/Button';
+import { Button, Nav } from 'react-bootstrap';
+import AddScheduleScriptModal from '../../components/scriptModals/AddScheduleScriptModal';
+import axiosInstance from '../../services/axiosInstance';
+import useToast from '../../hooks/useToast';
+import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './DashboardUtils';
+import { CodeiumEditor } from "@codeium/react-code-editor";
 
-const initialLayouts = {
-  lg: [
-    { i: 'a', x: 0, y: 0, w: 4, h: 10 },
-    { i: 'b', x: 4, y: 0, w: 4, h: 10 },
-    { i: 'c', x: 8, y: 0, w: 4, h: 10 }
-  ],
-  md: [
-    { i: 'a', x: 0, y: 0, w: 4, h: 10 },
-    { i: 'b', x: 4, y: 0, w: 4, h: 10 },
-    { i: 'c', x: 8, y: 0, w: 4, h: 10 }
-  ],
-  sm: [
-    { i: 'a', x: 0, y: 0, w: 6, h: 10 },
-    { i: 'b', x: 6, y: 0, w: 6, h: 10 },
-    { i: 'c', x: 0, y: 4, w: 6, h: 10 }
-  ],
-  xs: [
-    { i: 'a', x: 0, y: 0, w: 6, h: 10 },
-    { i: 'b', x: 0, y: 4, w: 6, h: 10 },
-    { i: 'c', x: 0, y: 8, w: 6, h: 10 }
-  ],
-  xxs: [
-    { i: 'a', x: 0, y: 0, w: 2, h: 10 },
-    { i: 'b', x: 0, y: 4, w: 2, h: 10 },
-    { i: 'c', x: 0, y: 8, w: 2, h: 10 }
-  ]
-};
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const Dashboard = () => {
-  const mainStyle = {
-    minHeight: '100vh',
-    backgroundColor: 'black',
-    color: 'white',
-    padding: '1rem'
-  };
 
-  const cardStyle = {
-    backgroundColor: '#1C3334',
-    color: 'white',
-    marginBottom: '10px'
-  };
+const ScheduleScript = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [nonScheduleScripts, setNonScheduleScripts] = useState([]);
+  const [scheduleScripts, setScheduleScripts] = useState([]);
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  const [layouts, setLayouts] = useState();
 
-  const headerFooterStyle = {
-    backgroundColor: '#124E66',
-    color: 'white'
-  };
+  const { showErrorToast, showSuccessToast } = useToast();
 
-  const bodySectionStyle1 = {
-    backgroundColor: '#2C3E50',
-    color: 'white',
-    padding: '10px',
-    borderBottom: '1px solid #34495E'
-  };
+  
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axiosInstance.get('/get-schedule-script', {
+        headers: {
+          authorization: `Bearer ${token}`,
+        }
+      });
+
+      if (response.status === 200) {
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
+        }
+        const { scheduleScripts, nonScheduleScripts } = response.data;
+        setScheduleScripts(scheduleScripts || []);
+        setNonScheduleScripts(nonScheduleScripts || []);
+      } else {
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
+      }
+    } catch (error) {
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
+    } finally {
+      setLoading(false);
+    }
+  }, [ ]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+
+  useEffect(() => {
+    if (layouts) {
+      localStorage.setItem('scheduleLayouts', layouts)
+    }
+  }, [layouts]);
+
+  const handleAddEditSchedule = async (scriptData) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const scriptInfo = { ...scriptData, scriptId: editingSchedule.scriptId };
+      const response = await axiosInstance.post('/add-edit-schedule-script', {
+        scriptInfo,
+      }, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
+        }
+        const { scheduleScripts, nonScheduleScripts } = response.data;
+        setScheduleScripts(scheduleScripts);
+        setNonScheduleScripts(nonScheduleScripts)
+      } else {
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
+      }
+    } catch (error) {
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
+    } finally {
+      setLoading(false);
+      
+    }
+  }
+
+
+  const handleDeleteScript = async (scriptId) => {
+    if (!window.confirm(`Delete script ${scriptId}`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const scriptInfo = { scriptId };
+      const response = await axiosInstance.post('/delete-schedule-script', {
+        scriptInfo,
+      }, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
+        }
+        const { updatedScript } = response.data;
+
+        setScheduleScripts(prevScheduleScripts => prevScheduleScripts.filter(script => script.scriptId !== updatedScript.scriptId));
+        setNonScheduleScripts(prevNonScheduleScripts => [...prevNonScheduleScripts, updatedScript]);
+
+      } else {
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
+      }
+    } catch (error) {
+      console.error('Failed to fetch schedule scripts.', error);
+      showErrorToast('Failed to fetch schedule scripts.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+
+  const handleDragStop = useCallback((layout, oldItem, newItem, placeholder, e, element) => {
+    setLayouts(layout);
+  }, []);
+
+  const handleResizeStop = useCallback((layout, oldItem, newItem, placeholder, e, element) => {
+    setLayouts(layout);
+  }, []);
+
 
 
 
   return (
     <div style={mainStyle}>
-      <h2>Dashboard</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Schedule Dashboard</h2>
+        {/* <Button variant="success" size="sm" onClick={() => handleLayoutSave()}>Save Layout</Button> */}
 
-      <ResponsiveGrid pageId="page1" initialLayouts={initialLayouts}>
-        <div key="a" className="grid-item">
-          <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+      </div>
 
-            <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Nav.Item>
-                  <Nav.Link style={{ color: 'white' }}>Title</Nav.Link>
-                </Nav.Item>
-              </Nav>
-              <Nav>
-                <Nav.Item>
-                  <Nav.Link style={{ color: 'white' }}>Language</Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
+      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Scheduled Scripts</Card.Title>
 
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px' }}>
-              <Card.Title>Input</Card.Title>
-              <Card.Text style={{ height: '100%', overflowY: 'auto', backgroundColor: '#234756' }}>
-                Display Input
-
-                "@babel/plugin-proposal-private-property-in-object" package without
-                declaring it in its dependencies. This is currently working because
-                "@babel/plugin-proposal-private-property-in-object" is already in your
-                node_modules folder for unrelated reasons, but it may break at any time.
-
-                babel-preset-react-app is part of the create-react-app project, which
-                is not maintianed anymore. It is thus unlikely that this bug will
-                ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
-                your devDependencies to work around this error. This will make this message
-                go away.One of your dependencies, babel-preset-react-app, is importing the
-                "@babel/plugin-proposal-private-property-in-object" package without
-                declaring it in its dependencies. This is currently working because
-                "@babel/plugin-proposal-private-property-in-object" is already in your
-                node_modules folder for unrelated reasons, but it may break at any time.
-
-                babel-preset-react-app is part of the create-react-app project, which
-                is not maintianed anymore. It is thus unlikely that this bug will
-                ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
-                your devDependencies to work around this error. This will make this message
-
-              </Card.Text>
-            </Card.Body>
-
-
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px' }}>
-              <Card.Title>Input</Card.Title>
-              <Card.Text style={{ height: '100%', overflowY: 'auto', backgroundColor: '#234756' }}>
-                Display Input
-
-
-
-                "@babel/plugin-proposal-private-property-in-object" package without
-                declaring it in its dependencies. This is currently working because
-                "@babel/plugin-proposal-private-property-in-object" is already in your
-                node_modules folder for unrelated reasons, but it may break at any time.
-
-                babel-preset-react-app is part of the create-react-app project, which
-                is not maintianed anymore. It is thus unlikely that this bug will
-                ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
-                your devDependencies to work around this error. This will make this message
-                go away.One of your dependencies, babel-preset-react-app, is importing the
-                "@babel/plugin-proposal-private-property-in-object" package without
-                declaring it in its dependencies. This is currently working because
-                "@babel/plugin-proposal-private-property-in-object" is already in your
-                node_modules folder for unrelated reasons, but it may break at any time.
-
-                babel-preset-react-app is part of the create-react-app project, which
-                is not maintianed anymore. It is thus unlikely that this bug will
-                ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
-                your devDependencies to work around this error. This will make this message
-              </Card.Text>
-            </Card.Body>
-
-            <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Button variant="info" size="sm">
-                  <Nav.Item>
-                    <Nav.Link href="" style={{ color: 'white', padding: 0 }}>Execute</Nav.Link>
-                  </Nav.Item>
-                </Button>
-              </Nav>
-              <Nav>
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layouts}
+        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+        cols={{ lg: 12, md: 8, sm: 1 }}
+        rowHeight={100}
+        draggableHandle=".draggable-handle"
+        onDragStop={handleDragStop}
+        onResizeStop={handleResizeStop}
+      >
+        {scheduleScripts.map((script, index) => (
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
+            <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
                 <Nav>
-                  <Button variant="warning" size="sm">
-                    <Nav.Item>
-                      <Nav.Link href="#first" style={{ color: 'white', padding: 0 }}>Edit</Nav.Link>
-                    </Nav.Item>
-                  </Button>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.title}
+                  </Nav.Item>
                 </Nav>
-                <Nav style={{ marginLeft: '10px' }}> {/* Add margin-left */}
-                  <Button variant="danger" size="sm">
-                    <Nav.Item>
-                      <Nav.Link href="#first" style={{ color: 'white', padding: 0 }}>Delete</Nav.Link>
-                    </Nav.Item>
-                  </Button>
+
+                <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.language}
+                  </Nav.Item>
                 </Nav>
-              </Nav>
-            </Card.Footer>
+              </Card.Header>
+              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                {/* <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.scriptId}
+                  </Nav.Item>
+                </Nav> */}
+
+                <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
+                  </Nav.Item>
+                </Nav>
+              </Card.Header>
+
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                <Card.Title >Script</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                  <CodeiumEditor
+                    language={script.language}
+                    theme="vs-dark"
+                    value={script.script}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
+                </Card.Text>
+              </Card.Body>
+
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                <Card.Title>Arguments</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                  <CodeiumEditor
+                    language='text'
+                    theme="vs-dark"
+                    value={(script.argumentsList || []).join('\n')}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
+                </Card.Text>
+              </Card.Body>
 
 
-          </Card>
-        </div>
-      </ResponsiveGrid>
+              <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                <Nav className="d-flex align-items-center">
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Delete</Nav.Item>
+                  </Button>
+                </Nav>
+                <Nav className="d-flex align-items-center">
+                  <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Edit</Nav.Item>
+                  </Button>
+                </Nav>
+              </Card.Footer>
+
+            </Card>
+          </div>
+        ))}
+
+      </ResponsiveGridLayout>
+
+
+      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Unscheduled Scripts</Card.Title>
+
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layouts}
+        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+        cols={{ lg: 12, md: 8, sm: 1 }}
+        rowHeight={100}
+        draggableHandle=".draggable-handle"
+        onDragStop={handleDragStop}
+        onResizeStop={handleResizeStop}
+      >
+        {nonScheduleScripts.map((script, index) => (
+          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
+            <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.title}
+                  </Nav.Item>
+                </Nav>
+
+                <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.language}
+                  </Nav.Item>
+                </Nav>
+              </Card.Header>
+              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                {/* <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.scriptId}
+                  </Nav.Item>
+                </Nav> */}
+
+                <Nav>
+                  <Nav.Item style={{ color: 'white' }}>
+                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
+                  </Nav.Item>
+                </Nav>
+              </Card.Header>
+
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                <Card.Title >Script</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                  <CodeiumEditor
+                    language={script.language}
+                    theme="vs-dark"
+                    value={script.script}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
+                </Card.Text>
+              </Card.Body>
+
+              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                <Card.Title>Arguments</Card.Title>
+                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                  <CodeiumEditor
+                    language='text'
+                    theme="vs-dark"
+                    value={(script.argumentsList || []).join('\n')}
+                    // onChange={(value) => setScript(value)}
+                    logo={<></>}
+                  />
+                </Card.Text>
+              </Card.Body>
+
+              <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                <div></div> {/* This empty div creates space to align content */}
+                <Nav className="d-flex align-items-center">
+                  <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
+                    <Nav.Item style={{ color: 'white', padding: 0 }}>Add to Schedule</Nav.Item>
+                  </Button>
+                </Nav>
+              </Card.Footer>
+
+            </Card>
+          </div>
+        ))}
+
+      </ResponsiveGridLayout>
+
+
+      <AddScheduleScriptModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+        onSubmit={handleAddEditSchedule}
+        scriptData={editingSchedule ? editingSchedule : ''}
+      />
+
     </div>
   );
 };
 
-export default Dashboard;
+export default ScheduleScript;

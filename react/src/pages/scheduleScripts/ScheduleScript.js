@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Button, Nav } from 'react-bootstrap';
 import AddScheduleScriptModal from '../../components/scriptModals/AddScheduleScriptModal';
-import axiosInstance from '../../utils/axiosInstance';
+import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
 import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ScheduleScriptUtils';
 import { CodeiumEditor } from "@codeium/react-code-editor";
@@ -35,15 +35,15 @@ const ScheduleScript = () => {
       });
 
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         const { scheduleScripts, nonScheduleScripts } = response.data;
         setScheduleScripts(scheduleScripts || []);
         setNonScheduleScripts(nonScheduleScripts || []);
       } else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to fetch schedule scripts.', error);
@@ -78,15 +78,15 @@ const ScheduleScript = () => {
       });
 
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         const { scheduleScripts, nonScheduleScripts } = response.data;
         setScheduleScripts(scheduleScripts);
         setNonScheduleScripts(nonScheduleScripts)
       } else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to fetch schedule scripts.', error);
@@ -116,8 +116,8 @@ const ScheduleScript = () => {
       });
 
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         const { updatedScript } = response.data;
 
@@ -125,8 +125,8 @@ const ScheduleScript = () => {
         setNonScheduleScripts(prevNonScheduleScripts => [...prevNonScheduleScripts, updatedScript]);
 
       } else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to fetch schedule scripts.', error);

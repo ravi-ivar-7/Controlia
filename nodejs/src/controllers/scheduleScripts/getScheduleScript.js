@@ -1,5 +1,6 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
+const logger = require('../../services/winstonLogger')
 
 const getScheduleScript = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
@@ -16,11 +17,11 @@ const getScheduleScript = async (req, res) => {
         const scheduleScripts = await scheduleCollection.find({ userId: decodedToken.userId}).toArray()
         const nonScheduleScripts = scripts.filter(script => script.scheduleId === '');
          
-        return res.status(200).json({ message: 'Successfully fetched schedule and non schedule scripts.', scheduleScripts, nonScheduleScripts });
+        return res.status(200).json({ info: 'Successfully fetched schedule and non schedule scripts.', scheduleScripts, nonScheduleScripts });
 
     } catch (error) {
-        console.error('ERROR GETING SCHEDULE SCRIPTS: ', error);
-        return res.status(500).json({ info: 'INTERNAL SERVER ERROR', error });
+        logger.error(`ERROR GETING SCHEDULE SCRIPTS: ${error}`);
+        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });
     } finally {
         if (client) {
             await client.close();

@@ -7,8 +7,8 @@ const https = require('https');
 const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
-const jwt = require('jsonwebtoken'); // Add this line
-
+const jwt = require('jsonwebtoken'); 
+const logger = require('./src/services/winstonLogger')
 const routes = require('./src/routes/route');
 const wsRoutes = require('./src/routes/wsRoute');
 
@@ -35,7 +35,7 @@ try {
     cert: fs.readFileSync('./config/ssl/server.crt', 'utf8'),
   };
 } catch (err) {
-  console.error('ERROR READING SSL/TLS FILES:', err);
+  logger.error(`ERROR READING SSL/TLS FILES: ${err}`);
   options = null;
 }
 
@@ -45,21 +45,21 @@ if (options) {
   httpsServer = https.createServer(options, app);
 
   httpsServer.listen(HTTPS_PORT, () => {
-    console.log(`HTTPS SERVER LISTENING ON ${HOST}:${HTTPS_PORT}`);
+    logger.info(`HTTPS SERVER LISTENING ON ${HOST}:${HTTPS_PORT}`);
   });
 
   httpsServer.on('error', (err) => {
-    console.error('HTTPS SERVER ERROR:', err);
+    logger.error('HTTPS SERVER ERROR:', err);
   });
 } else {
-  console.log('SSL/TLS FILES NOT FOUND. HTTPS SERVER NOT STARTED.');
+  logger.error('SSL/TLS FILES NOT FOUND. HTTPS SERVER NOT STARTED.');
 }
 
 // FOR HTTP server
 const httpServer = http.createServer(app);
 
 httpServer.listen(HTTP_PORT, () => {
-  console.log(`HTTP SERVER LISTENING ON ${HOST}:${HTTP_PORT}`);
+  logger.info(`HTTP SERVER LISTENING ON ${HOST}:${HTTP_PORT}`);
 });
 
 // WebSocket message handler
@@ -71,10 +71,10 @@ function handleWebSocketMessage(message,decodedToken, socket) {
     if (wsRoutes[route]) {
       wsRoutes[route](data, decodedToken,socket);
     } else {
-      socket.send(JSON.stringify({ error: 'Unknown route' }));
+      socket.send(JSON.stringify({ warn: 'Unknown route' }));
     }
   } catch (error) {
-    socket.send(JSON.stringify({ error: 'Invalid message format' }));
+    socket.send(JSON.stringify({ warn: 'Invalid message format', error }));
   }
 }
 
@@ -89,13 +89,13 @@ function verifyToken(token) {
 }
 
 function handleWebSocketConnection(socket, request) {
-  console.log('WS CONNECTED');
+  logger.info('WS CONNECTED');
   socket.send(JSON.stringify({ data:'Connected...'}));
   const params = new URLSearchParams(request.url.split('?')[1]);
   const token = params.get('token');
 
   if (!token) {
-    console.log('No token')
+    logger.warn('No token')
     socket.close(4001,'Token not provided');
     return;
   }
@@ -103,13 +103,13 @@ function handleWebSocketConnection(socket, request) {
   const decodedToken = verifyToken(token);
 
   if (!decodedToken) {
-    console.log('invalid deocded token')
+    logger.warn('invalid deocded token')
     socket.close(4002, 'Invalid token');
     return;
   }
 
   socket.on('open', (message) => {
-    console.log('open ws', message);
+    logger.info(`open ws ${message}`);
   });
 
   socket.on('message', (message) => {
@@ -117,11 +117,11 @@ function handleWebSocketConnection(socket, request) {
   });
 
   socket.on('close', (code, reason) => {
-    console.log(`WS CLOSED: Code = ${code}, Reason = ${reason}`);
+    logger.info(`WS CLOSED: Code = ${code}, Reason = ${reason}`);
   });
 
   socket.on('error', (error) => {
-    console.error('WS ERROR:', error);
+    logger.error(`WS ERROR: ${error}`);
   });
 }
 
@@ -138,6 +138,6 @@ if (httpsServer) {
 app.use('/', routes);
 
 app.all('*', (req, res) => {
-  console.log(`Can't find ${req.url} on the server`);
+  logger.warn(`Can't find ${req.url} on the server`);
   return res.status(404).json({ message: `Can't find ${req.url} on the server` });
 });

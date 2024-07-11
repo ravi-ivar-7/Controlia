@@ -1,17 +1,18 @@
 require('dotenv').config({ path: '../../../.env' });
 const MongoClient = require('mongodb').MongoClient;
 const schedule = require('node-schedule');
+const logger = require('../../services/winstonLogger')
 
 const deleteScheduleScript = async (req, res) => {
   const client = new MongoClient(process.env.MONGODB_URL);
-  let message;
+  let info;
 
   try {
     await client.connect();
 
     const { decodedToken, scriptInfo } = req.body;
     if(!scriptInfo){
-      return res.status(422).json({info:'scriptInfo is missing in body.'})
+      return res.status(209).json({warn:'scriptInfo is missing in body.'})
     }
     const db = client.db("controlia");
     const scheduleCollection = db.collection('scheduleScripts');
@@ -20,7 +21,7 @@ const deleteScheduleScript = async (req, res) => {
     const scheduleDocument = await scheduleCollection.findOne({ userId: decodedToken.userId, scriptId: scriptInfo.scriptId });
 
     if (!scheduleDocument) {
-      return res.status(422).json({ info: 'Scheduled script not found.' });
+      return res.status(209).json({ warn: 'Scheduled script not found.' });
     }
     else{
       schedule.cancelJob(scheduleDocument.scheduleId);
@@ -39,13 +40,13 @@ const deleteScheduleScript = async (req, res) => {
         { returnDocument: 'after', upsert: true }
       );
 
-      message = 'Schedule deleted successfully.';
-      return res.status(200).json({ message, updatedScript });
+      info = 'Schedule deleted successfully.';
+      return res.status(200).json({ info, updatedScript });
     }
     
   } catch (error) {
-    console.error('ERROR IN DELETE SCHEDULE SCRIPT: ', error);
-    return res.status(500).json({ info: 'INTERNAL SERVER ERROR', error });
+    logger.error(`ERROR IN DELETE SCHEDULE SCRIPT: ${error}`);
+    return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });
   } finally {
     if (client) {
       await client.close();

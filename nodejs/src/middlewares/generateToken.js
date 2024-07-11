@@ -1,5 +1,6 @@
 require('dotenv').config({path:'../../config/env/.env'});
 const jwt = require('jsonwebtoken');
+const logger = require('../services/winstonLogger')
 
 const generateToken = (data) => {
     try {
@@ -15,7 +16,7 @@ const generateToken = (data) => {
         
         return token
     } catch (err) {
-        console.error("ERROR GENERATING TOKEN: ", err);
+        logger.error(`ERROR GENERATING TOKEN: ${err}`);
         throw err; 
     }
 };

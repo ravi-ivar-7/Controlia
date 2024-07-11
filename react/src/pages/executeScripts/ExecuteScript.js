@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Button, Nav } from 'react-bootstrap';
 import AddExecutionScriptModal from '../../components/scriptModals/AddExecuteScriptModal';
-import axiosInstance from '../../utils/axiosInstance';
+import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
 import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ExecuteScriptUtils';
 import { CodeiumEditor } from "@codeium/react-code-editor";
@@ -37,13 +37,13 @@ const ExecuteScript = () => {
       });
 
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         setScripts(response.data.scripts || []);
       } else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to fetch execute scripts.', error);
@@ -128,15 +128,15 @@ const ExecuteScript = () => {
       });
       console.log(response.status)
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         const { newScript } = response.data;
         setScripts(prevScripts => [...prevScripts, newScript]);
       }
       else {
-        console.error('Internal Server Error', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to add new execute scripts.', error);
@@ -164,13 +164,13 @@ const ExecuteScript = () => {
         },
       });
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         setScripts(prevScripts => prevScripts.filter(script => script.scriptId !== scriptInfo.scriptId));
       } else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to delete execute scripts.', error);
@@ -195,15 +195,15 @@ const ExecuteScript = () => {
       });
 
       if (response.status === 200) {
-        if (response.data && response.data.message) {
-          showSuccessToast(response.data.message);
+        if (response.data && response.data.info) {
+          showSuccessToast(response.data.info);
         }
         const { updatedScript } = response.data;
         setScripts(prevScripts => prevScripts.map(script => script.scriptId === updatedScript.scriptId ? updatedScript : script));
       }
       else {
-        console.error('Internal Server Error:', response.data.info);
-        showErrorToast(response.data.info || 'Internal Server Error');
+        console.error('Internal Server Error:', response.data.warn);
+        showErrorToast(response.data.warn || 'Internal Server Error');
       }
     } catch (error) {
       console.error('Failed to edit execute scripts.', error);
@@ -282,7 +282,7 @@ const ExecuteScript = () => {
                   <CodeiumEditor
                     language='text'
                     theme="vs-dark"
-                    value={script.argumentsList.join('\n')}
+                    value={(script.argumentsList || []).join('\n')}
                     // onChange={(value) => setScript(value)}
                     logo={<></>}
                   />

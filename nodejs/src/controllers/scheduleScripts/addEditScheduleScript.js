@@ -1,9 +1,11 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const schedule = require('node-schedule');
-const { sendMail } = require('../../utils/sendMail');
+const { sendMail } = require('../../services/sendMail');
 const { runScheduleScript } = require('./runScheduleScript')
 const { base62 } = require('base-id');
+const logger = require('../../services/winstonLogger');
+const { warn } = require('winston');
 
 const formateDateTime = async (dateTime) => {
   const newDateTime = new Date(dateTime);
@@ -22,7 +24,7 @@ const addEditScheduleScript = async (req, res) => {
 
     const { decodedToken, scriptInfo } = req.body;
     if (!scriptInfo) {
-      return res.status(422).json({ info: 'scriptInfo missing from body.' });
+      return res.status(422).json({ warn: 'scriptInfo missing from body.' });
     }
     client = new MongoClient(process.env.MONGODB_URL);
 
@@ -38,7 +40,7 @@ const addEditScheduleScript = async (req, res) => {
     });
 
     const callback = () => {
-      console.log('Scheduled job executed:', scriptInfo.scriptId);
+      logger.info(`Scheduled job executed: $ {scriptInfo.scriptId}`);
       runScheduleScript(scriptInfo);
     };
 
@@ -51,10 +53,10 @@ const addEditScheduleScript = async (req, res) => {
     } else if (scriptInfo.scheduleType === 'recurring') {
       newScheduleJob = schedule.scheduleJob(scheduleId, scriptInfo.scheduleRule, callback);
     } else {
-      return res.status(422).json({ info: 'Unsupported schedule rule.' });
+      return res.status(209).json({ warn: 'Unsupported schedule rule.' });
     }
     if(!newScheduleJob){
-      return res.status(209).json({ info: 'Failed to schedule.' });
+      return res.status(209).json({ warn: 'Failed to schedule.' });
     }
     if (scheduledScript) {
       schedule.cancelJob(scheduledScript.scheduleId);
@@ -73,7 +75,7 @@ const addEditScheduleScript = async (req, res) => {
         scheduleUpdateFields,
         { returnDocument: 'after', upsert: true }
       );
-      message = `Schedule updated for script ${scriptInfo.scriptId}`;
+      info = `Schedule updated for script ${scriptInfo.scriptId}`;
     }
     else {
       const scheduleDocument = {
@@ -93,7 +95,7 @@ const addEditScheduleScript = async (req, res) => {
         date: new Date(),
       };
       await scheduleCollection.insertOne(scheduleDocument);
-      message = `Schedule added for script ${scriptInfo.scriptId}`;
+      info = `Schedule added for script ${scriptInfo.scriptId}`;
     }
 
     const scriptUpdateFields = {
@@ -120,12 +122,11 @@ const addEditScheduleScript = async (req, res) => {
     const scripts = await scriptCollection.find({ userId: decodedToken.userId }).toArray()
     const scheduleScripts = await scheduleCollection.find({ userId: decodedToken.userId }).toArray()
     const nonScheduleScripts = scripts.filter(script => script.scheduleId === '');
-
-    res.status(200).json({ message, scheduleScripts, nonScheduleScripts });
+    res.status(200).json({ info, scheduleScripts, nonScheduleScripts });
 
   } catch (error) {
-    console.error('ERROR IN ADD/EDIT SCHEDULE SCRIPT: ', error);
-    res.status(500).json({ info: 'INTERNAL SERVER ERROR', error });
+    logger.error(`ERROR IN ADD/EDIT SCHEDULE SCRIPT: ${error}`);
+    res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });
   } finally {
     if (client) {
       await client.close();

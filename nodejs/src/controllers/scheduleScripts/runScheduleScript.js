@@ -3,30 +3,31 @@ const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
 const { MongoClient } = require('mongodb');
-const { sendMail } = require('../../utils/sendMail');
+const { sendMail } = require('../../services/sendMail');
+const logger = require('../../services/winstonLogger');
 
 const attachChildProcessListeners = (child) => {
     return new Promise((resolve, reject) => {
         let outputData = [];
 
         child.stdout.on('data', (data) => {
-            console.log(`STDOUT: ${data}`);
+            logger.debug(`STDOUT: ${data}`);
             outputData.push(`${new Date().toISOString()},${data}`);
         });
 
         child.stderr.on('data', (data) => {
-            console.log(`STDERR: ${data}`);
+            logger.debug(`STDERR: ${data}`);
             outputData.push(`${new Date().toISOString()}, ${data}`);
         });
 
         child.on('close', (code) => {
-            console.log(`CHILD PROCESS CLOSED WITH CODE: ${code}`);
+            logger.debug(`CHILD PROCESS CLOSED WITH CODE: ${code}`);
             outputData.push(`${new Date().toISOString()}, PROCESS CLOSED WITH CODE: ${code}`);
             resolve(outputData);
         });
 
         child.on('error', (err) => {
-            console.error(`Child process error: ${err}`);
+            logger.debug(`Child process error: ${err}`);
             outputData.push(`${new Date().toISOString()},PROCESS ERROR: ${err}`);
             reject(outputData);
         });
@@ -50,7 +51,7 @@ const runScheduleScript = async (scriptInfo) => {
         const scriptDocument = await scheduleCollection.findOne({ userId: scriptInfo.userId, scriptId: scriptInfo.scriptId });
 
         if (!scriptDocument) {
-            console.log('Script not found');
+            logger.error(`Schedule script not found: ${scriptInfo}`);
             return;
         }
 
@@ -74,14 +75,14 @@ const runScheduleScript = async (scriptInfo) => {
                 scheduleUpdateFields,
                 { returnDocument: 'after', upsert: true }
             );
-            console.log('Deleted from job collection and scripts info');
+            logger.debug('Deleted from job collection and scripts info');
         }
 
         const script = scriptDocument.script;
         const language = scriptDocument.language;
         const argumentsList = scriptDocument.argumentsList;
 
-        console.log(`Executing schedule job ${scriptDocument.scheduleId}`);
+        logger.debug(`Executing schedule job ${scriptDocument.scheduleId}`);
         outputData.push(`${new Date().toISOString()}, Executing schedule job ${scriptDocument.scheduleId}`);
 
         let child;
@@ -91,30 +92,30 @@ const runScheduleScript = async (scriptInfo) => {
 
             const compile = spawn('g++', [filePath, '-o', path.join(dirToStoreFile, 'output')], { stdio: 'pipe' });
 
-            console.log('Compiling...');
+            logger.debug('Compiling...');
             outputData.push(`${new Date().toISOString()}, Compiling...`);
             
             await new Promise((resolve, reject) => {
                 compile.on('close', async (code) => {
                     if (code === 0) {
-                        console.log('Successfully compiled');
+                        logger.debug('Successfully compiled');
                         outputData.push(`${new Date().toISOString()}, Successfully compiled...`);
                         child = spawn(path.join(dirToStoreFile, 'output'), argumentsList, { stdio: 'pipe' });
                         resolve();
                     } else {
-                        console.log(`Compilation failed with code ${code}`);
+                        logger.error(`Compilation failed with code ${code}`);
                         outputData.push(`${new Date().toISOString()}, Compilation failed with code ${code}`);
                         reject();
                     }
                 });
 
                 compile.stdout.on('data', (data) => {
-                    console.log(`Compile Output: ${data}`);
+                    logger.debug(`Compile Output: ${data}`);
                     outputData.push(`${new Date().toISOString()}, Compile Output: ${data}`);
                 });
 
                 compile.stderr.on('data', (data) => {
-                    console.error(`Compile Error: ${data}`);
+                    logger.error(`Compile Error: ${data}`);
                     outputData.push(`${new Date().toISOString()}, Compile Error: ${data}`);
                 });
             });
@@ -123,21 +124,21 @@ const runScheduleScript = async (scriptInfo) => {
             const filePath = path.join(dirToStoreFile, 'tempjs.js');
             await fs.writeFile(filePath, script);
             child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
-            console.log('Process started...');
+            logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
         } else if (['python', 'python3'].includes(language)) {
             child = spawn('python', ['-c', script, ...argumentsList], { stdio: 'pipe' });
-            console.log('Process started...');
+            logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
         } else if (['bash', 'shell'].includes(language)) {
             const filePath = path.join(dirToStoreFile, 'bashtemp.sh');
             await fs.writeFile(filePath, script);
             await fs.chmod(filePath, '755');
             child = spawn('bash', ['temp/bashtemp.sh', ...argumentsList], { stdio: 'pipe' });
-            console.log('Process started...');
+            logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
         } else {
-            console.log('Unsupported script language');
+            logger.debug('Unsupported script language');
             outputData.push(`${new Date().toISOString()}, Unsupported script language`);
             return;
         }
@@ -146,11 +147,13 @@ const runScheduleScript = async (scriptInfo) => {
         outputData = outputData.concat(processOutputData);
 
     } catch (error) {
-        console.error('ERROR IN RUN EXECUTION SCRIPT: ', error);
+        logger.error(`ERROR IN RUN EXECUTION SCRIPT: $ {error}`);
+        // logger.log('error', `ERROR IN RUN EXECUTION SCRIPT: ${error}`)
         outputData.push(`${new Date().toISOString()}, ERROR IN RUN EXECUTION SCRIPT: ${error}`);
     } finally {
         if (client) {
             await client.close();
+            // logger.log('info', outputData)
 
             // Convert outputData array to CSV string
             const csvContent = outputData.join('\n');
@@ -171,10 +174,10 @@ const runScheduleScript = async (scriptInfo) => {
 
             sendMail(mailOptions)
                 .then(() => {
-                    console.log('Email sent successfully');
+                    logger.info('Email sent successfully');
                 })
                 .catch((err) => {
-                    console.error('Error sending email:', err);
+                    logger.error(`Error sending email: ${err}`);
                 });
         }
     }

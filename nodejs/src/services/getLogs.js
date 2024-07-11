@@ -3,9 +3,9 @@ const path = require('path');
 
 const getLogs = async (req, res) => {
     try {
-        const { filename } = req.params;
-
-        const logFilePath = path.join(__dirname, `../${filename}`);
+        const  filename  = req.params.filename;
+        console.log(filename, req.params)
+        const logFilePath = path.join(__dirname, `../../${filename}`);
 
         fs.readFile(logFilePath, 'utf8', (err, data) => {
             if (err) {

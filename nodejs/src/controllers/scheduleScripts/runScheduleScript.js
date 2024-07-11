@@ -52,6 +52,7 @@ const runScheduleScript = async (scriptInfo) => {
 
         if (!scriptDocument) {
             logger.error(`Schedule script not found: ${scriptInfo}`);
+            outputData.push(`Schedule script ${scriptInfo} not found.`)
             return;
         }
 
@@ -59,9 +60,7 @@ const runScheduleScript = async (scriptInfo) => {
         toMail = scriptDocument.email;
 
         if (scriptDocument.scheduleType === 'fixed') {
-            console.log('deleting')
             await scheduleCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId});
-
             const scheduleUpdateFields = {
                 $set: {
                     scheduleId: '',
@@ -147,20 +146,15 @@ const runScheduleScript = async (scriptInfo) => {
         outputData = outputData.concat(processOutputData);
 
     } catch (error) {
-        logger.error(`ERROR IN RUN EXECUTION SCRIPT: $ {error}`);
-        // logger.log('error', `ERROR IN RUN EXECUTION SCRIPT: ${error}`)
-        outputData.push(`${new Date().toISOString()}, ERROR IN RUN EXECUTION SCRIPT: ${error}`);
+        logger.error(`ERROR IN RUNNING EXECUTION SCRIPT: ${error}`);
+        outputData.push(`${new Date().toISOString()}, ERROR IN RUNNING EXECUTION SCRIPT: ${error}`);
     } finally {
         if (client) {
             await client.close();
-            // logger.log('info', outputData)
-
-            // Convert outputData array to CSV string
             const csvContent = outputData.join('\n');
             const csvBuffer = Buffer.from(`Date-time,Output\n${csvContent}`, 'utf-8');
-
             const mailOptions = {
-                from: process.env.RUN_SCHEDULE_EMAIL,
+                from: process.env.NODEJS_FROM_EMAIL,
                 to: toMail,
                 subject: 'Job executed',
                 text: `Your job  ${scheduleId} has been executed with the following output`,
@@ -174,10 +168,10 @@ const runScheduleScript = async (scriptInfo) => {
 
             sendMail(mailOptions)
                 .then(() => {
-                    logger.info('Email sent successfully');
+                    logger.info('Schdeule job completion email sent successfully');
                 })
                 .catch((err) => {
-                    logger.error(`Error sending email: ${err}`);
+                    logger.error(`Schdeule job completion email sending error: ${err}`);
                 });
         }
     }

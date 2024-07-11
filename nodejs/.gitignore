@@ -5,4 +5,8 @@ privateKey.pem
 key.pem
 server.crt
 .vercel
-*temp
+/temp/*
+!/temp/
+combined.log
+error.log
+warn.log

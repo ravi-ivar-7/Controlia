@@ -8,6 +8,7 @@ const { checkServer } = require('../services/checkServer');
 const { verifyToken } = require('../middlewares/verifyToken')
 const { loginUser } = require('../controllers/user/login');
 const { registerUser } = require('../controllers/user/register');
+const {getLogs} =require('../services/getLogs')
 
 const { addExecuteScript } = require('../controllers/executeScripts/addExecuteScript');
 const { getExecuteScript } = require('../controllers/executeScripts/getExecuteScript');
@@ -46,7 +47,7 @@ router.post('/save-schedule-layout',verifyToken, saveScheduleLayouts)
 
 router.post('/convert-notebook',convertNotebook )
 
-router.get('/get-error-log',)
+router.get('/get-logs/:filename',getLogs)
 
 
 module.exports = router;

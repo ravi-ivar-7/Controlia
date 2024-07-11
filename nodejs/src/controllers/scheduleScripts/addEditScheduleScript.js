@@ -5,7 +5,6 @@ const { sendMail } = require('../../services/sendMail');
 const { runScheduleScript } = require('./runScheduleScript')
 const { base62 } = require('base-id');
 const logger = require('../../services/winstonLogger');
-const { warn } = require('winston');
 
 const formateDateTime = async (dateTime) => {
   const newDateTime = new Date(dateTime);
@@ -40,7 +39,7 @@ const addEditScheduleScript = async (req, res) => {
     });
 
     const callback = () => {
-      logger.info(`Scheduled job executed: $ {scriptInfo.scriptId}`);
+      logger.info(`Scheduled job execution started: ${scriptInfo.scriptId}`);
       runScheduleScript(scriptInfo);
     };
 
@@ -111,13 +110,13 @@ const addEditScheduleScript = async (req, res) => {
       { returnDocument: 'after', upsert: true }
     );
 
-    // let mailOptions = {
-    //   from: process.env.ADD_SCHEDULE_EMAIL,
-    //   subject: 'Job scheduled',
-    //   to: decodedToken.email,
-    //   text: `Title: ${scriptInfo.title} . \nScheduleId: ${scheduleId} . \nSchedule Rule: ${scriptInfo.scheduleRule} .`,
-    // };
-    // await sendMail(mailOptions);
+    let mailOptions = {
+      from: process.env.NODEJS_FROM_EMAIL,
+      subject: 'Job scheduled',
+      to: decodedToken.email,
+      text: `Title: ${scriptInfo.title} . \nScheduleId: ${scheduleId} . \nSchedule Rule: ${scriptInfo.scheduleRule} .`,
+    };
+    await sendMail(mailOptions);
 
     const scripts = await scriptCollection.find({ userId: decodedToken.userId }).toArray()
     const scheduleScripts = await scheduleCollection.find({ userId: decodedToken.userId }).toArray()

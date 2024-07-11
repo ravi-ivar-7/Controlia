@@ -1,21 +1,22 @@
+require('dotenv').config({ path: '../../../.env' });
 const nodemailer = require('nodemailer');
+const logger = require('../services/winstonLogger');
 
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'ravikumar117211@gmail.com',  
-        pass: 'qgwi xdrv lkcy abge'   
+        user: process.env.NODEJS_FROM_EMAIL,  
+        pass: process.env.NODEJS_FROM_EMAIL_PASSWORD,   
     }
 });
 
 const sendMail = async (mailOptions) => {
     try {
         let info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully!');
-        console.log('Message ID:', info.messageId);
+        logger.info(`Message sent. ID: ${info.messageId}`)
         return info;
     } catch (error) {
-        console.error('Error occurred:', error.message);
+        logger.error(`Error occured during sending mail: ${error}`);
         throw error;
     }
 };

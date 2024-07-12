@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../../.env' });
 const nodemailer = require('nodemailer');
-const logger = require('../services/winstonLogger');
+const logger = require('./winstonLogger');
 const { Queue } = require('bullmq');
 
 
@@ -15,7 +15,20 @@ let transporter = nodemailer.createTransport({
 
 const REDIS_URL = process.env.REDIS_URL
 
-const mailQueue = new Queue('mailQueue', { connection: REDIS_URL });
+const IORedis = require('ioredis');
+
+const redisOptions = {
+    port: 6379, 
+    host: 'singapore-redis.render.com',
+    username: 'red-cq807v8gph6c73eva79g',
+    password: 'zQPCwEqbsnAinoGzYKaipiJepPIajWfB', 
+    tls: {}, 
+    maxRetriesPerRequest: null
+};
+
+const connection = new IORedis(redisOptions);
+
+const mailQueue = new Queue('mailQueue', { connection });
 
 const addToMailQueue = async (mailOptions) => {
     try {

@@ -6,7 +6,21 @@ const { base62 } = require('base-id');
 const logger = require('../../services/winstonLogger');
 
 const REDIS_URL = process.env.REDIS_URL
-const scheduleScriptQueue = new Queue('scheduleScriptQueue', { connection: REDIS_URL });
+
+const IORedis = require('ioredis');
+
+const redisOptions = {
+    port: 6379, 
+    host: 'singapore-redis.render.com',
+    username: 'red-cq807v8gph6c73eva79g',
+    password: 'zQPCwEqbsnAinoGzYKaipiJepPIajWfB', 
+    tls: {}, 
+    maxRetriesPerRequest: null
+};
+
+const connection = new IORedis(redisOptions);
+
+const scheduleScriptQueue = new Queue('scheduleScriptQueue', { connection });
 
 const addEditScheduleScript = async (req, res) => {
   let client;

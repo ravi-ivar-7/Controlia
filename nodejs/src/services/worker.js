@@ -1,14 +1,24 @@
 require('dotenv').config({ path: '../../.env' });
 const { Worker } = require('bullmq');
 const { runScheduleScript } = require("../controllers/scheduleScripts/runScheduleScript");
-const { sendMail, mailQueue } = require('./manageMail');
-const logger = require('../services/winstonLogger');
+const { sendMail } = require('./manageMail');
+const logger = require('./winstonLogger');
+const IORedis = require('ioredis');
 
-const REDIS_URL = process.env.REDIS_URL 
-console.log(REDIS_URL)
+const redisOptions = {
+    port: 6379, 
+    host: 'singapore-redis.render.com',
+    username: 'red-cq807v8gph6c73eva79g',
+    password: 'zQPCwEqbsnAinoGzYKaipiJepPIajWfB', 
+    tls: {}, 
+    maxRetriesPerRequest: null
+};
+
+const connection = new IORedis(redisOptions);
+
 const jobHandlers = {
-        runScheduleScript,
-        sendMail,
+    runScheduleScript,
+    sendMail,
 };
 
 const processScheduleScriptJob = async (job) => {
@@ -35,7 +45,7 @@ const processSendMailJob = async (job) => {
             await handler(job);
         } catch (error) {
             logger.error(`Error processing job ${job.id} in mailQueue:`, error);
-            throw error; 
+            throw error;
         }
     } else {
         logger.error(`No handler found for job ${job.name} in mailQueue`);
@@ -43,25 +53,27 @@ const processSendMailJob = async (job) => {
     }
 };
 
-const sendMailWorker = new Worker('mailQueue', 
+const sendMailWorker = new Worker('mailQueue',
     async (job) => {
-        processSendMailJob(job),
-        logger.info(`Started mail  job ${job.id}`)
-    }, 
-     {
-    connection: REDIS_URL,
-    concurrency: 10,
-});
+        await processSendMailJob(job);
+        logger.info(`Started mail job ${job.id}`);
+    },
+    {
+        connection,
+        concurrency: 10,
+    }
+);
 
 const scheduleScriptWorker = new Worker('scheduleScriptQueue',
     async (job) => {
-        processScheduleScriptJob(job)
-        logger.info(`Started schedule script job ${job.id}`)
-    }, 
+        await processScheduleScriptJob(job);
+        logger.info(`Started schedule script job ${job.id}`);
+    },
     {
-    connection: REDIS_URL,
-    concurrency: 10,
-});
+        connection,
+        concurrency: 10,
+    }
+);
 
 scheduleScriptWorker.on("completed", (job) => {
     logger.info(`Job ${job.id} in scheduleScriptQueue has completed!`);

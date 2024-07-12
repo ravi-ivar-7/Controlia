@@ -1,5 +1,6 @@
 const os = require('os');
 const { spawn } = require('child_process');
+const logger = require('./winstonLogger');
 
 const checkServer =  async (req, res) => {
     const uptime = process.uptime(); // Server uptime in seconds
@@ -21,29 +22,36 @@ const checkServer =  async (req, res) => {
         timestamp: new Date().toISOString()
     });
 }
-// index.js
-
-
 const startWorkerServer = async (req, res) => {
     try {
         const workerProcess = spawn('node', ['worker.js'], {
-            detached: true, // Allows the child process to run independently of the parent
-            stdio: 'ignore', // Ignore input/output streams of the child process
+            // detached: true, // Allows the child process to run independently of the parent
+            // stdio: 'ignore', // Ignore input/output streams of the child process
         });
 
-        // Handle errors if the spawn fails
         workerProcess.on('error', (err) => {
-            console.error('Failed to start worker process:', err);
-            res.status(500).send('Failed to start worker process');
+            logger.error('Failed to start worker process:', err);
+            res.status(500).send('Error starting worker process');
         });
 
-        // Notify success to the client
-        res.status(200).send('Worker process started successfully.');
+        workerProcess.stdout.on('data', (data) => {
+            logger.debug(`STDOUT: ${data}`);
+        });
 
-        // Optionally, you can also unref the worker process to allow the parent process to exit independently
+        workerProcess.stderr.on('data', (data) => {
+            logger.debug(`STDERR: ${data}`);
+        });
+
+        workerProcess.on('close', (code) => {
+            logger.debug(`workerProcess PROCESS CLOSED WITH CODE: ${code}`);
+        });
+
         workerProcess.unref();
+
+        // If you reach here, it means the worker process was started successfully
+        res.status(200).send('Worker process started successfully');
     } catch (error) {
-        console.error('Error starting worker process:', error);
+        logger.error('Error starting worker process:', error);
         res.status(500).send('Error starting worker process');
     }
 };

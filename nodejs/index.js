@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '.env' });
 const path = require("path");
 const express = require('express');
+const router = express.Router();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
@@ -26,6 +27,24 @@ app.use(bodyParser.json());
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+// BullMQ UI
+const {scheduleScriptQueue} = require('./src/controllers/scheduleScripts/addEditScheduleScript')
+const {mailQueue} = require('./src/services/manageMail')
+const { createBullBoard } = require('@bull-board/api');
+const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
+const { ExpressAdapter } = require('@bull-board/express');
+
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/admin/queues');
+
+const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
+  queues: [new BullMQAdapter(scheduleScriptQueue),new BullMQAdapter(mailQueue)],
+  serverAdapter: serverAdapter,
+});
+app.use('/admin/queues', serverAdapter.getRouter());
+
 
 // FOR USING SSL/TLS:
 let options;
@@ -77,6 +96,7 @@ function handleWebSocketMessage(message,decodedToken, socket) {
     socket.send(JSON.stringify({ warn: 'Invalid message format', error }));
   }
 }
+
 
 // Token verification function
 function verifyToken(token) {

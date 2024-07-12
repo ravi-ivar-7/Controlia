@@ -1,31 +1,34 @@
 {
-	"name": "raz-pay",
+	"name": "controlia-nodejs",
 	"version": "1.0.0",
-	"description": "Integrating Razorpay Payment Gateway with Nodejs",
+	"description": "Automating...",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "node index.js"
+		"start": "concurrently \"node index.js\" \"node src/services/worker.js\""
 	},
 	"author": "",
 	"license": "",
 	"dependencies": {
+		"@bull-board/api": "^5.21.0",
+		"@bull-board/express": "^5.21.0",
 		"base-id": "^3.3.0",
 		"bcryptjs": "^2.4.3",
 		"body-parser": "^1.20.2",
+		"bullmq": "^5.8.7",
 		"cors": "^2.8.5",
 		"express": "^4.19.2",
 		"express-rate-limit": "^7.3.1",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.4.4",
 		"nanoid": "^5.0.7",
-		"node-schedule": "^2.1.1",
 		"nodemailer": "^6.9.14",
 		"uuid": "^10.0.0",
 		"winston": "^3.13.1",
 		"ws": "^8.18.0"
 	},
 	"devDependencies": {
+		"concurrently": "^8.2.2",
 		"dotenv": "^8.2.0",
 		"nodemon": "^2.0.7"
 	},

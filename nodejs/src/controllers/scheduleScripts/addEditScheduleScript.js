@@ -1,32 +1,21 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
-const schedule = require('node-schedule');
-const { sendMail } = require('../../services/sendMail');
-const { runScheduleScript } = require('./runScheduleScript')
+const { Queue } = require('bullmq');
+const { addToMailQueue } = require('../../services/manageMail');
 const { base62 } = require('base-id');
 const logger = require('../../services/winstonLogger');
 
-const formateDateTime = async (dateTime) => {
-  const newDateTime = new Date(dateTime);
-  const year = newDateTime.getFullYear();
-  const month = ('0' + (newDateTime.getMonth() + 1)).slice(-2); // Months are zero indexed
-  const day = ('0' + newDateTime.getDate()).slice(-2);
-  const hours = ('0' + newDateTime.getHours()).slice(-2);
-  const minutes = ('0' + newDateTime.getMinutes()).slice(-2);
-  const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-  return formattedDateTime;
-};
+const REDIS_URL = process.env.REDIS_URL
+const scheduleScriptQueue = new Queue('scheduleScriptQueue', { connection: REDIS_URL });
 
 const addEditScheduleScript = async (req, res) => {
   let client;
   try {
-
     const { decodedToken, scriptInfo } = req.body;
     if (!scriptInfo) {
-      return res.status(422).json({ warn: 'scriptInfo missing from body.' });
+      return res.status(422).json({ info: 'scriptInfo missing from body.' });
     }
     client = new MongoClient(process.env.MONGODB_URL);
-
     await client.connect();
 
     const db = client.db("controlia");
@@ -38,28 +27,32 @@ const addEditScheduleScript = async (req, res) => {
       scriptId: scriptInfo.scriptId
     });
 
-    const callback = () => {
-      logger.info(`Scheduled job execution started: ${scriptInfo.scriptId}`);
-      runScheduleScript(scriptInfo);
-    };
-
-    let newScheduleJob;
     let scheduleId = await base62.generateToken(24, 'ss_');
 
-    if (scriptInfo.scheduleType === 'fixed') {
-      const dateTime = await formateDateTime(scriptInfo.scheduleRule);
-      newScheduleJob = schedule.scheduleJob(scheduleId, dateTime, callback);
-    } else if (scriptInfo.scheduleType === 'recurring') {
-      newScheduleJob = schedule.scheduleJob(scheduleId, scriptInfo.scheduleRule, callback);
-    } else {
-      return res.status(209).json({ warn: 'Unsupported schedule rule.' });
-    }
-    if(!newScheduleJob){
-      return res.status(209).json({ warn: 'Failed to schedule.' });
-    }
-    if (scheduledScript) {
-      schedule.cancelJob(scheduledScript.scheduleId);
+    let jobOptions = {};
 
+    if (scriptInfo.scheduleType === 'fixed') {
+      const fixedDatetime = new Date(scriptInfo.scheduleRule);
+
+      const delay = fixedDatetime - new Date();
+      jobOptions = { delay: fixedDatetime - new Date() };
+    } else if (scriptInfo.scheduleType === 'recurring') {
+      jobOptions = { repeat: { cron: scriptInfo.scheduleRule } };
+    } else {
+      return res.status(422).json({ info: 'Unsupported schedule rule.' });
+    }
+
+    const jobPayload = { scriptInfo };
+
+    const newScheduleJob = await scheduleScriptQueue.add('runScheduleScript', jobPayload, jobOptions);
+
+    if (!newScheduleJob) {
+      return res.status(209).json({ info: 'Failed to schedule.' });
+    }
+
+    let message;
+
+    if (scheduledScript) { // update existing
       const scheduleUpdateFields = {
         $set: {
           scheduleRule: scriptInfo.scheduleRule,
@@ -74,27 +67,24 @@ const addEditScheduleScript = async (req, res) => {
         scheduleUpdateFields,
         { returnDocument: 'after', upsert: true }
       );
-      info = `Schedule updated for script ${scriptInfo.scriptId}`;
-    }
-    else {
+      message = `Schedule updated for script ${scriptInfo.scriptId}`;
+    } else { // a new schedule
       const scheduleDocument = {
         userId: decodedToken.userId,
         email: decodedToken.email,
         name: decodedToken.name,
-
         title: scriptInfo.title,
         scriptId: scriptInfo.scriptId,
         language: scriptInfo.language,
         script: scriptInfo.script,
-        argumentsList:scriptInfo.argumentsList,
-
+        argumentsList: scriptInfo.argumentsList,
         scheduleRule: scriptInfo.scheduleRule,
         scheduleType: scriptInfo.scheduleType,
         scheduleId: scheduleId,
         date: new Date(),
       };
       await scheduleCollection.insertOne(scheduleDocument);
-      info = `Schedule added for script ${scriptInfo.scriptId}`;
+      message = `Schedule added for script ${scriptInfo.scriptId}`;
     }
 
     const scriptUpdateFields = {
@@ -114,18 +104,26 @@ const addEditScheduleScript = async (req, res) => {
       from: process.env.NODEJS_FROM_EMAIL,
       subject: 'Job scheduled',
       to: decodedToken.email,
-      text: `Title: ${scriptInfo.title} . \nScheduleId: ${scheduleId} . \nSchedule Rule: ${scriptInfo.scheduleRule} .`,
+      text: `Title: ${scriptInfo.title} . \nScheduleId: ${newScheduleJob.id} . \nSchedule Rule: ${scriptInfo.scheduleRule} .`,
     };
-    await sendMail(mailOptions);
 
-    const scripts = await scriptCollection.find({ userId: decodedToken.userId }).toArray()
-    const scheduleScripts = await scheduleCollection.find({ userId: decodedToken.userId }).toArray()
-    const nonScheduleScripts = scripts.filter(script => script.scheduleId === '');
-    res.status(200).json({ info, scheduleScripts, nonScheduleScripts });
+    addToMailQueue(mailOptions)
+      .then(() => {
+        logger.info('Mail job added to queue successfully.');
+      })
+      .catch((error) => {
+        logger.error('Error adding mail job to queue:', error);
+      });
+
+    const scripts = await scriptCollection.find({ userId: decodedToken.userId }).toArray();
+    const scheduleScripts = await scheduleCollection.find({ userId: decodedToken.userId }).toArray();
+    const nonScheduleScripts = scripts.filter(script => !script.scheduleId);
+
+    res.status(200).json({ message, scheduleScripts, nonScheduleScripts });
 
   } catch (error) {
-    logger.error(`ERROR IN ADD/EDIT SCHEDULE SCRIPT: ${error}`);
-    res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });
+    console.error('ERROR IN ADD/EDIT SCHEDULE SCRIPT: ', error);
+    res.status(500).json({ info: 'INTERNAL SERVER ERROR', error });
   } finally {
     if (client) {
       await client.close();
@@ -133,6 +131,10 @@ const addEditScheduleScript = async (req, res) => {
   }
 };
 
-module.exports = {
-  addEditScheduleScript
-};
+module.exports = { addEditScheduleScript, scheduleScriptQueue };
+
+
+
+
+
+

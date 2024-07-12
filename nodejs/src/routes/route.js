@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { extractLimit } = require('../middlewares/rateLimiter')
 
-const { checkServer } = require('../services/checkServer');
+const { checkServer, startWorkerServer } = require('../services/server');
 
 const { verifyToken } = require('../middlewares/verifyToken')
 const { loginUser } = require('../controllers/user/login');
@@ -21,12 +21,15 @@ const {addEditScheduleScript} = require('../controllers/scheduleScripts/addEditS
 const {getScheduleLayouts, saveScheduleLayouts} = require('../controllers/scheduleScripts/layoutScheduleScript')
 const {getScheduleScript} = require('../controllers/scheduleScripts/getScheduleScript')
 
+const {getQueueJobs, deleteJob, pauseQueue, resumeQueue, emptyQueue, deleteQueue} = require('..//services/manageQueues')
 const {convertNotebook} = require('../controllers/jupyter/convertNotebook')
 
 
 
 router.get('/', async (req, res) => { res.status(200).json({ status: "ok", ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip, userAgent: req.headers['user-agent'] }) })
 router.get('/check-server', checkServer)
+router.get('/start-worker-server', startWorkerServer);
+
 router.get('/validate-token', verifyToken, (req, res) => { return res.status(200).json({ message: 'Token is valid', userData: req.data }); });
 
 router.post('/login', loginUser);
@@ -44,6 +47,16 @@ router.post('/add-edit-schedule-script',verifyToken, addEditScheduleScript)
 router.post('/delete-schedule-script',verifyToken, deleteScheduleScript)
 router.get('/get-schedule-layout',verifyToken, getScheduleLayouts)
 router.post('/save-schedule-layout',verifyToken, saveScheduleLayouts)
+
+router.get('/get-queue-jobs/:queuename', getQueueJobs)
+router.get('/delete-queue-job/:queuename/:scheduleId', deleteJob)
+router.get('/pause-queue/:queuename', pauseQueue)
+router.get('/resume-queue/:queuename', resumeQueue)
+router.get('/empty-queue/:queuename/', emptyQueue)
+router.get('/delete-queue/:queuename/', deleteQueue)
+
+
+
 
 router.post('/convert-notebook',convertNotebook )
 

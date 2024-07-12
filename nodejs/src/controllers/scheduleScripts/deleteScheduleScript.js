@@ -1,7 +1,7 @@
 require('dotenv').config({ path: '../../../.env' });
-const MongoClient = require('mongodb').MongoClient;
-const schedule = require('node-schedule');
-const logger = require('../../services/winstonLogger')
+const { MongoClient } = require('mongodb');
+const logger = require('../../services/winstonLogger');
+const { scheduleScriptQueue } = require('./addEditScheduleScript'); // Ensure this is the correct path to your scheduler
 
 const deleteScheduleScript = async (req, res) => {
   const client = new MongoClient(process.env.MONGODB_URL);
@@ -11,9 +11,10 @@ const deleteScheduleScript = async (req, res) => {
     await client.connect();
 
     const { decodedToken, scriptInfo } = req.body;
-    if(!scriptInfo){
-      return res.status(209).json({warn:'scriptInfo is missing in body.'})
+    if (!scriptInfo) {
+      return res.status(209).json({ warn: 'scriptInfo is missing in body.' });
     }
+
     const db = client.db("controlia");
     const scheduleCollection = db.collection('scheduleScripts');
     const scriptCollection = db.collection('executeScripts');
@@ -22,9 +23,15 @@ const deleteScheduleScript = async (req, res) => {
 
     if (!scheduleDocument) {
       return res.status(209).json({ warn: 'Scheduled script not found.' });
-    }
-    else{
-      schedule.cancelJob(scheduleDocument.scheduleId);
+    } else {
+      // Cancel the job in BullMQ queue
+      const job = await scheduleScriptQueue.getJob(scheduleDocument.scheduleId);
+      if (job) {
+        await job.remove();
+      } else {
+        logger.warn(`Job with scheduleId ${scheduleDocument.scheduleId} not found in the queue.`);
+      }
+
       await scheduleCollection.findOneAndDelete({ userId: decodedToken.userId, scriptId: scriptInfo.scriptId });
 
       const scriptUpdateFields = {
@@ -43,7 +50,7 @@ const deleteScheduleScript = async (req, res) => {
       info = 'Schedule deleted successfully.';
       return res.status(200).json({ info, updatedScript });
     }
-    
+
   } catch (error) {
     logger.error(`ERROR IN DELETE SCHEDULE SCRIPT: ${error}`);
     return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });

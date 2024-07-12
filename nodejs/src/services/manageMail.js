@@ -1,6 +1,8 @@
-require('dotenv').config({ path: '../../../.env' });
+require('dotenv').config({ path: '../../.env' });
 const nodemailer = require('nodemailer');
 const logger = require('../services/winstonLogger');
+const { Queue } = require('bullmq');
+
 
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -10,10 +12,32 @@ let transporter = nodemailer.createTransport({
     }
 });
 
-const sendMail = async (mailOptions) => {
+
+const REDIS_URL = process.env.REDIS_URL
+
+const mailQueue = new Queue('mailQueue', { connection: REDIS_URL });
+
+const addToMailQueue = async (mailOptions) => {
+    try {
+        const jobPayload = { mailOptions };
+
+        const newMailJob = await mailQueue.add('sendMail', jobPayload);
+
+        if (!newMailJob) {
+            logger.error('Error occurred during adding mail to mailQueue');
+            throw new Error('Error occurred during adding mail to mailQueue');
+        }
+    } catch (error) {
+        logger.error(`Error occurred during adding mail to mailQueue: ${error}`);
+        throw error;
+    }
+};
+
+const sendMail = async (job) => {
+    const {mailOptions} = job.data;
     try {
         let info = await transporter.sendMail(mailOptions);
-        logger.info(`Message sent. ID: ${info.messageId}`)
+        logger.info(`Mail sent with id: ${info.messageId}`)
         return info;
     } catch (error) {
         logger.error(`Error occured during sending mail: ${error}`);
@@ -21,7 +45,7 @@ const sendMail = async (mailOptions) => {
     }
 };
 
-module.exports = { sendMail };
+module.exports = { sendMail , addToMailQueue, mailQueue};
 
 // let mailOptions = {
 //     from: 'your_email@gmail.com',

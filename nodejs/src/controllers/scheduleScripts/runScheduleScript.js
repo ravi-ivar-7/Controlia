@@ -3,8 +3,9 @@ const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
 const { MongoClient } = require('mongodb');
-const { sendMail } = require('../../services/sendMail');
+const { addToMailQueue } = require('../../services/manageMail');
 const logger = require('../../services/winstonLogger');
+
 
 const attachChildProcessListeners = (child) => {
     return new Promise((resolve, reject) => {
@@ -34,19 +35,19 @@ const attachChildProcessListeners = (child) => {
     });
 };
 
-const runScheduleScript = async (scriptInfo) => {
+const runScheduleScript = async (job) => {
+    const { scriptInfo } = job.data;
     const client = new MongoClient(process.env.MONGODB_URL);
     const dirToStoreFile = path.join(__dirname, '../../../temp')
     let outputData = [];
     let scheduleId;
     let toMail;
-
     try {
         await client.connect();
 
         const db = client.db("controlia");
         const scheduleCollection = db.collection('scheduleScripts');
-        
+
 
         const scriptDocument = await scheduleCollection.findOne({ userId: scriptInfo.userId, scriptId: scriptInfo.scriptId });
 
@@ -60,7 +61,7 @@ const runScheduleScript = async (scriptInfo) => {
         toMail = scriptDocument.email;
 
         if (scriptDocument.scheduleType === 'fixed') {
-            await scheduleCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId});
+            await scheduleCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId });
             const scheduleUpdateFields = {
                 $set: {
                     scheduleId: '',
@@ -93,7 +94,7 @@ const runScheduleScript = async (scriptInfo) => {
 
             logger.debug('Compiling...');
             outputData.push(`${new Date().toISOString()}, Compiling...`);
-            
+
             await new Promise((resolve, reject) => {
                 compile.on('close', async (code) => {
                     if (code === 0) {
@@ -151,28 +152,35 @@ const runScheduleScript = async (scriptInfo) => {
     } finally {
         if (client) {
             await client.close();
-            const csvContent = outputData.join('\n');
-            const csvBuffer = Buffer.from(`Date-time,Output\n${csvContent}`, 'utf-8');
-            const mailOptions = {
-                from: process.env.NODEJS_FROM_EMAIL,
-                to: toMail,
-                subject: 'Job executed',
-                text: `Your job  ${scheduleId} has been executed with the following output`,
-                attachments: [
-                    {
-                        filename: 'output.csv',
-                        content: csvBuffer,
-                    }
-                ]
-            };
+            try {
 
-            sendMail(mailOptions)
-                .then(() => {
-                    logger.info('Schdeule job completion email sent successfully');
-                })
-                .catch((err) => {
-                    logger.error(`Schdeule job completion email sending error: ${err}`);
-                });
+
+                // Convert array to JSON
+                const jsonData = JSON.stringify(outputData, null, 2); // Pretty-print with 2 spaces for readability
+
+                // Convert JSON string to Buffer
+                const jsonBuffer = Buffer.from(jsonData, 'utf-8');
+
+                // Construct email message
+                const mailOptions = {
+                    from: process.env.NODEJS_FROM_EMAIL,
+                    to: toMail,
+                    subject: 'Job executed',
+                    text: `Your job ${scheduleId} has been executed with the following output`,
+                    attachments: [
+                        {
+                            filename: 'output.json',
+                            content: jsonData,
+                        }
+                    ]
+                };
+
+                await addToMailQueue(mailOptions);
+
+                logger.info('Mail job for completion schedule added to queue successfully.');
+            } catch (error) {
+                logger.error('Error adding schedule completion mail job to queue:', error);
+            }
         }
     }
 };

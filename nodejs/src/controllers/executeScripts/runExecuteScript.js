@@ -5,6 +5,51 @@ const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../../services/winstonLogger')
 
+const rootDirectory = path.join(__dirname)
+
+async function writeFileAsync(filePath, data) {
+    try {
+        // Ensure the directory exists before writing the file
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+        // Write the file
+        await fs.writeFile(filePath, data);
+        console.log('File written successfully:', filePath);
+        return filePath;
+    } catch (error) {
+        console.error('Error writing file:', error);
+        throw error;
+    }
+}
+async function createDirectoryAsync(directoryPath) {
+    try {
+        await fs.mkdir(directoryPath, { recursive: true });
+        console.log(`Directory created successfully at ${directoryPath}`);
+        return directoryPath;
+    } catch (error) {
+        console.error('Error creating directory:', error);
+        throw error;
+    }
+}
+
+async function deleteFileAsync(filePath) {
+    try {
+        await fs.unlink(filePath);
+        console.log(`File deleted successfully: ${filePath}`);
+    } catch (error) {
+        console.error('Error deleting file:', error);
+    }
+}
+
+async function deleteDirectoryAsync(directoryPath) {
+    try {
+        await fs.rm(directoryPath, { recursive: true });
+        console.log(`Directory deleted successfully: ${directoryPath}`);
+    } catch (error) {
+        console.error(`Error deleting directory: ${directoryPath}`, error);
+        throw error;
+    }
+}
 
 const attachChildProcessListeners = (child, socket) => {
     return new Promise((resolve, reject) => {
@@ -34,7 +79,7 @@ const attachChildProcessListeners = (child, socket) => {
 
 const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
     const client = new MongoClient(process.env.MONGODB_URL);
-    const dirToStoreFile = path.join(__dirname, '../../../temp')
+
     try {
         await client.connect();
         const db = client.db("controlia");
@@ -52,12 +97,14 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
         const argumentsList = scriptDocument.argumentsList;
 
         let child;
-
+        const userDirectory = path.join(__dirname,`temp/${scriptDocument.userId}` )
         if (language === 'cpp') {
-            const filePath = path.join(dirToStoreFile, 'tempcpp.cpp');
-            await fs.writeFile(filePath, script);
+            
 
-            const compile = spawn('g++', [filePath, '-o', path.join(dirToStoreFile, 'output')], { stdio: 'pipe' });
+            const filePath = path.join(userDirectory, 'temp.cpp');
+            writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp cpp file: ${error}`)});
+
+            const compile = spawn('g++', [filePath, '-o', path.join(userDirectory, 'temp')], { stdio: 'pipe' });
             socket.send(JSON.stringify({ data: 'Compiling...', info: 'COMPILATION STARTED' }));
 
             await new Promise((resolve, reject) => {
@@ -65,8 +112,10 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
                     if (code === 0) {
                         logger.debug('Successfully compiled');
                         socket.send(JSON.stringify({ data: 'Successfully compiled', info: 'COMPILE SUCCESS' }));
-                        child = spawn(path.join(dirToStoreFile, 'output'), argumentsList, { stdio: 'pipe' });
+                        child = spawn(path.join(userDirectory, 'temp'), argumentsList, { stdio: 'pipe' });
                         await attachChildProcessListeners(child, socket);
+                        deleteDirectoryAsync(userDirectory)
+
                         resolve();
                     } else {
                         logger.debug(`Compilation failed with code ${code}`);
@@ -87,11 +136,12 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
             });
 
         } else if (language === 'node' || language === 'javascript') {
-            const filePath = path.join(dirToStoreFile, 'tempjs.js');
-            await fs.writeFile(filePath, script);
+            const filePath = path.join(userDirectory, 'temp.js');
+            writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp js file: ${error}`)});
             child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
             socket.send(JSON.stringify({ data: 'Process started...', info: 'NODE PROCESS STARTED' }));
             await attachChildProcessListeners(child, socket);
+            deleteDirectoryAsync(userDirectory)
 
         } else if (['python', 'python3'].includes(language)) {
             child = spawn('python', ['-c', script, ...argumentsList], { stdio: 'pipe' });
@@ -99,12 +149,13 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
             await attachChildProcessListeners(child, socket);
 
         } else if (['bash', 'shell'].includes(language)) {
-            const filePath = path.join(dirToStoreFile, 'bashtemp.sh');
-            await fs.writeFile(filePath, script);
+            const filePath = path.join(userDirectory, 'temp.sh');
+            writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp bash file: ${error}`)});
             await fs.chmod(filePath, '755');
-            child = spawn('bash', ['temp/bashtemp.sh', ...argumentsList], { stdio: 'pipe' });
+            child = spawn('bash', [`src/controllers/executeScripts/temp/${scriptDocument.userId}/temp.sh`, ...argumentsList], { stdio: 'pipe' });
             socket.send(JSON.stringify({ data: 'Process started...', info: 'SHELL PROCESS STARTED' }));
             await attachChildProcessListeners(child, socket);
+            deleteDirectoryAsync(path.join('src/controllers/executeScripts/temp', scriptDocument.userId))
 
         } else {
             logger.debug('Unsupported script language');
@@ -114,7 +165,7 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
 
     } catch (error) {
         logger.error(`EXECUTE ERROR ${error}`);
-        socket.send(JSON.stringify({ data: 'INTERNAL SERVER ERROR', info: `EXECUTE ERROR ${error}`}));
+        socket.send(JSON.stringify({ data: 'INTERNAL SERVER ERROR', info: `EXECUTE ERROR ${error}` }));
     } finally {
         if (client) {
             await client.close();

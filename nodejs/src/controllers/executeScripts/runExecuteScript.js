@@ -5,8 +5,6 @@ const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../../services/winstonLogger')
 
-const rootDirectory = path.join(__dirname)
-
 async function writeFileAsync(filePath, data) {
     try {
         // Ensure the directory exists before writing the file
@@ -151,7 +149,7 @@ const runExecuteScript = async (scriptInfo, decodedToken, socket) => {
         } else if (['bash', 'shell'].includes(language)) {
             const filePath = path.join(userDirectory, 'temp.sh');
             writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp bash file: ${error}`)});
-            await fs.chmod(filePath, '755');
+            // await fs.chmod(filePath, '755');
             child = spawn('bash', [`src/controllers/executeScripts/temp/${scriptDocument.userId}/temp.sh`, ...argumentsList], { stdio: 'pipe' });
             socket.send(JSON.stringify({ data: 'Process started...', info: 'SHELL PROCESS STARTED' }));
             await attachChildProcessListeners(child, socket);

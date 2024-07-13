@@ -6,6 +6,49 @@ const { MongoClient } = require('mongodb');
 const { addToMailQueue } = require('../../services/manageMail');
 const logger = require('../../services/winstonLogger');
 
+async function writeFileAsync(filePath, data) {
+    try {
+        // Ensure the directory exists before writing the file
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+        // Write the file
+        await fs.writeFile(filePath, data);
+        console.log('File written successfully:', filePath);
+        return filePath;
+    } catch (error) {
+        console.error('Error writing file:', error);
+        throw error; // Make sure to propagate the error
+    }
+}
+async function createDirectoryAsync(directoryPath) {
+    try {
+        await fs.mkdir(directoryPath, { recursive: true });
+        console.log(`Directory created successfully at ${directoryPath}`);
+        return directoryPath;
+    } catch (error) {
+        console.error('Error creating directory:', error);
+        throw error;
+    }
+}
+
+async function deleteFileAsync(filePath) {
+    try {
+        await fs.unlink(filePath);
+        console.log(`File deleted successfully: ${filePath}`);
+    } catch (error) {
+        console.error('Error deleting file:', error);
+    }
+}
+
+async function deleteDirectoryAsync(directoryPath) {
+    try {
+        await fs.rm(directoryPath, { recursive: true });
+        console.log(`Directory deleted successfully: ${directoryPath}`);
+    } catch (error) {
+        console.error(`Error deleting directory: ${directoryPath}`, error);
+        throw error;
+    }
+}
 
 const attachChildProcessListeners = (child) => {
     return new Promise((resolve, reject) => {
@@ -40,6 +83,7 @@ const runScheduleScript = async (job) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     const dirToStoreFile = path.join(__dirname, '../../../temp')
     let outputData = [];
+    processChildOutput =[]
     let scheduleId;
     let toMail;
     try {
@@ -59,6 +103,7 @@ const runScheduleScript = async (job) => {
 
         scheduleId = scriptDocument.scheduleId;
         toMail = scriptDocument.email;
+        const userDirectory = path.join(__dirname,`temp/${scriptDocument.userId}` )
 
         if (scriptDocument.scheduleType === 'fixed') {
             await scheduleCollection.findOneAndDelete({ userId: scriptDocument.userId, scriptId: scriptDocument.scriptId });
@@ -87,10 +132,10 @@ const runScheduleScript = async (job) => {
 
         let child;
         if (language === 'cpp') {
-            const filePath = path.join(dirToStoreFile, 'tempcpp.cpp');
-            await fs.writeFile(filePath, script);
+             const filePath = path.join(userDirectory, 'temp.cpp');
+            await writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp cpp file: ${error}`)});
 
-            const compile = spawn('g++', [filePath, '-o', path.join(dirToStoreFile, 'output')], { stdio: 'pipe' });
+            const compile = spawn('g++', [filePath, '-o', path.join(userDirectory, 'temp')], { stdio: 'pipe' });
 
             logger.debug('Compiling...');
             outputData.push(`${new Date().toISOString()}, Compiling...`);
@@ -100,7 +145,10 @@ const runScheduleScript = async (job) => {
                     if (code === 0) {
                         logger.debug('Successfully compiled');
                         outputData.push(`${new Date().toISOString()}, Successfully compiled...`);
-                        child = spawn(path.join(dirToStoreFile, 'output'), argumentsList, { stdio: 'pipe' });
+                        child = spawn(path.join(dirToStoreFile, 'temp'), argumentsList, { stdio: 'pipe' });
+                        processChildOutput = await attachChildProcessListeners(child);
+                        deleteDirectoryAsync(userDirectory)
+
                         resolve();
                     } else {
                         logger.error(`Compilation failed with code ${code}`);
@@ -121,30 +169,35 @@ const runScheduleScript = async (job) => {
             });
 
         } else if (language === 'node' || language === 'javascript') {
-            const filePath = path.join(dirToStoreFile, 'tempjs.js');
-            await fs.writeFile(filePath, script);
+             const filePath = path.join(userDirectory, 'temp.js');
+            writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp js file: ${error}`)});
             child = spawn('node', [filePath, ...argumentsList], { stdio: 'pipe' });
             logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
+            processChildOutput = await attachChildProcessListeners(child);
+            deleteDirectoryAsync(userDirectory)
+
         } else if (['python', 'python3'].includes(language)) {
             child = spawn('python', ['-c', script, ...argumentsList], { stdio: 'pipe' });
             logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
+            processChildOutput = await attachChildProcessListeners(child);
         } else if (['bash', 'shell'].includes(language)) {
-            const filePath = path.join(dirToStoreFile, 'bashtemp.sh');
-            await fs.writeFile(filePath, script);
-            await fs.chmod(filePath, '755');
-            child = spawn('bash', ['temp/bashtemp.sh', ...argumentsList], { stdio: 'pipe' });
+            const filePath = path.join(userDirectory, 'temp.sh');
+            writeFileAsync(filePath, script).catch((error) => { logger.error(`Error writing temp bash file: ${error}`)});
+            // await fs.chmod(filePath, '755');
+            child = spawn('bash', [`src/controllers/executeScripts/temp/${scriptDocument.userId}/temp.sh`, ...argumentsList], { stdio: 'pipe' });
             logger.debug('Process started...');
             outputData.push(`${new Date().toISOString()}, Process started...`);
+            processChildOutput = await attachChildProcessListeners(child);
+            deleteDirectoryAsync(path.join('src/controllers/executeScripts/temp', scriptDocument.userId))
         } else {
             logger.debug('Unsupported script language');
             outputData.push(`${new Date().toISOString()}, Unsupported script language`);
             return;
         }
 
-        const processOutputData = await attachChildProcessListeners(child);
-        outputData = outputData.concat(processOutputData);
+        outputData = outputData.concat(processChildOutput);
 
     } catch (error) {
         logger.error(`ERROR IN RUNNING EXECUTION SCRIPT: ${error}`);

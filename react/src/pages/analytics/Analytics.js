@@ -3,7 +3,7 @@ import Card from 'react-bootstrap/Card';
 import { Button, Nav } from 'react-bootstrap';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
-import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './DashboardUtils';
+import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './AnalyticsUtils';
 
 
 import { Responsive, WidthProvider } from 'react-grid-layout';
@@ -12,7 +12,7 @@ import 'react-resizable/css/styles.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 
-const Dashboard = () => {
+const Analytics = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scripts, setScripts] = useState([]);
@@ -78,7 +78,7 @@ const Dashboard = () => {
       <div className="container">
         <div className="row mb-3">
           <div className="col-8 d-flex align-items-center">
-            <h4>Dashboard</h4>
+            <h4>Analytics</h4>
           </div>
           <div className="col-4 d-flex justify-content-end">
             <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Refresh</Button>
@@ -229,4 +229,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Analytics;

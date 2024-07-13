@@ -89,7 +89,7 @@ const Header = () => {
               }
               onMouseOut={(e) => (e.target.style.backgroundColor = 'transparent')}
             >
-              Dashboard
+              Home
             </Link>
           </li>
          

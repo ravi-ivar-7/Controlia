@@ -3,13 +3,18 @@ import Card from 'react-bootstrap/Card';
 import { Button, Nav } from 'react-bootstrap';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
-import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './DashboardUtils';
-
+import { headerFooterStyle, cardStyle, bodySectionStyle1 } from './DashboardUtils';
+import Footer from '../../components/bars/Footer';
+import { CDBBtn, CDBLink } from "cdbreact";
+import Sidebar from "../../components/bars/Sidebar";
+import Navbar from "../../components/bars/Navbar";
+import "./Dashboard.css";
 
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
 
 
 const Dashboard = () => {
@@ -74,159 +79,161 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div style={mainStyle}>
-      <div className="container">
-        <div className="row mb-3">
-          <div className="col-8 d-flex align-items-center">
-            <h4>Dashboard</h4>
-          </div>
-          <div className="col-4 d-flex justify-content-end">
-            <Button variant="success" size="sm" onClick={() => setShowModal(true)}>Refresh</Button>
+    <div className="dashbarod d-flex">
+      <div>
+        <Sidebar />
+      </div>
+      <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
+        <Navbar pageTitle={'Dashboard'} />
+        <div style={{ height: "100%" }}>
+
+          <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
+
+            <ResponsiveGridLayout
+              className="layout"
+              layouts={layouts}
+              breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+              cols={{ lg: 12, md: 8, sm: 1 }}
+              rowHeight={100}
+              draggableHandle=".draggable-handle"
+              onDragStop={handleDragStop}
+              onResizeStop={handleResizeStop}
+            >
+
+              <div key='schedule' data-grid={{ i: 'schedule', x: 0, y: 0, w: 4, h: 5 }}>
+                <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+                  <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Nav.Item style={{ color: 'white' }}>
+                        Schedule Scripts
+                      </Nav.Item>
+                    </Nav>
+                  </Card.Header>
+                  <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                    <Card.Title>Success</Card.Title>
+                    <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                      <div>
+                        Your totol scipts.
+                      </div>
+
+
+                    </Card.Text>
+                  </Card.Body>
+
+                  <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Button variant="info" size="sm" >
+                        <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
+                      </Button>
+                    </Nav>
+                    <Nav>
+                      <Button variant="info" size="sm">
+                        <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Schedule</Nav.Item>
+                      </Button>
+                    </Nav>
+                  </Card.Footer>
+
+
+                </Card>
+              </div>
+
+              <div key='execute' data-grid={{ i: 'execude', x: 4, y: 0, w: 4, h: 5 }}>
+                <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+                  <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Nav.Item style={{ color: 'white' }}>
+                        Execute Scripts
+                      </Nav.Item>
+                    </Nav>
+                  </Card.Header>
+                  <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                    <Card.Title>Success</Card.Title>
+                    <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+
+                      <div>Your total schedule scipts</div>
+
+                    </Card.Text>
+                  </Card.Body>
+                  <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                    <Card.Title>Failed</Card.Title>
+                    <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+
+                      <div>Your total schedule scipts</div>
+
+                    </Card.Text>
+                  </Card.Body>
+
+                  <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Button variant="info" size="sm" >
+                        <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
+                      </Button>
+                    </Nav>
+                    <Nav>
+                      <Button variant="info" size="sm">
+                        <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Execute</Nav.Item>
+                      </Button>
+                    </Nav>
+                  </Card.Footer>
+
+
+                </Card>
+              </div>
+
+              <div key='deploy' data-grid={{ i: 'deploy', x: 8, y: 0, w: 4, h: 5 }}>
+                <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+                  <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Nav.Item style={{ color: 'white' }}>
+                        Deploy Scripts
+                      </Nav.Item>
+                    </Nav>
+                  </Card.Header>
+                  <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                    <Card.Title>Success</Card.Title>
+                    <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+
+                      <div>Your total deployed scipts</div>
+
+                    </Card.Text>
+                  </Card.Body>
+                  <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                    <Card.Title>Failed</Card.Title>
+                    <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+
+                      <div>Your total deployed scipts</div>
+
+                    </Card.Text>
+                  </Card.Body>
+
+                  <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                    <Nav>
+                      <Button variant="info" size="sm" >
+                        <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
+                      </Button>
+                    </Nav>
+                    <Nav>
+                      <Button variant="info" size="sm">
+                        <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Deploy</Nav.Item>
+                      </Button>
+                    </Nav>
+                  </Card.Footer>
+
+
+                </Card>
+              </div>
+
+
+
+
+            </ResponsiveGridLayout>
+            
+            <Footer/>
           </div>
         </div>
       </div>
-
-
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-        cols={{ lg: 12, md: 8, sm: 1 }}
-        rowHeight={100}
-        draggableHandle=".draggable-handle"
-        onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
-      >
-
-        <div key='schedule' data-grid={{ i: 'schedule', x: 0, y: 0, w: 4, h: 5 }}>
-          <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
-            <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Nav.Item style={{ color: 'white' }}>
-                  Schedule Scripts
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-              <Card.Title>Success</Card.Title>
-              <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                <div>
-                  Your totol scipts.
-                </div>
-
-
-              </Card.Text>
-            </Card.Body>
-
-            <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Button variant="info" size="sm" >
-                  <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
-                </Button>
-              </Nav>
-              <Nav>
-                <Button variant="info" size="sm">
-                  <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Schedule</Nav.Item>
-                </Button>
-              </Nav>
-            </Card.Footer>
-
-
-          </Card>
-        </div>
-
-        <div key='execute' data-grid={{ i: 'execude', x: 4, y: 0, w: 4, h: 5 }}>
-          <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
-            <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Nav.Item style={{ color: 'white' }}>
-                  Execute Scripts
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-              <Card.Title>Success</Card.Title>
-              <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-
-                <div>Your total schedule scipts</div>
-
-              </Card.Text>
-            </Card.Body>
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-              <Card.Title>Failed</Card.Title>
-              <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-
-                <div>Your total schedule scipts</div>
-
-              </Card.Text>
-            </Card.Body>
-
-            <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Button variant="info" size="sm" >
-                  <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
-                </Button>
-              </Nav>
-              <Nav>
-                <Button variant="info" size="sm">
-                  <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Execute</Nav.Item>
-                </Button>
-              </Nav>
-            </Card.Footer>
-
-
-          </Card>
-        </div>
-
-        <div key='deploy' data-grid={{ i: 'deploy', x: 8, y: 0, w: 4, h: 5 }}>
-          <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
-            <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Nav.Item style={{ color: 'white' }}>
-                  Deploy Scripts
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-              <Card.Title>Success</Card.Title>
-              <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-
-                <div>Your total deployed scipts</div>
-
-              </Card.Text>
-            </Card.Body>
-            <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-              <Card.Title>Failed</Card.Title>
-              <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-
-                <div>Your total deployed scipts</div>
-
-              </Card.Text>
-            </Card.Body>
-
-            <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-              <Nav>
-                <Button variant="info" size="sm" >
-                  <Nav.Item style={{ color: 'white', padding: 0 }}> ...</Nav.Item>
-                </Button>
-              </Nav>
-              <Nav>
-                <Button variant="info" size="sm">
-                  <Nav.Item style={{ color: 'white', padding: 0 }}>Go To Deploy</Nav.Item>
-                </Button>
-              </Nav>
-            </Card.Footer>
-
-
-          </Card>
-        </div>
-
-
-
-
-      </ResponsiveGridLayout>
     </div>
   );
-};
+}
 
 export default Dashboard;

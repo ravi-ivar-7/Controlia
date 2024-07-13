@@ -1,39 +1,39 @@
-import React from 'react';
+import React from "react";
 import {
   CDBSidebar,
   CDBSidebarContent,
   CDBSidebarFooter,
   CDBSidebarHeader,
   CDBSidebarMenu,
-  CDBSidebarMenuItem,
-} from 'cdbreact';
-import { NavLink } from 'react-router-dom';
-
-import { useSidebar } from '../../context/SidebarContext'; // Import useSidebar hook
+  CDBSidebarMenuItem
+} from "cdbreact";
+import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
-  const { isSidebarOpen } = useSidebar(); // Access sidebar state from context
 
-  // Conditional rendering based on sidebar state
   return (
-
     <div
-      style={{ display: isSidebarOpen ? 'flex' : 'none', height: '100vh', overflow: 'scroll initial'}}
+      className={`app`}
+      style={{ display: "flex", height: "100%", overflow: "scroll initial" }}
     >
-      <CDBSidebar textColor="#fff" backgroundColor="#244855" >
-        <CDBSidebarHeader prefix={<i className="fa fa-bars fa-large"></i>}>
-          <a
-            href="/"
-            className="text-decoration-none"
-            style={{ color: 'inherit' }}
-          >
+      <CDBSidebar
+        textColor="#fff"
+        backgroundColor="#333"
+      >
+        <CDBSidebarHeader
+          prefix={
+            <i className="fa fa-bars fa-large"></i>
+          }
+        >
+          <a href="/" className="text-decoration-none" style={{ color: "inherit" }}>
             Controlia
           </a>
         </CDBSidebarHeader>
 
         <CDBSidebarContent className="sidebar-content">
+
           <CDBSidebarMenu>
-          <NavLink exact to="/" activeClassName="activeClicked">
+            <NavLink exact to="/" activeClassName="activeClicked">
               <CDBSidebarMenuItem icon="home">Home</CDBSidebarMenuItem>
             </NavLink>
             <NavLink exact to="/dashboard" activeClassName="activeClicked">
@@ -53,12 +53,15 @@ const Sidebar = () => {
             </NavLink>
 
           </CDBSidebarMenu>
+
+
         </CDBSidebarContent>
 
-        <CDBSidebarFooter style={{ textAlign: 'center' }}>
+        <CDBSidebarFooter style={{ textAlign: "center" }}>
           <div
+            className="sidebar-btn-wrapper"
             style={{
-              padding: '20px 5px',
+              padding: "20px 5px"
             }}
           >
             © Controlia
@@ -66,8 +69,7 @@ const Sidebar = () => {
         </CDBSidebarFooter>
       </CDBSidebar>
     </div>
-
   );
-};
+}
 
 export default Sidebar;

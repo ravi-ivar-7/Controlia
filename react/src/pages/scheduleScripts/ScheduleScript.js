@@ -4,13 +4,20 @@ import { Button, Nav } from 'react-bootstrap';
 import AddScheduleScriptModal from '../../components/scriptModals/AddScheduleScriptModal';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
-import { mainStyle, headerFooterStyle, cardStyle, bodySectionStyle1 } from './ScheduleScriptUtils';
+import {  headerFooterStyle, cardStyle, bodySectionStyle1 } from './ScheduleScriptUtils';
 import { CodeiumEditor } from "@codeium/react-code-editor";
+
+import Footer from '../../components/bars/Footer';
+import { CDBBtn, CDBLink } from "cdbreact";
+import Sidebar from "../../components/bars/Sidebar";
+import Navbar from "../../components/bars/Navbar";
+import "./ScheduleScript.css";
 
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
 
 
 const ScheduleScript = () => {
@@ -23,7 +30,7 @@ const ScheduleScript = () => {
 
   const { showErrorToast, showSuccessToast } = useToast();
 
-  
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
@@ -51,7 +58,7 @@ const ScheduleScript = () => {
     } finally {
       setLoading(false);
     }
-  }, [ ]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -93,7 +100,7 @@ const ScheduleScript = () => {
       showErrorToast('Failed to fetch schedule scripts.');
     } finally {
       setLoading(false);
-      
+
     }
   }
 
@@ -150,195 +157,199 @@ const ScheduleScript = () => {
 
 
   return (
-    <div style={mainStyle}>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Schedule Dashboard</h2>
-        {/* <Button variant="success" size="sm" onClick={() => handleLayoutSave()}>Save Layout</Button> */}
-
+    <div className="schedule d-flex">
+      <div>
+        <Sidebar />
       </div>
+      <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
+        <Navbar pageTitle={'Schedule-Dashboard'} />
+        <div style={{ height: "100%" }}>
 
-      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Scheduled Scripts</Card.Title>
+          <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-        cols={{ lg: 12, md: 8, sm: 1 }}
-        rowHeight={100}
-        draggableHandle=".draggable-handle"
-        onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
-      >
-        {scheduleScripts.map((script, index) => (
-          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
-            <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
-              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-                <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.title}
-                  </Nav.Item>
-                </Nav>
+            <ResponsiveGridLayout
+              className="layout"
+              layouts={layouts}
+              breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+              cols={{ lg: 12, md: 8, sm: 1 }}
+              rowHeight={100}
+              draggableHandle=".draggable-handle"
+              onDragStop={handleDragStop}
+              onResizeStop={handleResizeStop}
+            >
+              {scheduleScripts.map((script, index) => (
+                <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 5 }}>
+                  <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+                    <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.title}
+                        </Nav.Item>
+                      </Nav>
 
-                <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.language}
-                  </Nav.Item>
-                </Nav>
-              </Card.Header>
-              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-                {/* <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.scriptId}
-                  </Nav.Item>
-                </Nav> */}
-
-                <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
-                  </Nav.Item>
-                </Nav>
-              </Card.Header>
-
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
-                <Card.Title >Script</Card.Title>
-                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  <CodeiumEditor
-                    language={script.language}
-                    theme="vs-dark"
-                    value={script.script}
-                    // onChange={(value) => setScript(value)}
-                    logo={<></>}
-                  />
-                </Card.Text>
-              </Card.Body>
-
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-                <Card.Title>Arguments</Card.Title>
-                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  <CodeiumEditor
-                    language='text'
-                    theme="vs-dark"
-                    value={(script.argumentsList || []).join('\n')}
-                    // onChange={(value) => setScript(value)}
-                    logo={<></>}
-                  />
-                </Card.Text>
-              </Card.Body>
-
-
-              <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-                <Nav className="d-flex align-items-center">
-                  <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>Delete</Nav.Item>
-                  </Button>
-                </Nav>
-                <Nav className="d-flex align-items-center">
-                  <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>Edit</Nav.Item>
-                  </Button>
-                </Nav>
-              </Card.Footer>
-
-            </Card>
-          </div>
-        ))}
-
-      </ResponsiveGridLayout>
-
-
-      <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Unscheduled Scripts</Card.Title>
-
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-        cols={{ lg: 12, md: 8, sm: 1 }}
-        rowHeight={100}
-        draggableHandle=".draggable-handle"
-        onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
-      >
-        {nonScheduleScripts.map((script, index) => (
-          <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
-            <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
-              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-                <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.title}
-                  </Nav.Item>
-                </Nav>
-
-                <Nav>
-                  <Nav.Item style={{ color: 'white' }}>
-                    {script.language}
-                  </Nav.Item>
-                </Nav>
-              </Card.Header>
-              <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
-                {/* <Nav>
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.language}
+                        </Nav.Item>
+                      </Nav>
+                    </Card.Header>
+                    <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                      {/* <Nav>
                   <Nav.Item style={{ color: 'white' }}>
                     {script.scriptId}
                   </Nav.Item>
                 </Nav> */}
 
-                <Nav>
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
+                        </Nav.Item>
+                      </Nav>
+                    </Card.Header>
+
+                    <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                      <Card.Title >Script</Card.Title>
+                      <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                        <CodeiumEditor
+                          language={script.language}
+                          theme="vs-dark"
+                          value={script.script}
+                          // onChange={(value) => setScript(value)}
+                          logo={<></>}
+                        />
+                      </Card.Text>
+                    </Card.Body>
+
+                    <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                      <Card.Title>Arguments</Card.Title>
+                      <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                        <CodeiumEditor
+                          language='text'
+                          theme="vs-dark"
+                          value={(script.argumentsList || []).join('\n')}
+                          // onChange={(value) => setScript(value)}
+                          logo={<></>}
+                        />
+                      </Card.Text>
+                    </Card.Body>
+
+
+                    <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                      <Nav className="d-flex align-items-center">
+                        <Button variant="danger" size="sm" onClick={() => handleDeleteScript(script.scriptId)}>
+                          <Nav.Item style={{ color: 'white', padding: 0 }}>Delete</Nav.Item>
+                        </Button>
+                      </Nav>
+                      <Nav className="d-flex align-items-center">
+                        <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
+                          <Nav.Item style={{ color: 'white', padding: 0 }}>Edit</Nav.Item>
+                        </Button>
+                      </Nav>
+                    </Card.Footer>
+
+                  </Card>
+                </div>
+              ))}
+
+            </ResponsiveGridLayout>
+
+
+            <Card.Title style={{ padding: '15px', backgroundColor: 'grey' }}>Unscheduled Scripts</Card.Title>
+
+            <ResponsiveGridLayout
+              className="layout"
+              layouts={layouts}
+              breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+              cols={{ lg: 12, md: 8, sm: 1 }}
+              rowHeight={100}
+              draggableHandle=".draggable-handle"
+              onDragStop={handleDragStop}
+              onResizeStop={handleResizeStop}
+            >
+              {nonScheduleScripts.map((script, index) => (
+                <div key={script.scriptId} data-grid={{ i: script.scriptId, x: (index % 3) * 4, y: Math.floor(index / 3) * 4, w: 4, h: 8 }}>
+                  <Card border="success" style={{ width: '100%', height: '100%', ...cardStyle }}>
+                    <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.title}
+                        </Nav.Item>
+                      </Nav>
+
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.language}
+                        </Nav.Item>
+                      </Nav>
+                    </Card.Header>
+                    <Card.Header className="draggable-handle d-flex justify-content-between" style={headerFooterStyle}>
+                      {/* <Nav>
                   <Nav.Item style={{ color: 'white' }}>
-                    {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
+                    {script.scriptId}
                   </Nav.Item>
-                </Nav>
-              </Card.Header>
+                </Nav> */}
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
-                <Card.Title >Script</Card.Title>
-                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  <CodeiumEditor
-                    language={script.language}
-                    theme="vs-dark"
-                    value={script.script}
-                    // onChange={(value) => setScript(value)}
-                    logo={<></>}
-                  />
-                </Card.Text>
-              </Card.Body>
+                      <Nav>
+                        <Nav.Item style={{ color: 'white' }}>
+                          {script.scheduleRule ? 'Schedule: ' + script.scheduleRule : 'Not Scheduled'}
+                        </Nav.Item>
+                      </Nav>
+                    </Card.Header>
 
-              <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
-                <Card.Title>Arguments</Card.Title>
-                <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
-                  <CodeiumEditor
-                    language='text'
-                    theme="vs-dark"
-                    value={(script.argumentsList || []).join('\n')}
-                    // onChange={(value) => setScript(value)}
-                    logo={<></>}
-                  />
-                </Card.Text>
-              </Card.Body>
+                    <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                      <Card.Title >Script</Card.Title>
+                      <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                        <CodeiumEditor
+                          language={script.language}
+                          theme="vs-dark"
+                          value={script.script}
+                          // onChange={(value) => setScript(value)}
+                          logo={<></>}
+                        />
+                      </Card.Text>
+                    </Card.Body>
 
-              <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
-                <div></div> {/* This empty div creates space to align content */}
-                <Nav className="d-flex align-items-center">
-                  <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
-                    <Nav.Item style={{ color: 'white', padding: 0 }}>Add to Schedule</Nav.Item>
-                  </Button>
-                </Nav>
-              </Card.Footer>
+                    <Card.Body style={{ ...bodySectionStyle1, height: '300px', overflowY: 'auto' }}>
+                      <Card.Title>Arguments</Card.Title>
+                      <Card.Text style={{ height: '100%', backgroundColor: '#234756', whiteSpace: 'pre-wrap' }}>
+                        <CodeiumEditor
+                          language='text'
+                          theme="vs-dark"
+                          value={(script.argumentsList || []).join('\n')}
+                          // onChange={(value) => setScript(value)}
+                          logo={<></>}
+                        />
+                      </Card.Text>
+                    </Card.Body>
 
-            </Card>
+                    <Card.Footer className="d-flex justify-content-between" style={headerFooterStyle}>
+                      <div></div> {/* This empty div creates space to align content */}
+                      <Nav className="d-flex align-items-center">
+                        <Button variant="primary" size="sm" onClick={() => { setEditingSchedule(script); setShowModal(true) }}>
+                          <Nav.Item style={{ color: 'white', padding: 0 }}>Add to Schedule</Nav.Item>
+                        </Button>
+                      </Nav>
+                    </Card.Footer>
+
+                  </Card>
+                </div>
+              ))}
+
+            </ResponsiveGridLayout>
+
+
+            <AddScheduleScriptModal
+              show={showModal}
+              handleClose={() => setShowModal(false)}
+              onSubmit={handleAddEditSchedule}
+              scriptData={editingSchedule ? editingSchedule : ''}
+            />
+           <Footer/>
           </div>
-        ))}
-
-      </ResponsiveGridLayout>
-
-
-      <AddScheduleScriptModal
-        show={showModal}
-        handleClose={() => setShowModal(false)}
-        onSubmit={handleAddEditSchedule}
-        scriptData={editingSchedule ? editingSchedule : ''}
-      />
-
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default ScheduleScript;

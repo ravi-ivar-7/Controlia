@@ -1,10 +1,4 @@
-const mainStyle = {
-    minHeight: 'calc(100vh - 70px)', // Adjusted to accommodate fixed header
-    backgroundColor: 'black',
-    color: 'white',
-    padding: '1rem',
-    marginTop: '70px', // Adjust top margin to accommodate fixed header
-  };
+
   
   const cardStyle = {
     backgroundColor: '#1C3334',
@@ -25,4 +19,4 @@ const mainStyle = {
   };
 
 
-module.exports ={mainStyle, cardStyle, headerFooterStyle, bodySectionStyle1}
+module.exports ={ cardStyle, headerFooterStyle, bodySectionStyle1}

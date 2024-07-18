@@ -97,8 +97,6 @@ const Home = () => {
               </Container>
             </div>
 
-
-            <Footer />
           </div>
         </div>
       </div>

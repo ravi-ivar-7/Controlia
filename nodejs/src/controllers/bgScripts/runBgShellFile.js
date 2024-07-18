@@ -4,7 +4,7 @@ const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
 const logger = require('../../services/logs/winstonLogger');
 const { resetScriptSchedule } = require('./deleteScriptSchedule')
-const { saveFileToContainer } = require('../../services/docker/manageFiles')
+const { saveFileToContainer } = require('../../services/docker/manageVolumeFiles')
 const { addToMailQueue } = require('../../services/mail/manageMail');
 
 const runBgShellFile = async (job) => {

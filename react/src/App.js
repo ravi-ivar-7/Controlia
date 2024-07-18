@@ -11,7 +11,6 @@ import RegisterModal from './components/userModals/RegisterModal';
 import ScheduleScripts from './pages/schedule/scheduleScripts';
 import Analytics from './pages/analytics/Analytics';
 import  Profile  from './pages/profile/Profile';
-import Socket from './pages/socket';
 import Script from './pages/scripts/Script';
 import Scripts from './pages/scripts/Scripts';
 
@@ -33,8 +32,8 @@ function App() {
 
             <div className="main">
               <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/socket" element={<Socket />} />
+                <Route path="/"element={ user? <Dashboard /> :<Home/>}/>
+                <Route path="/home" element={<Home />} />
                 <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
                 <Route path="/logout" element={<Home />} />

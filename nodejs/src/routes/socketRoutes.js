@@ -6,6 +6,8 @@ const {runJavaScriptFile} = require('../controllers/scripts/runJavaScriptFile')
 const {runPythonFile} = require('../controllers/scripts/runPythonFile')
 const {runShellFile} = require('../controllers/scripts/runShellFile')
 
+const {containerModule} = require('../controllers/containers/containerModules')
+const {containerCommand} = require('../controllers/containers/containerCommand')
 
 
 module.exports = (io) => {
@@ -27,6 +29,13 @@ module.exports = (io) => {
     })
     socket.on('runShellFile', (data) =>{
       runShellFile(io, socket, data)
+    })
+
+    socket.on('containerModule', (data) =>{
+      containerModule(io, socket, data)
+    })
+    socket.on('containerCommand', (data) =>{
+      containerCommand(io, socket, data)
     })
 
 

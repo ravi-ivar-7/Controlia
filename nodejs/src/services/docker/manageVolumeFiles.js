@@ -7,6 +7,37 @@ const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
 const stream = require('stream');
 const path = require('path');
+const { json } = require('body-parser');
+
+const archiver = require('archiver');
+
+const createArchive = async (data) => {
+    return new Promise((resolve, reject) => {
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      const passthrough = new stream.PassThrough();
+  
+      archive.on('error', (err) => reject(err));
+      archive.pipe(passthrough);
+  
+      const addFilesToArchive = async (currentData, currentPath) => {
+        for (const [key, value] of Object.entries(currentData)) {
+          const newPath = currentPath ? `${currentPath}/${key}` : key;
+          if (value && typeof value === 'object') {
+            await addFilesToArchive(value, newPath);
+          } else {
+            archive.append(value, { name: newPath });
+          }
+        }
+      };
+  
+      addFilesToArchive(data, '').then(() => {
+        archive.finalize();
+      }).catch((err) => reject(err));
+  
+      resolve(passthrough);
+    });
+  };
+
 
 
 const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) => {
@@ -52,7 +83,8 @@ const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) 
         // Upload the tar archive to the container
         await container.putArchive(tarStream, { path: fileDir });
 
-        return `${fileName} saved.`;
+        return  json({info: `${fileName} saved.`});
+
     } catch (error) {
         console.error(`Failed to save file '${fileName}' to container '${containerId}': ${error}`);
         throw error;
@@ -83,7 +115,7 @@ async function deleteFileFromContainer(containerId, filePath) {
         await new Promise((resolve) => {
             response.on('end', resolve);
         });
-        return `${filePath} deleted.`;
+        return json({info:`${filePath} deleted.` });
     }
     catch (error) {
         console.error(`Failed to delete file '${filePath}' to container '${containerId}': ${error}`);
@@ -91,9 +123,6 @@ async function deleteFileFromContainer(containerId, filePath) {
     }
 }
 
-
-
-// Function to retrieve a file from a Docker container
 async function getFileFromContainerAndSave(containerId, containerFilePath, localDestPath) {
     const container = docker.getContainer(containerId);
 
@@ -113,74 +142,54 @@ async function getFileFromContainerAndSave(containerId, containerFilePath, local
     stream.pipe(extract);
 }
 
-async function saveFileToContainer1(containerId, dirPath, fileName, fileContent) {
-    const container = docker.getContainer(containerId);
-
-    // Ensure directory exists
-    await createDirectory(container, dirPath);
-
-    // Create tar stream
-    const pack = tar.pack();
-
-    pack.entry({ name: `${dirPath}/${fileName}` }, fileContent);
-    pack.finalize();
-
-    const tarStream = new stream.PassThrough();
-    pack.pipe(tarStream);
-
-    // Upload the tar stream to the container
-    return new Promise((resolve, reject) => {
-        container.putArchive(tarStream, { path: dirPath }, (err, res) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(res);
-        });
-    });
-}
-
-
-
-async function createFile(container, dirPath, fileName, fileContent) {
-    return new Promise((resolve, reject) => {
-        const filePath = path.join(dirPath, fileName);
-        const writeStream = fs.createWriteStream(filePath, { flags: 'w' });
-        writeStream.write(fileContent);
-        writeStream.end();
-        writeStream.on('finish', resolve);
-        writeStream.on('error', reject);
-    });
-}
-
-
-async function getFileFromContainer(containerId, filePath) {
+async function getFileFolderFromContainer(containerId, path) {
     const container = docker.getContainer(containerId);
     const extract = tar.extract();
 
     return new Promise((resolve, reject) => {
         const chunks = [];
+        const fileStructure = {};
 
         extract.on('entry', function (header, stream, next) {
-            stream.on('data', (chunk) => {
-                chunks.push(chunk);
-            });
-            stream.on('end', function () {
-                next(); // ready for next entry
-            });
-            stream.resume(); // just auto drain the stream
+            const fullPath = header.name;
+            const paths = fullPath.split('/');
+            let currentDir = fileStructure;
+
+            // Traverse the structure and create directories as needed
+            for (let i = 0; i < paths.length - 1; i++) {
+                const part = paths[i];
+                if (!currentDir[part]) {
+                    currentDir[part] = {};
+                }
+                currentDir = currentDir[part];
+            }
+
+            if (header.type === 'file') {
+                // Collect file content
+                const fileName = paths[paths.length - 1];
+                const fileChunks = [];
+                stream.on('data', (chunk) => {
+                    fileChunks.push(chunk);
+                });
+                stream.on('end', function () {
+                    currentDir[fileName] = Buffer.concat(fileChunks).toString();
+                    next(); // ready for next entry
+                });
+            } else {
+                stream.resume(); // just auto drain the stream for directories
+                next();
+            }
         });
 
         extract.on('finish', function () {
             // all entries read
-            const fileContent = Buffer.concat(chunks);
-            resolve(fileContent.toString());
+            resolve(fileStructure);
         });
 
-        container.getArchive({ path: filePath }, function (err, stream) {
+        container.getArchive({ path: path }, function (err, stream) {
             if (err) {
                 return reject(err);
             }
-
             stream.pipe(extract);
         });
     });
@@ -231,4 +240,4 @@ async function getFilesFromContainer(containerId, dirpath) {
 
 
 
-module.exports = { saveFileToContainer, getFileFromContainer, deleteFileFromContainer, getFilesFromContainer };
+module.exports = { saveFileToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive};

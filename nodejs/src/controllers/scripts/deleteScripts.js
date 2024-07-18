@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
-const { deleteFileFromContainer } = require('../../services/docker/manageFiles')
+const { deleteFileFromContainer } = require('../../services/docker/manageVolumeFiles')
 
 const logger = require('../../services/logs/winstonLogger')
 

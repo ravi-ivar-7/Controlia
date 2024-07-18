@@ -290,7 +290,6 @@ const ScheduleScripts = () => {
 
                         )}
                     </div>
-                    <Footer />
                 </div>
             </div>
         </div>

@@ -4,22 +4,19 @@ const path = require('path');
 const getLogs = async (req, res) => {
     try {
         const  filename  = req.params.filename;
-        console.log(filename, req.params)
         const logFilePath = path.join(__dirname, `../../${filename}`);
 
         fs.readFile(logFilePath, 'utf8', (err, data) => {
             if (err) {
-                console.error(`Error reading ${filename}:`, err);
-                res.status(500).send(`Error reading ${filename}`);
-                return;
+                return res.status(500).send(`Error reading ${filename}, ${err}`);
+                
             }
 
             res.header('Content-Type', 'text/plain');
-            res.send(data);
+            return res.send(data);
         });
     } catch (err) {
-        console.error('Error retrieving logs:', err);
-        res.status(209).json({warn:`Error retrieving logs: ${err}`});
+        returnres.status(209).json({warn:`Error retrieving logs: ${err}`});
     }
 };
 

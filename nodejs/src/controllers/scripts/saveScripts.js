@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
-const { saveFileToContainer } = require('../../services/docker/manageFiles')
+const { saveFileToContainer } = require('../../services/docker/manageVolumeFiles')
 const { base62 } = require('base-id');
 
 const logger = require('../../services/logs/winstonLogger');

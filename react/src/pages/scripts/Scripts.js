@@ -491,8 +491,6 @@ const Scripts = () => {
                         scriptData={deployScript ? deployScript : ''}
                     />
 
-
-                    <Footer />
                 </div>
             </div>
         </div>

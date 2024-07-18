@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const { generateToken } = require('../../middlewares/generateToken');
 const bcrypt = require('bcryptjs');
-const logger = require('../logs/winstonLogger');
+const logger = require('../../services/logs/winstonLogger');
 const tar = require('tar-stream');
 const fs = require('fs');
 const path = require('path');
@@ -17,7 +17,7 @@ function generateUniqueUid() {
 
 
 
-const newEnv = async (req, res) => {
+const registerWithContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
     try {
@@ -126,4 +126,4 @@ const newEnv = async (req, res) => {
     }
 };
 
-module.exports = { newEnv };
+module.exports = { registerWithContainer };

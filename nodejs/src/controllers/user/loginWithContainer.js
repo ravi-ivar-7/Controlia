@@ -7,9 +7,9 @@ const path = require('path');
 const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
 
-const logger = require('../logs/winstonLogger');
+const logger = require('../../services/logs/winstonLogger');
 
-const loginWithNewContainer = async (req, res) => {
+const loginWithContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     console.log(process.env.MONGODB_URL)
     try {
@@ -121,4 +121,4 @@ const loginWithNewContainer = async (req, res) => {
     }
 };
 
-module.exports = { loginWithNewContainer };
+module.exports = { loginWithContainer };

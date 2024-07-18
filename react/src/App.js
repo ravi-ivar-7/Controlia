@@ -5,15 +5,16 @@ import { Toaster } from 'react-hot-toast';
 import MatomoTracker from './services/matomoTracker';
 import Home from './pages/home/Home'
 import Dashboard from './pages/dashboard/Dashboard';
-import { SidebarProvider } from './context/SidebarContext';
-import ExecuteScript from './pages/executeScripts/ExecuteScript';
 import LoginWarningModal from './components/userModals/LoginWarningModal';
 import LoginModal from './components/userModals/LoginModal';
 import RegisterModal from './components/userModals/RegisterModal';
-import ScheduleScript from './pages/scheduleScripts/ScheduleScript';
-import DeployScript from './pages/deployScripts/DeployScript';
+import ScheduleScripts from './pages/schedule/scheduleScripts';
 import Analytics from './pages/analytics/Analytics';
 import  Profile  from './pages/profile/Profile';
+import Socket from './pages/socket';
+import Script from './pages/scripts/Script';
+import Scripts from './pages/scripts/Scripts';
+
 import { useUser } from './context/UserContext';
 
 function App() {
@@ -23,7 +24,6 @@ function App() {
 
     <div className="App">
       <BrowserRouter>
-        <SidebarProvider>
           <MatomoTracker />
           <Toaster />
 
@@ -34,25 +34,24 @@ function App() {
             <div className="main">
               <Routes>
                 <Route path="/" element={<Home />} />
-
+                <Route path="/socket" element={<Socket />} />
                 <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
+                <Route path="/logout" element={<Home />} />
 
                 <Route path="/profile" element={ user? <Profile /> :<LoginWarningModal isOpen={true} redirectPath="profile" />}/>
 
+                <Route path="/script" element={ user? <Script /> :<LoginWarningModal isOpen={true} redirectPath="script" />}/>
+                <Route path="/scripts" element={ user? <Scripts /> :<LoginWarningModal isOpen={true} redirectPath="scripts" />}/>
+
                 <Route path="/dashboard" element={ user? <Dashboard /> :<LoginWarningModal isOpen={true} redirectPath="dashboard" />}/>
                 <Route path="/analytics" element={user ? <Analytics /> : <LoginWarningModal isOpen={true} redirectPath="/analytics" />} />
-
-                <Route path="/execute-scripts" element={user ? <ExecuteScript /> : <LoginWarningModal isOpen={true} redirectPath="/execute-scripts" />} />
-                <Route path="/schedule-scripts" element={user ? <ScheduleScript /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
-                <Route path="/deploy-scripts" element={user ? <DeployScript /> : <LoginWarningModal isOpen={true} redirectPath="/deploy-scripts" />} />
+                <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
                 
                 
               </Routes>
             </div>
           </div>
-
-        </SidebarProvider>
       </BrowserRouter>
     </div>
   );

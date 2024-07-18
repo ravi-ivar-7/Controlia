@@ -5,12 +5,20 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
 const http = require('http');
-const WebSocket = require('ws');
 const fs = require('fs');
-const jwt = require('jsonwebtoken'); 
-const logger = require('./src/services/winstonLogger')
-const routes = require('./src/routes/route');
-const wsRoutes = require('./src/routes/wsRoute');
+const socketIO = require('socket.io');
+const IORedis = require('ioredis');
+const logger = require('./src/services/logs/winstonLogger')
+const routes = require('./src/routes/apiRoutes');
+const socketRoutes = require('./src/routes/socketRoutes')
+const { Worker } = require('bullmq');
+const {verifySocketToken} = require('./src/middlewares/verifyToken')
+
+
+const { sendMail } = require('./src/services/mail/manageMail');
+
+const redisOptions = {port: 6379, host: 'singapore-redis.render.com',username: 'red-cq807v8gph6c73eva79g',password: 'zQPCwEqbsnAinoGzYKaipiJepPIajWfB', tls: {}, maxRetriesPerRequest: null};
+const connection = new IORedis(redisOptions);
 
 const HTTP_PORT = process.env.HTTP_PORT || 3001;
 const HTTPS_PORT = process.env.HTTPS_PORT || 3002;
@@ -23,14 +31,12 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// BullMQ UI
-const {scheduleScriptQueue} = require('./src/controllers/scheduleScripts/addEditScheduleScript')
-const {mailQueue} = require('./src/services/manageMail')
+// FOR BULLMQ UI
+const {scheduleScriptQueue} = require('./src/controllers/schedule/scheduleScript')
+const {mailQueue} = require('./src/services/mail/manageMail')
 const { createBullBoard } = require('@bull-board/api');
 const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
 const { ExpressAdapter } = require('@bull-board/express');
@@ -44,8 +50,7 @@ const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
 });
 app.use('/admin/queues', serverAdapter.getRouter());
 
-
-// FOR USING SSL/TLS:
+// FOR HTTPS SERVER
 let options;
 try {
   options = {
@@ -57,7 +62,6 @@ try {
   options = null;
 }
 
-// FOR HTTPS server
 let httpsServer;
 if (options) {
   httpsServer = https.createServer(options, app);
@@ -73,87 +77,37 @@ if (options) {
   logger.error('SSL/TLS FILES NOT FOUND. HTTPS SERVER NOT STARTED.');
 }
 
-// FOR HTTP server
+// FOR HTTP SERVER
 const httpServer = http.createServer(app);
 
 httpServer.listen(HTTP_PORT, () => {
   logger.info(`HTTP SERVER LISTENING ON ${HOST}:${HTTP_PORT}`);
 });
 
-// WebSocket message handler
-function handleWebSocketMessage(message,decodedToken, socket) {
-  try {
-    const parsedMessage = JSON.parse(message);
-    const { route, data } = parsedMessage;
-  
-    if (wsRoutes[route]) {
-      wsRoutes[route](data, decodedToken,socket);
-    } else {
-      socket.send(JSON.stringify({ warn: 'Unknown route' }));
-    }
-  } catch (error) {
-    socket.send(JSON.stringify({ warn: 'Invalid message format', error }));
+// FOR SOCKET.IO
+const httpIO = socketIO(httpServer, {
+  transports: ['polling', 'websocket'],
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
   }
-}
-
-
-// Token verification function
-function verifyToken(token) {
-  try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
-
-function handleWebSocketConnection(socket, request) {
-  logger.info('WS CONNECTED');
-  socket.send(JSON.stringify({ data:'Connected...'}));
-  const params = new URLSearchParams(request.url.split('?')[1]);
-  const token = params.get('token');
-
-  if (!token) {
-    logger.warn('No token')
-    socket.close(4001,'Token not provided');
-    return;
-  }
-
-  const decodedToken = verifyToken(token);
-
-  if (!decodedToken) {
-    logger.warn('invalid deocded token')
-    socket.close(4002, 'Invalid token');
-    return;
-  }
-
-  socket.on('open', (message) => {
-    logger.info(`open ws ${message}`);
-  });
-
-  socket.on('message', (message) => {
-    handleWebSocketMessage(message, decodedToken, socket);
-  });
-
-  socket.on('close', (code, reason) => {
-    logger.info(`WS CLOSED: Code = ${code}, Reason = ${reason}`);
-  });
-
-  socket.on('error', (error) => {
-    logger.error(`WS ERROR: ${error}`);
-  });
-}
-
-// WebSocket server for HTTP/s
-const webSocketHttpServer = new WebSocket.Server({ server: httpServer });
-webSocketHttpServer.on('connection', handleWebSocketConnection);
+});
 
 if (httpsServer) {
-  const webSocketHttpsServer = new WebSocket.Server({ server: httpsServer });
-  webSocketHttpsServer.on('connection', handleWebSocketConnection);
+  const httpsIO = socketIO(httpsServer, {
+    transports: ['polling', 'websocket'],
+    cors: {
+      origin: "http://localhost:3000",
+      methods: ["GET", "POST"]
+    }
+  });
+  httpsIO.use(verifySocketToken);
+  socketRoutes(httpsIO);
 }
 
-// HTTP/s routes
+httpIO.use(verifySocketToken);
+socketRoutes(httpIO);
+
 app.use('/', routes);
 
 app.all('*', (req, res) => {
@@ -163,24 +117,9 @@ app.all('*', (req, res) => {
 
 
 
-const { Worker } = require('bullmq');
-const { runScheduleScript } = require("./src/controllers/scheduleScripts/runScheduleScript");
-const { sendMail } = require('./src/services/manageMail');
-const IORedis = require('ioredis');
-
-const redisOptions = {
-    port: 6379, 
-    host: 'singapore-redis.render.com',
-    username: 'red-cq807v8gph6c73eva79g',
-    password: 'zQPCwEqbsnAinoGzYKaipiJepPIajWfB', 
-    tls: {}, 
-    maxRetriesPerRequest: null
-};
-
-const connection = new IORedis(redisOptions);
-
+// FOR BULLMQ WORKER
 const jobHandlers = {
-    runScheduleScript,
+    
     sendMail,
 };
 

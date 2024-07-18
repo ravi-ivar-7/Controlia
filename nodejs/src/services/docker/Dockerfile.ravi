@@ -1,0 +1,27 @@
+# Use a base image (adjust as per your base image)
+FROM ubuntu:latest
+
+# Install necessary packages if required
+RUN apt-get update && \
+    apt-get install -y sudo && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a new user with specific UID and GID
+ARG USER_ID=100
+ARG GROUP_ID=100
+
+RUN groupadd -g $GROUP_ID ravi \
+    && useradd -u $USER_ID -g $GROUP_ID -m ravi \
+    && adduser ravi sudo \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Switch to new user
+USER ravi
+
+# Set working directory
+WORKDIR /home/ravi
+
+# Set up directories and permissions
+RUN mkdir -p /home/ravi/data \
+    && sudo chown -R ravi:ravi /home/ravi/data
+

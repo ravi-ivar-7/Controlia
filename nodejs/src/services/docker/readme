@@ -1,0 +1,26 @@
+ docker run -it --name cont_rk -v vol_rk:/home/ravi controlia:latest
+
+ docker run -it --name cont_rk vol_rkdocker exec -it cont_rk ls -l /home/ravi
+
+ docker exec -it cont_rk ls -l /
+
+
+ 
+docker build -t controlia .  (only one time when creating base image/new image for the first time)
+
+create a volume for container: docker volume create ravi_vol
+
+docker run -d --name ravi_cont -v ravi_vol:/ravi/data controlia
+
+Enter the running container with a shell. docker exec -it ravi_cont /bin/bash
+Switch to the ravi User:su - ravi
+
+
+Verify the status of the container to confirm that it is not running. docker ps -a
+restart container: docker start df9e54d1283c
+
+// name and tag unnamed repo: docker tag ebc166a3037d controlia:latest
+// exsiting : docker tag old_image:latest new_image:latest
+
+
+checking gid: Check Existing GID

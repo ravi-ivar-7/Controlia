@@ -1,6 +1,6 @@
 require('dotenv').config({path:'../../config/env/.env'});
 const jwt = require('jsonwebtoken');
-const logger = require('../services/winstonLogger')
+const logger = require('../services/logs/winstonLogger')
 
 const generateToken = (data) => {
     try {

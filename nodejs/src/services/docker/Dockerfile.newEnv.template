@@ -1,0 +1,24 @@
+# Dockerfile.template
+
+# Use the base image
+FROM controlia:latest
+
+# Install necessary packages if required (already installed in base image)
+
+# Create a new user with specific UID and GID
+ARG USER_ID
+ARG GROUP_ID
+
+RUN addgroup --gid $GROUP_ID newuser \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID newuser \
+    && adduser newuser sudo \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Switch to new user
+USER newuser
+
+# Set working directory
+WORKDIR /home/newuser
+
+# Start the shell or command
+CMD ["bash"]

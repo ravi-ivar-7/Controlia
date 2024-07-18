@@ -49,7 +49,23 @@ const scheduleScript = async (req, res) => {
         }
         const jobPayload = { userId: decodedToken.userId, email: decodedToken.email, scriptId :  script.scriptId, scriptName: script.scheduleName };
 
-        const newScheduleJob = await scheduleScriptQueue.add('runScheduleScript', jobPayload, jobOptions);
+        let newScheduleJob ;
+        if(script.language === 'cpp'){
+            newScheduleJob =await scheduleScriptQueue.add('runBgCppFile', jobPayload, jobOptions);
+        }
+        else if(script.language === 'python'){
+            newScheduleJob = await scheduleScriptQueue.add('runBgPythonFile', jobPayload, jobOptions);
+        }
+        else if(script.language === 'javascript'){
+            newScheduleJob = await scheduleScriptQueue.add('runBgJavaScriptFile', jobPayload, jobOptions);
+        }
+        else if(script.language === 'shell'){
+            newScheduleJob = await scheduleScriptQueue.add('runBgShellFile', jobPayload, jobOptions);
+        }
+        else{
+            return res.status(209).json({ warn: 'Unsupported language  for script to be scheduled.' }); 
+        }
+        
 
         if (!newScheduleJob) {
             return res.status(209).json({ info: 'Failed to schedule.' });
@@ -59,7 +75,7 @@ const scheduleScript = async (req, res) => {
             scheduleId: newScheduleJob.id,
             scheduleName: script.scheduleName,
             scheduleOutputFileName: script.scheduleOutputFileName,
-            ScheduleOptions: script.ScheduleOptions || [],
+            scheduleOptions: script.scheduleOptions || [],
             scheduleType: script.scheduleType,
             scheduleRule: script.scheduleRule,
             date: new Date(),
@@ -71,23 +87,21 @@ const scheduleScript = async (req, res) => {
             { returnDocument: 'after', upsert: true }
         );
         
-
-        
         let mailOptions = {
             from: process.env.NODEJS_FROM_EMAIL,
             subject: `${script.scheduleName} added successfully to schedule.`,
             to: decodedToken.email,
             text: `Title: ${script.scriptName} \nSchedule Name: ${script.scheduleName} \nSchedule Rule: ${script.scheduleRule} \n Schedule options: ${script.scheduleOptions}`,
         };
-        addToMailQueue(mailOptions)
-            .then(() => {
-                logger.info('New schedule mail alert added.');
-            })
-            .catch((error) => {
-                logger.error(`Failed to add schedule mail alert. ${error}`);
-            });
+        // addToMailQueue(mailOptions)
+        //     .then(() => {
+        //         logger.info('New schedule mail alert added.');
+        //     })
+        //     .catch((error) => {
+        //         logger.error(`Failed to add schedule mail alert. ${error}`);
+        //     });
         const info = `${script.scriptName} added successfully. Check mail.`;
-        res.status(200).json({ info });
+        return res.status(200).json({ info });
 
     } catch (error) {
         console.error('ERROR IN ADD/EDIT SCHEDULE SCRIPT: ', error);

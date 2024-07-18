@@ -1,7 +1,7 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 
-const logger = require('../../services/winstonLogger')
+const logger = require('../../services/logs/winstonLogger')
 
 const resetScriptSchedule = async (user, script) => {
     const client = new MongoClient(process.env.MONGODB_URL);

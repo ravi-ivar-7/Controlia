@@ -2,10 +2,10 @@ require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
-const logger = require('../../services/winstonLogger');
-const {resetScriptSchedule} = require('./deleteScriptSchedule')
+const logger = require('../../services/logs/winstonLogger');
+const { resetScriptSchedule } = require('./deleteScriptSchedule')
 const { saveFileToContainer } = require('../../services/docker/manageFiles')
-const { addToMailQueue } = require('../../services/manageMail');
+const { addToMailQueue } = require('../../services/mail/manageMail');
 
 const runBgShellFile = async (job) => {
     const { userId, email, scriptName, scriptId } = job.data;
@@ -58,12 +58,21 @@ const runBgShellFile = async (job) => {
 
         output.push(`Job done!`)
 
-        if (script.ScheduleOptions.includes('sendOverMail')) {
+        if (script.scheduleOptions.includes('sendOverMail')) {
+            // Convert array to JSON
+            const jsonData = JSON.stringify(output, null, 2); // Pretty-print with 2 spaces for readability
+
             let mailOptions = {
                 from: process.env.NODEJS_FROM_EMAIL,
                 subject: `${script.scheduleName} completed.`,
                 to: email,
                 text: ` ${script.scheduleName} completed.`,
+                attachments: [
+                    {
+                        filename: script.scheduleOutputFileName,
+                        content: jsonData,
+                    }
+                ]
             };
             addToMailQueue(mailOptions)
                 .then(() => {
@@ -74,12 +83,14 @@ const runBgShellFile = async (job) => {
                 });
         }
 
-        if (script.ScheduleOptions.includes('saveToSystem')) {
+        if (script.scheduleOptions.includes('saveToSystem')) {
             const USER_DIR = `/${user.userId}/scripts`
-            await saveFileToContainer(user.containerId, `${USER_DIR}`, script.scheduleOutputFileName, output)
+
+            const fileContent = output.join('\n');
+            await saveFileToContainer(user.containerId, `${USER_DIR}`, script.scheduleOutputFileName, fileContent)
         }
 
-        if(script.scheduleType === 'fixed'){
+        if (script.scheduleType === 'fixed') {
             await resetScriptSchedule(user, script);
         }
         return;

@@ -110,17 +110,24 @@ const ScheduleScripts = () => {
                         </div>) : (
 
                             <div>
+
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', marginTop: '10px' }}>
+                                    <CDBBtn
+                                        type='primary'
+                                        flat
+                                        className="border-0 px-3"
+                                        onClick={() => handleAddScriptSchedule()}
+                                    >
+                                        Schedule Scripts
+                                    </CDBBtn>
+                                </div>
+
+
+
                                 <div style={{ margin: '20px' }} className="table-responsive">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h4 className="font-weight-bold text-white">Python Schedule Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScriptSchedule()}
-                                        >
-                                            Schedule Scripts
-                                        </CDBBtn>
+
                                     </div>
                                     <Table striped bordered hover variant="dark">
                                         <thead>
@@ -160,14 +167,7 @@ const ScheduleScripts = () => {
                                 <div style={{ margin: '20px' }} className="table-responsive">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h4 className="font-weight-bold text-white">JavaScript/Nodejs Schedule Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScriptSchedule()}
-                                        >
-                                            Schedule Scripts
-                                        </CDBBtn>
+
                                     </div>
                                     <Table striped bordered hover variant="dark">
                                         <thead>
@@ -208,14 +208,7 @@ const ScheduleScripts = () => {
                                 <div style={{ margin: '20px' }} className="table-responsive">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h4 className="font-weight-bold text-white"> C++ Schedule Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScriptSchedule()}
-                                        >
-                                            Schedule Scripts
-                                        </CDBBtn>
+
                                     </div>
                                     <Table striped bordered hover variant="dark">
                                         <thead>
@@ -256,14 +249,7 @@ const ScheduleScripts = () => {
                                 <div style={{ margin: '20px' }} className="table-responsive">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h4 className="font-weight-bold text-white">Bash/Shell Schedule Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScriptSchedule()}
-                                        >
-                                            Schedule Scripts
-                                        </CDBBtn>
+
                                     </div>
                                     <Table striped bordered hover variant="dark">
                                         <thead>

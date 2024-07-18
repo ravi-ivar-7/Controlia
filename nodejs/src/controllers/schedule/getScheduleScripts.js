@@ -14,8 +14,7 @@ const getScheduleScripts = async (req, res) => {
         
         const scheduleScripts = await scriptsCollection.find({
             userId: decodedToken.userId,
-            scheduleName: { $exists: true, $ne: '' }, // Check if scheduleName exists and is not an empty string
-            scheduleRule: { $exists: true, $ne: '' }, // Check if scheduleRule exists and is not an empty string
+            scheduleId: { $exists: true, $ne: '' }, // Check if scheduleName exists and is not an empty string
         }).toArray();
 
         const info = `Scheduled scripts fetched successfully.`;

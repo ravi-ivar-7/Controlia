@@ -26,6 +26,7 @@ const ResetScheduleScript = async (req, res) => {
         }
 
         const scriptUpdateFields = {
+            scheduleId:'',
             scheduleName: '',
             scheduleOutputFileName: '',
             ScheduleOptions:  [],
@@ -42,8 +43,7 @@ const ResetScheduleScript = async (req, res) => {
         
         const scheduleScripts = await scriptsCollection.find({
             userId: decodedToken.userId,
-            scheduleName: { $exists: true, $ne: '' }, // Check if scheduleName exists and is not an empty string
-            scheduleRule: { $exists: true, $ne: '' }, // Check if scheduleRule exists and is not an empty string
+            scheduleId: { $exists: true, $ne: '' }, // Check if scheduleName exists and is not an empty string
         }).toArray();
 
         const info = `${script.scriptName} removed successfully.`;

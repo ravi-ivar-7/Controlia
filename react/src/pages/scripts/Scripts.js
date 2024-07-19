@@ -10,7 +10,8 @@ import Sidebar from "../../components/bars/Sidebar";
 import Navbar from "../../components/bars/Navbar";
 import ScheduleScriptModal from './scheduleModal';
 
-import { CDBBtn } from "cdbreact";
+import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
+import './scripts.css'
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -149,7 +150,7 @@ const Scripts = () => {
                 if (response.data && response.data.info) {
                     showSuccessToast(response.data.info);
                 }
-               await fetchData(token);
+                await fetchData(token);
             } else {
                 console.error('Internal Server Error:', response.data.warn);
                 showErrorToast(response.data.warn || 'Internal Server Error');
@@ -165,333 +166,385 @@ const Scripts = () => {
 
     }
     return (
-        <div className="scripts d-flex">
+
+
+        <div className="d-flex">
             <div>
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
                 <Navbar pageTitle={'Scripts'} />
                 <div style={{ height: "100%" }}>
-                    <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
+                    <div style={{ padding: "10px", height: "calc(100% - 64px)", overflowY: "scroll" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(1, minmax(200px, 100%))" }}>
 
-                        {loading ? (<div>
-                            <SkeletonTheme baseColor="#202020" highlightColor="#444">
-                                <h1>{<Skeleton />}</h1>
-                                <p>
-                                    <Skeleton count={5} />
-                                </p>
-                            </SkeletonTheme>
-                        </div>) : (
+                            {loading ? (<div>
+                                <SkeletonTheme baseColor="#202020" highlightColor="#444">
+                                    <h1>{<Skeleton />}</h1>
+                                    <p>
+                                        <Skeleton count={5} />
+                                    </p>
+                                </SkeletonTheme>
+                            </div>) : (
 
-                            <div>
+                                <div>
 
-                                <div style={{ margin: '20px' }} className="table-responsive">
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 className="font-weight-bold text-white">Python Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScript('python')}
-                                        >
-                                            Add Python Script
-                                        </CDBBtn>
-                                    </div>
-                                    <Table striped bordered hover variant="dark">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Scheduled</th>
-                                                <th>Deployed</th>
-                                                <th>Action</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {scripts.filter(script => script.language === 'python').map((script, index) => (
-                                                <tr key={index}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{script.scriptName}</td>
-                                                    <td>{script.scheduleName ? script.scheduleName :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setScheduleScript(script); setShowScheduleModal(true) }}>
 
-                                                            <span className="msg-rem">Schedule</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>{script.deployUrl ? script.deployUrl :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setDeployScript(script); setShowDeployModal(true) }}>
-                                                            <span className="msg-rem">Deploy</span>
-                                                        </CDBBtn>
-                                                    }</td>
+                                    <div className="mt-5">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>Python Scripts</h4>
+                                            <CDBBtn
+                                                type="primary"
+                                                flat
+                                                className="border-0 px-3"
+                                                style={{ color: 'white' }}
+                                                onClick={() => handleAddScript('python')}
+                                            >
+                                                Add Python Script
+                                            </CDBBtn>
+                                        </div>
 
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleEditScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Edit/</span> Run
-                                                        </CDBBtn>
-                                                    </td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='secondary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleDeleteScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Delete</span>
-                                                        </CDBBtn>
-                                                    </td>
+                                        <CDBTable className="dark-table" responsive>
+                                            <CDBTableHeader>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Name</th>
+                                                    <th>Scheduled</th>
+                                                    <th>Deployed</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
-
-                                <div style={{ margin: '20px' }}>
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 className="font-weight-bold text-white">JavaScript Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScript('javascript')}
-                                        >
-                                            Add JS Script
-                                        </CDBBtn>
+                                            </CDBTableHeader>
+                                            <CDBTableBody>
+                                                {scripts.filter(script => script.language === 'python').map((script, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>{script.scriptName}</td>
+                                                        <td>
+                                                            {script.scheduleName ? script.scheduleName : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setScheduleScript(script); setShowScheduleModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Schedule</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            {script.deployUrl ? script.deployUrl : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Deploy</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="primary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleEditScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Edit/Run</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="secondary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleDeleteScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Delete</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </CDBTableBody>
+                                        </CDBTable>
                                     </div>
-                                    <Table striped bordered hover variant="dark">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Scheduled</th>
-                                                <th>Deployed</th>
-                                                <th>Action</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {scripts.filter(script => script.language === 'javascript').map((script, index) => (
-                                                <tr key={index}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{script.scriptName}</td>
-                                                    <td>{script.scheduleName ? script.scheduleName :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setScheduleScript(script); setShowScheduleModal(true) }}>
 
-                                                            <span className="msg-rem">Schedule</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>{script.deployUrl ? script.deployUrl :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setDeployScript(script); setShowDeployModal(true) }}>
-                                                            <span className="msg-rem">Deploy</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleEditScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Edit/</span> Run
-                                                        </CDBBtn>
-                                                    </td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='secondary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleDeleteScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Delete</span>
-                                                        </CDBBtn>
-                                                    </td>
+
+
+
+                                    <div className="mt-5">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>C++ Scripts</h4>
+                                            <CDBBtn
+                                                type="primary"
+                                                flat
+                                                className="border-0 px-3"
+                                                style={{ color: 'white' }}
+                                                onClick={() => handleAddScript('python')}
+                                            >
+                                                Add C++ Script
+                                            </CDBBtn>
+                                        </div>
+
+                                        <CDBTable className="dark-table" responsive>
+                                            <CDBTableHeader>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Name</th>
+                                                    <th>Scheduled</th>
+                                                    <th>Deployed</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
-
-                                <div style={{ margin: '20px' }}>
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 className="font-weight-bold text-white">C++ Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScript('cpp')}
-                                        >
-                                            Add C++ Script
-                                        </CDBBtn>
+                                            </CDBTableHeader>
+                                            <CDBTableBody>
+                                                {scripts.filter(script => script.language === 'cpp').map((script, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>{script.scriptName}</td>
+                                                        <td>
+                                                            {script.scheduleName ? script.scheduleName : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setScheduleScript(script); setShowScheduleModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Schedule</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            {script.deployUrl ? script.deployUrl : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Deploy</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="primary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleEditScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Edit/Run</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="secondary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleDeleteScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Delete</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </CDBTableBody>
+                                        </CDBTable>
                                     </div>
-                                    <Table striped bordered hover variant="dark">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Scheduled</th>
-                                                <th>Deployed</th>
-                                                <th>Action</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {scripts.filter(script => script.language === 'cpp').map((script, index) => (
-                                                <tr key={index}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{script.scriptName}</td>
-                                                    <td>{script.scheduleName ? script.scheduleName :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setScheduleScript(script); setShowScheduleModal(true) }}>
-                                                            <span className="msg-rem">Schedule</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>{script.deployUrl ? script.deployUrl :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setDeployScript(script); setShowDeployModal(true) }}>
-                                                            <span className="msg-rem">Deploy</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleEditScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Edit/</span> Run
-                                                        </CDBBtn>
-                                                    </td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='secondary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleDeleteScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Delete</span>
-                                                        </CDBBtn>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
 
-                                <div style={{ margin: '20px' }}>
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 className="font-weight-bold text-white">Bash/Shell Scripts</h4>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleAddScript('shell')}
-                                        >
-                                            Add Bash/Shell Script
-                                        </CDBBtn>
+
+
+                                    <div className="mt-5">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>JavaScript Scripts</h4>
+                                            <CDBBtn
+                                                type="primary"
+                                                flat
+                                                className="border-0 px-3"
+                                                style={{ color: 'white' }}
+                                                onClick={() => handleAddScript('python')}
+                                            >
+                                                Add JavaScript Script
+                                            </CDBBtn>
+                                        </div>
+
+                                        <CDBTable className="dark-table" responsive>
+                                            <CDBTableHeader>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Name</th>
+                                                    <th>Scheduled</th>
+                                                    <th>Deployed</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </CDBTableHeader>
+                                            <CDBTableBody>
+                                                {scripts.filter(script => script.language === 'javascript').map((script, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>{script.scriptName}</td>
+                                                        <td>
+                                                            {script.scheduleName ? script.scheduleName : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setScheduleScript(script); setShowScheduleModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Schedule</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            {script.deployUrl ? script.deployUrl : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Deploy</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="primary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleEditScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Edit/Run</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="secondary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleDeleteScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Delete</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </CDBTableBody>
+                                        </CDBTable>
                                     </div>
-                                    <Table striped bordered hover variant="dark">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Scheduled</th>
-                                                <th>Deployed</th>
-                                                <th>Action</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {scripts.filter(script => script.language === 'shell').map((script, index) => (
-                                                <tr key={index}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{script.scriptName}</td>
-                                                    <td>{script.scheduleName ? script.scheduleName :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setScheduleScript(script); setShowScheduleModal(true) }}>
-                                                            <span className="msg-rem">Schedule</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>{script.deployUrl ? script.deployUrl :
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => { setDeployScript(script); setShowDeployModal(true) }}>
-                                                            <span className="msg-rem">Deploy</span>
-                                                        </CDBBtn>
-                                                    }</td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleEditScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Edit/</span> Run
-                                                        </CDBBtn>
-                                                    </td>
-                                                    <td>
-                                                        <CDBBtn
-                                                            type='secondary'
-                                                            flat
-                                                            className="border-0 ml-auto px-2 my-2"
-                                                            onClick={() => handleDeleteScript(script)}
-                                                        >
-                                                            <span className="msg-rem">Delete</span>
-                                                        </CDBBtn>
-                                                    </td>
+
+
+
+
+                                    <div className="mt-5">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>Bash/Shell Scripts</h4>
+                                            <CDBBtn
+                                                type="primary"
+                                                flat
+                                                className="border-0 px-3"
+                                                style={{ color: 'white' }}
+                                                onClick={() => handleAddScript('python')}
+                                            >
+                                                Add Shell Script
+                                            </CDBBtn>
+                                        </div>
+
+                                        <CDBTable className="dark-table" responsive>
+                                            <CDBTableHeader>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Name</th>
+                                                    <th>Scheduled</th>
+                                                    <th>Deployed</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
+                                            </CDBTableHeader>
+                                            <CDBTableBody>
+                                                {scripts.filter(script => script.language === 'shell').map((script, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>{script.scriptName}</td>
+                                                        <td>
+                                                            {script.scheduleName ? script.scheduleName : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setScheduleScript(script); setShowScheduleModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Schedule</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            {script.deployUrl ? script.deployUrl : (
+                                                                <CDBBtn
+                                                                    type="primary"
+                                                                    flat
+                                                                    className="border-0 ml-auto px-2 my-2"
+                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                >
+                                                                    <span className="msg-rem">Deploy</span>
+                                                                </CDBBtn>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="primary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleEditScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Edit/Run</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                        <td>
+                                                            <CDBBtn
+                                                                type="secondary"
+                                                                flat
+                                                                className="border-0 ml-auto px-2 my-2"
+                                                                onClick={() => handleDeleteScript(script)}
+                                                            >
+                                                                <span className="msg-rem">Delete</span>
+                                                            </CDBBtn>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </CDBTableBody>
+                                        </CDBTable>
+                                    </div>
+
+
+
+
+
                                 </div>
-                            </div>)}
-                    </div>
-                    <ScheduleScriptModal
-                        show={showScheduleModal}
-                        handleClose={() => setShowScheduleModal(false)}
-                        onSubmit={handleSchedule}
-                        scriptData={scheduleScript ? scheduleScript : ''}
-                    />
+                            )}
 
-                    <DeployModal
-                        show={showDeployModal}
-                        handleClose={() => setShowDeployModal(false)}
-                        onSubmit={handleDeploy}
-                        scriptData={deployScript ? deployScript : ''}
-                    />
 
-                </div>
+
+
+                            <ScheduleScriptModal
+                                show={showScheduleModal}
+                                handleClose={() => setShowScheduleModal(false)}
+                                onSubmit={handleSchedule}
+                                scriptData={scheduleScript ? scheduleScript : ''}
+                            />
+
+                            <DeployModal
+                                show={showDeployModal}
+                                handleClose={() => setShowDeployModal(false)}
+                                onSubmit={handleDeploy}
+                                scriptData={deployScript ? deployScript : ''}
+                            />
+
+                        </div>
+                    </div >
+                </div >
             </div>
         </div>
     );

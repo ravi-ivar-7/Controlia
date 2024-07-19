@@ -338,7 +338,7 @@ const Dashboard = () => {
                                 />
                               </InputGroup>
                             </Form.Group>
-                            <Button variant="primary" disabled = {waiting} onClick={() => { setExecuteCommand(''); handleWorkspaceCommands('containerModule'); }}>
+                            <Button variant="primary" disabled={waiting} onClick={() => { setExecuteCommand(''); handleWorkspaceCommands('containerModule'); }}>
                               {moduleInstall.type === 'install' ? 'Install' : 'Uninstall'} Module
                             </Button>
 
@@ -373,7 +373,7 @@ const Dashboard = () => {
                                 value={executeCommand}
                                 onChange={(e) => setExecuteCommand(e.target.value)}
                               />
-                              <Button variant="primary" disabled = {waiting} onClick={() => { handleWorkspaceCommands('containerCommand')  }}>
+                              <Button variant="primary" disabled={waiting} onClick={() => { handleWorkspaceCommands('containerCommand') }}>
                                 Execute
                               </Button>
                             </InputGroup>
@@ -479,6 +479,7 @@ const Dashboard = () => {
                 </div>
 
               </div>)}
+
           </div>
         </div>
       </div>

@@ -1,0 +1,37 @@
+
+
+
+/* Add this to your CSS file */
+.dark-table {
+    background-color: #222; /* Background color of the table */
+    color: #fff; /* Text color */
+    width: 100%; /* Ensure table covers available width */
+    border-collapse: collapse; /* Collapse borders to avoid double borders */
+}
+
+.dark-table th, .dark-table td {
+    border: 1px solid #444 !important; /* Border color and thickness */
+    padding: 8px; /* Add some padding inside cells */
+    text-align: left; /* Align text to the left */
+}
+
+.dark-table th {
+    background-color: #333; /* Header background color */
+    color: #fff; /* Header text color */
+}
+
+.dark-table tr:nth-child(even) td {
+    background-color: #2c2c2c; /* Background color for even rows */
+    color: #fff; 
+}
+
+.dark-table tr:nth-child(odd) td {
+    background-color: #222; /* Background color for odd rows */
+    color: #fff; 
+}
+
+.dark-table .btn-primary,
+.dark-table .btn-secondary {
+    color: #fff; /* Text color for buttons */
+    background-color: transparent; /* Button background color */
+}

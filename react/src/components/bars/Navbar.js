@@ -53,7 +53,7 @@ const Navbar = ({ pageTitle }) => {
           <i className="fa fa-align-left"></i>
         </button>
 
-        <button
+        <button 
           className={`tri-state-toggle-button ${sidebarState === 'halfsidebar' ? 'active' : ''}`}
           onClick={() => handleClick('halfsidebar')}
         >
@@ -63,13 +63,13 @@ const Navbar = ({ pageTitle }) => {
     </ThreeStateButton>
 
 
-      <h1 style={{ fontSize: '1.5rem' }}>{pageTitle}</h1>
+      <h1 style={{ fontSize: '1rem' }}>{pageTitle}</h1>
 
       <div className="icon-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
 
         <div>
-          <Button size="sm" variant="warning" style={{ margin: '10px 0', padding: '8px 16px' }} onClick={() => setBetaModal(true)} >
-            <i className="fas fa-info" style={{ marginRight: '8px' }}></i> Beta
+          <Button size="sm" variant="warning" onClick={() => setBetaModal(true)} >
+            <i className="fas fa-info"></i>
           </Button>
 
           <Modal show={betaModal} onHide={() => setBetaModal(false)} size="lg" aria-labelledby="beta-info-modal" centered dialogClassName="dark-modal">
@@ -87,9 +87,6 @@ const Navbar = ({ pageTitle }) => {
           </Modal>
         </div>
 
-        <Link to="/">
-          <i className="fas fa-comment-alt mx-4" style={{ fontSize: '24px' }}></i>
-        </Link>
         <div className="popup" onClick={togglePopup} style={{ cursor: 'pointer', marginLeft: '15px', }}>
           <i
             className="fas fa-user-circle"
@@ -105,6 +102,13 @@ const Navbar = ({ pageTitle }) => {
                         <i className="fas fa-user" style={{ marginRight: '8px' }}></i> Profile
                       </Link>
                     </CDBBtn>
+
+                    <CDBBtn size="small" color="primary" style={{ margin: '10px 0', padding: '8px 16px' }}>
+                      <Link className="popup-item"  style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                        <i className="fas fa-comment-alt" style={{ marginRight: '8px' }}></i> Notificaton
+                      </Link>
+                    </CDBBtn>
+
 
                     <CDBBtn size="small" color="danger" style={{ margin: '10px 0', padding: '8px 16px' }}>
                       <div

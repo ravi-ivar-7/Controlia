@@ -9,7 +9,7 @@ import Footer from '../../components/bars/Footer';
 import Sidebar from "../../components/bars/Sidebar";
 import Navbar from "../../components/bars/Navbar";
 
-import './sscheduleScirpts.css'
+import './scheduleScirpts.css'
 
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
 

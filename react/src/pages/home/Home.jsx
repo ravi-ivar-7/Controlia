@@ -210,10 +210,10 @@ const Home = () => {
 
                     <div className="footer-contact" style={{ marginBottom: '20px' }}>
                       <p style={{ margin: '0', fontSize: '1rem' }}>
-                        <i className="fas fa-envelope" style={{ marginRight: '8px' }}></i> email@example.com
+                        <i className="fas fa-envelope" style={{ marginRight: '8px' }}></i>controlia.services@gmail.com
                       </p>
                       <p style={{ margin: '0', fontSize: '1rem' }}>
-                        <i className="fas fa-phone" style={{ marginRight: '8px' }}></i> +1 234 567 890
+                        <i className="fas fa-phone" style={{ marginRight: '8px' }}></i> ...
                       </p>
                     </div>
 
@@ -391,5 +391,5 @@ const privacyPolicies = `
 <p>We may update this Privacy Policy periodically. We will notify you of any significant changes and provide the updated policy on our website.</p>
 
 <h3>8. Contact Us</h3>
-<p>If you have any questions or concerns about this Privacy Policy, please contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
+<p>If you have any questions or concerns about this Privacy Policy, please contact us at <a href="mailto:controlia.services@gmail.com">controlia.services@gmail.com</a>.</p>
 `;

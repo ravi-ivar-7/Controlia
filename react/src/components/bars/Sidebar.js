@@ -11,17 +11,22 @@ import { NavLink } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 
 const Sidebar = () => {
-  const [scheduleSubMenuOpen, setScheduleSubMenuOpen] = useState(false);
-  const [deploySubMenuOpen, setDeploySubMenuOpen] = useState(false);
+  const [scriptSubMenuOpen, setScripteSubMenuOpen] = useState(false);
+  const [notebookSubMenuOpen, setNotebookSubMenuOpen] = useState(false);
+  const [projectSubMenuOpen, setProjectSubMenuOpen] = useState(false);
   const [supportSubMenuOpen, setSupportSubMenuOpen] = useState(false);
   const { sidebarState } = useSidebar();
 
-  const handleScheduleSubMenuToggle = () => {
-    setScheduleSubMenuOpen(!scheduleSubMenuOpen);
+  const handleScriptSubMenuToggle = () => {
+    setScripteSubMenuOpen(!scriptSubMenuOpen);
   };
 
-  const handleDeploySubMenuToggle = () => {
-    setDeploySubMenuOpen(!deploySubMenuOpen);
+  const handleNotebookSubMenuToggle = () => {
+    setNotebookSubMenuOpen(!notebookSubMenuOpen);
+  };
+
+  const handleProjectSubMenuToggle = () => {
+    setProjectSubMenuOpen(!projectSubMenuOpen);
   };
 
   const handleSupportSubMenuOpen = () => {
@@ -57,29 +62,31 @@ const Sidebar = () => {
                 <NavLink exact to="/dashboard" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
                 </NavLink>
-                <NavLink exact to="/scripts" activeClassName="activeClicked">
-                  <CDBSidebarMenuItem icon="code">Scripts</CDBSidebarMenuItem>
-                </NavLink>
 
                 <div>
                   <div
-                    onClick={handleScheduleSubMenuToggle}
+                    onClick={handleScriptSubMenuToggle}
                     style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                   >
-                    <CDBSidebarMenuItem icon="calendar-check">
+                    <CDBSidebarMenuItem icon="file-code">
                       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                        Schedule
-                        <i className={`fa fa-chevron-${scheduleSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
+                        Scripts
+                        <i className={`fa fa-chevron-${scriptSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
                       </div>
                     </CDBSidebarMenuItem>
                   </div>
-                  {scheduleSubMenuOpen && (
+                  {scriptSubMenuOpen && (
                     <div style={{ paddingLeft: "20px" }}>
+                      
+                      <NavLink exact to="/scripts" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="plus-circle">Add Scripts</CDBSidebarMenuItem>
+                      </NavLink>
+
                       <NavLink exact to="/schedule-scripts" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="calendar-alt">Scripts</CDBSidebarMenuItem>
+                        <CDBSidebarMenuItem icon="calendar-alt">Schedule</CDBSidebarMenuItem>
                       </NavLink>
-                      <NavLink exact to="/schedule-projects" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="tasks">Projects</CDBSidebarMenuItem>
+                      <NavLink exact to="/share-scripts" activeClassName="activeClicked">
+                      <CDBSidebarMenuItem icon="share-alt">Shared</CDBSidebarMenuItem>
                       </NavLink>
                     </div>
                   )}
@@ -87,27 +94,62 @@ const Sidebar = () => {
 
                 <div>
                   <div
-                    onClick={handleDeploySubMenuToggle}
+                    onClick={handleNotebookSubMenuToggle}
                     style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                   >
-                    <CDBSidebarMenuItem icon="server">
+                    <CDBSidebarMenuItem icon="book">
                       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                        Deploy
-                        <i className={`fa fa-chevron-${deploySubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
+                        Notebooks
+                        <i className={`fa fa-chevron-${notebookSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
                       </div>
                     </CDBSidebarMenuItem>
                   </div>
-                  {deploySubMenuOpen && (
+                  {notebookSubMenuOpen && (
                     <div style={{ paddingLeft: "20px" }}>
-                      <NavLink exact to="/deploy-scripts" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="cloud-upload-alt">Scripts</CDBSidebarMenuItem>
+                      
+                      <NavLink exact to="/scripts" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="plus-circle">Add Notebooks</CDBSidebarMenuItem>
                       </NavLink>
-                      <NavLink exact to="/deploy-projects" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="project-diagram">Projects</CDBSidebarMenuItem>
+
+                      <NavLink exact to="/schedule-scripts" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="calendar-alt">Scheduled</CDBSidebarMenuItem>
+                      </NavLink>
+                      <NavLink exact to="/share-notebooks" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="share-alt">Shared</CDBSidebarMenuItem>
                       </NavLink>
                     </div>
                   )}
                 </div>
+
+                <div>
+                  <div
+                    onClick={handleProjectSubMenuToggle}
+                    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+                  >
+                    <CDBSidebarMenuItem icon="project-diagram">
+                      <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                        Projects
+                        <i className={`fa fa-chevron-${projectSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
+                      </div>
+                    </CDBSidebarMenuItem>
+                  </div>
+                  {projectSubMenuOpen && (
+                    <div style={{ paddingLeft: "20px" }}>
+                      
+                      <NavLink exact to="/projects" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="plus-circle">Add Projects</CDBSidebarMenuItem>
+                      </NavLink>
+
+                     
+                      <NavLink exact to="/deploy-projects" activeClassName="activeClicked">
+                        <CDBSidebarMenuItem icon="share-alt">Deployed</CDBSidebarMenuItem>
+                      </NavLink>
+                    </div>
+                  )}
+                </div>
+
+
+
                 <NavLink exact to="/resources" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="lightbulb">Resources</CDBSidebarMenuItem>
                 </NavLink>
@@ -159,13 +201,13 @@ const Sidebar = () => {
               </div>
 
               <div>
-                <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", margin: "0 10px" }}>
+                <a href="/" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", margin: "0 10px" }}>
                   <i className="fab fa-linkedin"></i>
                 </a>
-                <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", margin: "0 10px" }}>
+                <a href="/" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", margin: "0 10px" }}>
                   <i className="fab fa-twitter"></i>
                 </a>
-                <a href="mailto:controlia@gmail.com" style={{ color: "#fff", margin: "0 10px" }}>
+                <a href="mailto:controlia.services@gmail.com" style={{ color: "#fff", margin: "0 10px" }}>
                   <i className="fa fa-envelope"></i>
                 </a>
               </div>

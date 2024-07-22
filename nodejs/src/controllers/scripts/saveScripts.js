@@ -47,10 +47,8 @@ const saveScript = async (req, res) => {
       scheduleType: script.scheduleType ||'',
       scheduleRule: script.scheduleRule || '',
 
-      deployId: script.deployId || '',
-      deployUrl: script.deployUrl || '',
-      deployName: script.deployName || '',
-      deployOptions: script.deployOptions || [],
+      shareUrl: script.shareUrl || '',
+      shareOptions: script.shareOptions || [],
 
       date: new Date(),
     };

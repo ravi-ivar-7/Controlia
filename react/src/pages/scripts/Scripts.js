@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
-import Table from 'react-bootstrap/Table';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Footer from '../../components/bars/Footer';
@@ -15,15 +14,15 @@ import './scripts.css'
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import DeployModal from './deplyModal';
+import ShareScriptModal from './shareModal';
 
 const Scripts = () => {
     const [loading, setLoading] = useState(false);
     const [scripts, setScripts] = useState([]);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
-    const [showDeployModal, setShowDeployModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [scheduleScript, setScheduleScript] = useState('');
-    const [deployScript, setDeployScript] = useState('');
+    const [shareScript, setShareScript] = useState('');
 
     const { showErrorToast, showSuccessToast } = useToast();
 
@@ -162,9 +161,34 @@ const Scripts = () => {
             setLoading(false);
         }
     };
-    const handleDeploy = async (script) => {
+    const handleShare = async (script) => {
+        setLoading(true)
+        try {
+            const response = await axiosInstance.post('/share-script', { script }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
 
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    showSuccessToast(response.data.info);
+                }
+                await fetchData(token);
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                showErrorToast(response.data.warn || 'Internal Server Error');
+            }
+        } catch (error) {
+            console.error('Failed to create share link for this script.', error);
+            showErrorToast('Failed to create a share link for this script.');
+        } finally {
+            setLoading(false);
+        }
     }
+
+
+
     return (
 
 
@@ -210,7 +234,7 @@ const Scripts = () => {
                                                     <th>#</th>
                                                     <th>Name</th>
                                                     <th>Scheduled</th>
-                                                    <th>Deployed</th>
+                                                    <th>Shared</th>
                                                     <th>Action</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -233,14 +257,14 @@ const Scripts = () => {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            {script.deployUrl ? script.deployUrl : (
+                                                            {script.shareUrl ? script.shareUrl : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                    onClick={() => { setShareScript(script); setShowShareModal(true); }}
                                                                 >
-                                                                    <span className="msg-rem">Deploy</span>
+                                                                    <span className="msg-rem">Share</span>
                                                                 </CDBBtn>
                                                             )}
                                                         </td>
@@ -316,14 +340,14 @@ const Scripts = () => {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            {script.deployUrl ? script.deployUrl : (
+                                                            {script.shareUrl ? script.shareUrl : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                    onClick={() => { setShareScript(script); setShowShareModal(true); }}
                                                                 >
-                                                                    <span className="msg-rem">Deploy</span>
+                                                                    <span className="msg-rem">Share</span>
                                                                 </CDBBtn>
                                                             )}
                                                         </td>
@@ -398,14 +422,14 @@ const Scripts = () => {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            {script.deployUrl ? script.deployUrl : (
+                                                            {script.shareUrl ? script.shareUrl : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                    onClick={() => { setShareScript(script); setShowShareModal(true); }}
                                                                 >
-                                                                    <span className="msg-rem">Deploy</span>
+                                                                    <span className="msg-rem">Share</span>
                                                                 </CDBBtn>
                                                             )}
                                                         </td>
@@ -481,14 +505,14 @@ const Scripts = () => {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            {script.deployUrl ? script.deployUrl : (
+                                                            {script.shareUrl ? script.shareUrl : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setDeployScript(script); setShowDeployModal(true); }}
+                                                                    onClick={() => { setShareScript(script); setShowShareModal(true); }}
                                                                 >
-                                                                    <span className="msg-rem">Deploy</span>
+                                                                    <span className="msg-rem">Share</span>
                                                                 </CDBBtn>
                                                             )}
                                                         </td>
@@ -518,15 +542,8 @@ const Scripts = () => {
                                         </CDBTable>
                                     </div>
 
-
-
-
-
                                 </div>
                             )}
-
-
-
 
                             <ScheduleScriptModal
                                 show={showScheduleModal}
@@ -535,11 +552,11 @@ const Scripts = () => {
                                 scriptData={scheduleScript ? scheduleScript : ''}
                             />
 
-                            <DeployModal
-                                show={showDeployModal}
-                                handleClose={() => setShowDeployModal(false)}
-                                onSubmit={handleDeploy}
-                                scriptData={deployScript ? deployScript : ''}
+                            <ShareScriptModal
+                                show={showShareModal}
+                                handleClose={() => setShowShareModal(false)}
+                                onSubmit={handleShare}
+                                scriptData={shareScript ? shareScript : ''}
                             />
 
                         </div>

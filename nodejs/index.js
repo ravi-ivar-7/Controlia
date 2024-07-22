@@ -34,7 +34,7 @@ const redisOptions = {port: 6379, host: 'singapore-redis.render.com',username: '
 const connection = new IORedis(redisOptions);
 
 // FOR UI
-const {scheduleScriptQueue} = require('./src/controllers/schedule/scheduleScript')
+const {scheduleScriptQueue} = require('./src/controllers/scripts/scheduleScript')
 const {mailQueue} = require('./src/services/mail/manageMail')
 const { createBullBoard } = require('@bull-board/api');
 const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');

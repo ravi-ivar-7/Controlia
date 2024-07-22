@@ -4,21 +4,32 @@ import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'
-import Footer from '../../components/bars/Footer';
 import Sidebar from "../../components/bars/Sidebar";
 import Navbar from "../../components/bars/Navbar";
 import ScheduleNotebookModal from './scheduleModal';
 import ShareNotebookModal from './shareModal';
-
+import socketIOClient from 'socket.io-client';
+import { CodeiumEditor } from "@codeium/react-code-editor";
+import { Form } from 'react-bootstrap';
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
 import './notebooks.css'
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+        .then(() => alert('Token copied to clipboard!'))
+        .catch((err) => console.error('Failed to copy token: ', err));
+};
+
 
 const Notebooks = () => {
     const [loading, setLoading] = useState(false);
     const [notebooks, setNotebooks] = useState([]);
+    const [jupyterToken, setJupyterToken] = useState('')
+    const [jupyterUrl, setJupyterUrl] = useState('');
+    const [socketOutput, setSocketOutput] = useState([]);
+
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [scheduleNotebook, setScheduleNotebook] = useState('');
@@ -65,77 +76,57 @@ const Notebooks = () => {
         fetchData(token);
     }, []);
 
-    const handleDeleteNotebook = async (notebook) => {
-        if (!window.confirm(`Delete notebook ${notebook.notebookName}`)) {
+
+
+    const handleStartJupyterServer = async () => {
+        setSocketOutput([]);
+        let token = localStorage.getItem('token');
+        if (!token) {
+            console.error('No token found in local storage');
+            showErrorToast('No token found. Failed to start Jupyter server.');
             return;
         }
-        setLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axiosInstance.post('/delete-notebook', {
-                notebook,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    showSuccessToast(response.data.info);
-                }
-                setNotebooks(prevNotebooks => prevNotebooks.filter(s => s.notebookName !== notebook.notebookName));
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                showErrorToast(response.data.warn || 'Internal Server Error');
+
+        const socket = socketIOClient(process.env.REACT_APP_NODEJS_API, {
+            transports: ['polling', 'websocket'],
+            extraHeaders: {
+                Authorization: `Bearer ${token}`
             }
-        } catch (error) {
-            console.error('Failed to delete notebook.', error);
-            showErrorToast('Failed to delete notebook.');
-        } finally {
-            setLoading(false);
-        }
-    };
+        });
 
-    const handleEditNotebook = async (notebook) => {
-        setLoading(true)
-        try {
-            const response = await axiosInstance.post('/notebook', { notebook }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    showSuccessToast(response.data.info);
-                }
-                const { notebook } = response.data;
-                setLoading(false);
-                navigate('/notebook', { state: { notebook } });
-
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                showErrorToast(response.data.warn || 'Internal Server Error');
+        socket.on('data', (data) => {
+            const { output } = data
+            setSocketOutput((prevMessages) => [...prevMessages, output]);
+        });
+        socket.on('connectionInfo', (data) => {
+            const { token, url } = data;
+            if (token) {
+                setJupyterToken(token);
             }
-        } catch (error) {
-            console.error('Failed to fetch notebook.', error);
-            showErrorToast('Failed to fetch notebook.');
-        } finally {
-            setLoading(false);
-        }
+            if (url) {
+                setJupyterUrl(url);
+            }
+        });
+
+        socket.on('error', (data) => {
+            const {error} = data
+            setSocketOutput((prevMessages) => [...prevMessages, error]);
+        });
+
+        socket.on('success', (message) => {
+            showSuccessToast(message.message)
+            socket.disconnect();
+        });
+
+        socket.emit('startJupyterServer', {});
+
+        // Ensure cleanup of socket connection
+        return () => {
+            showErrorToast('disconnected...')
+            socket.disconnect();
+        };
     };
 
-    const handleAddNotebook = async (language) => {
-        setLoading(true);
-        try {
-            setLoading(false);
-            navigate('/notebook', { state: { notebook: { notebookName: '', notebookContent: '', language: language, argumentList: [] } } });
-        } catch (error) {
-            setLoading(false);
-            console.error('Failed to navigate to notebook page.', error);
-            showErrorToast('Failed to navigate to notebook page.');
-        }
-    };
     const handleSchedule = async (notebook) => {
         setLoading(true)
         try {
@@ -187,8 +178,6 @@ const Notebooks = () => {
         }
     }
     return (
-
-
         <div className="d-flex">
             <div>
                 <Sidebar />
@@ -210,19 +199,76 @@ const Notebooks = () => {
 
                                 <div>
 
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+                                        <CDBBtn
+                                            type='primary'
+                                            flat
+                                            className="border-0 px-3"
+                                            onClick={() => handleStartJupyterServer()}
+                                        >
+                                            Start Notebook Server
+                                        </CDBBtn>
+                                    </div>
+
+                                    <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            position: 'relative'
+                                        }}>
+                                            {jupyterUrl && (
+                                                <div style={{ position: 'relative' }}>
+                                                    <CDBBtn
+                                                        type='primary'
+                                                        flat
+                                                        className="border-0 px-3"
+                                                        onClick={() => window.open(jupyterUrl, '_blank')}
+                                                    >
+                                                        Open Notebook Server
+                                                    </CDBBtn>
+                                                   
+                                                </div>
+                                            )}
+
+                                            {jupyterToken && (
+                                                <div style={{ position: 'relative' }}>
+                                                    <CDBBtn
+                                                        type='primary'
+                                                        flat
+                                                        className="border-0 px-3"
+                                                        onClick={() => copyToClipboard(jupyterToken)}
+                                                    >
+                                                        Copy Token
+                                                    </CDBBtn>
+                                                    
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    
+
+
+
+
+                                    {socketOutput.length > 0 ? (
+                                        <div style={{ margin: '10px' }}>
+                                            <CodeiumEditor
+                                                theme="vs-dark"
+                                                value={socketOutput.join('\n')}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div></div>
+                                    )}
+
 
                                     <div className="mt-5">
                                         <div className="d-flex justify-content-between align-items-center">
                                             <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>All Python Notebooks</h4>
-                                            <CDBBtn
-                                                type="primary"
-                                                flat
-                                                className="border-0 px-3"
-                                                style={{ color: 'white' }}
-                                                onClick={() => handleAddNotebook('python')}
-                                            >
-                                                Add Python Notebook
-                                            </CDBBtn>
+
                                         </div>
 
                                         <CDBTable className="dark-table" responsive>
@@ -232,15 +278,13 @@ const Notebooks = () => {
                                                     <th>Name</th>
                                                     <th>Scheduled</th>
                                                     <th>Shared</th>
-                                                    <th>Action</th>
-                                                    <th>Action</th>
                                                 </tr>
                                             </CDBTableHeader>
                                             <CDBTableBody>
                                                 {notebooks.filter(notebook => notebook.language === 'python').map((notebook, index) => (
                                                     <tr key={index}>
                                                         <td>{index + 1}</td>
-                                                        <td>{notebook.scriptName}</td>
+                                                        <td>{notebook.notebookName}</td>
                                                         <td>
                                                             {notebook.scheduleName ? notebook.scheduleName : (
                                                                 <CDBBtn
@@ -265,38 +309,13 @@ const Notebooks = () => {
                                                                 </CDBBtn>
                                                             )}
                                                         </td>
-                                                        <td>
-                                                            <CDBBtn
-                                                                type="primary"
-                                                                flat
-                                                                className="border-0 ml-auto px-2 my-2"
-                                                                onClick={() => handleEditNotebook(notebook)}
-                                                            >
-                                                                <span className="msg-rem">Edit/Run</span>
-                                                            </CDBBtn>
-                                                        </td>
-                                                        <td>
-                                                            <CDBBtn
-                                                                type="secondary"
-                                                                flat
-                                                                className="border-0 ml-auto px-2 my-2"
-                                                                onClick={() => handleDeleteNotebook(notebook)}
-                                                            >
-                                                                <span className="msg-rem">Delete</span>
-                                                            </CDBBtn>
-                                                        </td>
+
+
                                                     </tr>
                                                 ))}
                                             </CDBTableBody>
                                         </CDBTable>
                                     </div>
-                                    
-                                    
-
-
-
-                               
-
                                 </div>
                             )}
 
@@ -304,7 +323,7 @@ const Notebooks = () => {
                                 show={showScheduleModal}
                                 handleClose={() => setShowScheduleModal(false)}
                                 onSubmit={handleSchedule}
-                                notebookData={shareNotebook ? shareNotebook : ''}
+                                notebookData={scheduleNotebook ? scheduleNotebook : ''}
                             />
 
                             <ShareNotebookModal

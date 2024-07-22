@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Button, InputGroup, Form, Modal } from 'react-bootstrap';
 
-const ShareNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
+const ShareNotebookModal = ({ show, handleClose, onSubmit, notebookData }) => {
   const [formData, setFormData] = useState({
     shareUrl: '',
     shareOptions: [],
-    ...scriptData
+    ...notebookData
   });
 
   useEffect(() => {
     setFormData({
       shareUrl: '',
       shareOptions: [],
-      ...scriptData
+      ...notebookData
     });
-  }, [scriptData]);
+  }, [notebookData]);
 
   const handleAdd = () => {
     if (isFormValid()) {
@@ -43,7 +43,7 @@ const ShareNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>{scriptData.scriptName}</Modal.Title>
+        <Modal.Title>{notebookData.notebookName}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -51,7 +51,7 @@ const ShareNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
             <Form.Label>Your Share URL</Form.Label>
             <InputGroup className="mb-3">
               <InputGroup.Text id="basic-addon3">
-                {`https://controlia.onrender.com/${scriptData.userId}/script/`}
+                {`https://controlia.onrender.com/${notebookData.userId}/script/`}
               </InputGroup.Text>
               <Form.Control
                 id="basic-url"

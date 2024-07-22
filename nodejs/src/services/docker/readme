@@ -24,3 +24,19 @@ restart container: docker start df9e54d1283c
 
 
 checking gid: Check Existing GID
+
+
+find usedid: docker exec <container_id_or_name> cat /etc/passwd
+
+Access the Container with the User ID or Username:
+  - docker exec -u <UID> -it <container_id_or_name> /bin/bash
+  - docker exec -u <username> -it <container_id_or_name> /bin/bash
+
+
+installing after image build:
+Start a Container from the Image:docker run -it controlia:latest /bin/bash
+apt-get update
+apt-get install -y nano
+
+If you want to keep the changes and create a new image with nano installed, you can commit the container to a new image:
+docker commit <container_id> my_controlia_with_nano:latest

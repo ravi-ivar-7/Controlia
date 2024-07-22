@@ -2,7 +2,7 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import MatomoTracker from './services/matomoTracker';
+import MatomoTracker from './services/matomo/matomoTracker';
 import Home from './pages/home/Home'
 import Dashboard from './pages/dashboard/Dashboard';
 import LoginWarningModal from './components/userModals/LoginWarningModal';
@@ -15,7 +15,6 @@ import  Profile  from './pages/profile/Profile';
 import Script from './pages/scripts/Script';
 import Scripts from './pages/scripts/Scripts';
 import Notebooks from './pages/notebooks/Notebooks';
-import Notebook from './pages/notebooks/Notebook';
 
 
 import { useUser } from './context/UserContext';
@@ -50,13 +49,12 @@ function App() {
                 <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
                 <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} />
 
-                <Route path="/notebook" element={ user? <Notebook /> :<LoginWarningModal isOpen={true} redirectPath="notebook" />}/>
                 <Route path="/notebooks" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="notebooks" />}/>
                 <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
                 <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} />
 
-                <Route path="/projects" element={ user? <Notebook /> :<LoginWarningModal isOpen={true} redirectPath="projects" />}/>
-                <Route path="/deploy-projects" element={ user? <Notebook /> :<LoginWarningModal isOpen={true} redirectPath="deploy-projects" />}/>
+                <Route path="/projects" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="projects" />}/>
+                <Route path="/deploy-projects" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="deploy-projects" />}/>
 
                 <Route path="/dashboard" element={ user? <Dashboard /> :<LoginWarningModal isOpen={true} redirectPath="/dashboard" />}/>
                 <Route path="/analytics" element={user ? <Analytics /> : <LoginWarningModal isOpen={true} redirectPath="/analytics" />} />

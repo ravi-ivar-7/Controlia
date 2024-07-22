@@ -107,11 +107,11 @@ const Sidebar = () => {
                   {notebookSubMenuOpen && (
                     <div style={{ paddingLeft: "20px" }}>
                       
-                      <NavLink exact to="/scripts" activeClassName="activeClicked">
+                      <NavLink exact to="/notebooks" activeClassName="activeClicked">
                         <CDBSidebarMenuItem icon="plus-circle">Add Notebooks</CDBSidebarMenuItem>
                       </NavLink>
 
-                      <NavLink exact to="/schedule-scripts" activeClassName="activeClicked">
+                      <NavLink exact to="/schedule-notebooks" activeClassName="activeClicked">
                         <CDBSidebarMenuItem icon="calendar-alt">Scheduled</CDBSidebarMenuItem>
                       </NavLink>
                       <NavLink exact to="/share-notebooks" activeClassName="activeClicked">

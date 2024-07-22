@@ -24,7 +24,7 @@ const ResetScheduleScript = async (req, res) => {
         } else {
             return res.status(209).json({warn: `Schedule ${script.scheduleName} not found.`})
         }
-
+// at present only schedule is deleted.
         const scriptUpdateFields = {
             scheduleId:'',
             scheduleName: '',

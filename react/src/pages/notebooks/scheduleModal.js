@@ -3,14 +3,14 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 
-const ScheduleNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
+const ScheduleNotebookModal = ({ show, handleClose, onSubmit, notebookData }) => {
   const [formData, setFormData] = useState({
     scheduleName: '',
     scheduleRule: '',
     scheduleType: '',
     scheduleOptions: [],
     scheduleOutputFileName: '',
-    ...scriptData
+    ...notebookData
   });
 
   useEffect(() => {
@@ -20,9 +20,9 @@ const ScheduleNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
       scheduleType: '',
       scheduleOptions: [],
       scheduleOutputFileName: '',
-      ...scriptData
+      ...notebookData
     });
-  }, [scriptData]);
+  }, [notebookData]);
 
   const [cronFields, setCronFields] = useState({
     second: '',
@@ -99,7 +99,7 @@ const ScheduleNotebookModal = ({ show, handleClose, onSubmit, scriptData }) => {
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>{scriptData.scriptName}</Modal.Title>
+        <Modal.Title>{notebookData.notebookName}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>

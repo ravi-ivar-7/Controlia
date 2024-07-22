@@ -22,11 +22,17 @@ const {getAllScripts, getScriptContent} = require('../controllers/scripts/getScr
 const {saveScript} = require('../controllers/scripts/saveScripts');
 const { deleteScripts } = require('../controllers/scripts/deleteScripts');
 
-const { scheduleScript } = require('../controllers/schedule/scheduleScript');
-const {getScheduleScripts} = require('../controllers/schedule/getScheduleScripts')
-const {ResetScheduleScript} = require('../controllers/schedule/resetScriptSchedule');
+const { jupyterServer } = require('../controllers/notebooks/startJupyterServer');
+const { getAllNotebooks } = require('../controllers/notebooks/getNotebooks');
+
+
+const { scheduleScript } = require('../controllers/scripts/scheduleScript');
+const {getScheduleScripts} = require('../controllers/scripts/getScheduleScripts')
+const {ResetScheduleScript} = require('../controllers/scripts/resetScriptSchedule');
 const { containerModule } = require('../controllers/containers/containerModules');
 const { containerCommand } = require('../controllers/containers/containerCommand');
+
+
 
 // system related
 router.get('/', async (req, res) => { res.status(200).json({ status: "ok", ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip, userAgent: req.headers['user-agent'] }) })
@@ -47,6 +53,11 @@ router.post('/delete-script', verifyToken, deleteScripts)
 router.post('/schedule-script', verifyToken, scheduleScript)
 router.post('/get-schedule-scripts', verifyToken, getScheduleScripts)
 router.post('/reset-scripts-schedule', verifyToken, ResetScheduleScript)
+
+// notebooks related
+router.post('/start-jupyter-server', verifyToken,jupyterServer)
+router.post('/notebooks', verifyToken,getAllNotebooks)
+
 
 // volume files related
 router.get('/save-file-to-volume',verifyToken, saveFileToVolume)

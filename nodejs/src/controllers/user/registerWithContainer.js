@@ -74,7 +74,17 @@ const registerWithContainer = async (req, res) => {
             HostConfig: {
                 CpuShares: 100,
                 Memory: 100 * 1024 * 1024,
-                Binds: [`${volumeName}:/${USERNAME}`],  // Bind the volume to /home/USERNAME/data in the container
+                Binds: [`${volumeName}:/${USERNAME}`],
+                PortBindings: {
+                    "8881/tcp": [
+                        {
+                            "HostPort": "8881"
+                        }
+                    ]
+                }
+            },
+            ExposedPorts: {
+                "8881/tcp": {}
             },
             Env: [
                 `USER_ID=${UID}`,
@@ -83,7 +93,6 @@ const registerWithContainer = async (req, res) => {
                 `USER_PASSWORD=${PASSWORD}`
             ],
         });
-
         if (!container) {
             throw new Error('Failed to create container for user.');
         }

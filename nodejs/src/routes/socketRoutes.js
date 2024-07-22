@@ -6,8 +6,12 @@ const {runJavaScriptFile} = require('../controllers/scripts/runJavaScriptFile')
 const {runPythonFile} = require('../controllers/scripts/runPythonFile')
 const {runShellFile} = require('../controllers/scripts/runShellFile')
 
+const { jupyterServer } = require('../controllers/notebooks/startJupyterServer');
+
+
 const {containerModule} = require('../controllers/containers/containerModules')
-const {containerCommand} = require('../controllers/containers/containerCommand')
+const {containerCommand} = require('../controllers/containers/containerCommand');
+
 
 
 module.exports = (io) => {
@@ -29,6 +33,10 @@ module.exports = (io) => {
     })
     socket.on('runShellFile', (data) =>{
       runShellFile(io, socket, data)
+    })
+
+    socket.on('startJupyterServer', (data) =>{
+      jupyterServer(io, socket, data)
     })
 
     socket.on('containerModule', (data) =>{

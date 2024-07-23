@@ -47,7 +47,7 @@ const scheduleNotebook = async (req, res) => {
         } else {
             return res.status(209).json({ warn: 'Unsupported schedule rule.' });
         }
-        const jobPayload = { userId: decodedToken.userId, email: decodedToken.email, notebookId :  script.notebookId, notebookName: script.notebookName };
+        const jobPayload = { userId: decodedToken.userId, email: decodedToken.email, notebookName: notebook.notebookName };
 
         let newScheduleJob ;
         newScheduleJob = await scheduleNotebookQueue.add('runBgNotebookFile', jobPayload, jobOptions);
@@ -63,11 +63,12 @@ const scheduleNotebook = async (req, res) => {
             scheduleOptions: notebook.scheduleOptions || [],
             scheduleType: notebook.scheduleType,
             scheduleRule: notebook.scheduleRule,
+            notebookName: notebook.notebookName,
             date: new Date(),
         };
         
         await notebooksCollection.findOneAndUpdate(
-            { userId: decodedToken.userId, notebookId: notebook.notebookId },
+            { userId: decodedToken.userId, notebookName: notebook.notebookName },
             { $set: notebookUpdateFields },
             { returnDocument: 'after', upsert: true }
         );
@@ -76,7 +77,7 @@ const scheduleNotebook = async (req, res) => {
             from: process.env.NODEJS_FROM_EMAIL,
             subject: `${notebook.notebookName} added successfully to schedule.`,
             to: decodedToken.email,
-            text: `Title: ${notebook.notebookName} \nSchedule Name: ${notebook.scheduleName} \nSchedule Rule: ${notebook.scheduleRule} \n Schedule options: ${notebook.scheduleOptions}`,
+            text: `Title: ${notebook.notebookName} \nSchedule Name: ${notebook.scheduleName} \nSchedule Rule: ${notebook.scheduleRule} \nSchedule options: ${notebook.scheduleOptions}`,
         };
         addToMailQueue(mailOptions)
             .then(() => {

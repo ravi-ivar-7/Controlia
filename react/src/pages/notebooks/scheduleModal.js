@@ -152,6 +152,7 @@ const ScheduleNotebookModal = ({ show, handleClose, onSubmit, notebookData }) =>
               disabled={formData.scheduleType === 'recurring'}
             />
           </Form.Group>
+          
           <Modal.Title>OR</Modal.Title>
           <Form.Group className="mb-3" controlId="exampleForm.ControlSelect1">
             <Form.Label>A recurring schedule</Form.Label>
@@ -201,6 +202,8 @@ const ScheduleNotebookModal = ({ show, handleClose, onSubmit, notebookData }) =>
               disabled={formData.scheduleType === 'fixed'}
             />
           </Form.Group>
+
+
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>
               Close

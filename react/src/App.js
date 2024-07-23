@@ -15,7 +15,7 @@ import  Profile  from './pages/profile/Profile';
 import Script from './pages/scripts/Script';
 import Scripts from './pages/scripts/Scripts';
 import Notebooks from './pages/notebooks/Notebooks';
-
+import Notebook from './pages/notebooks/Notebook';
 
 import { useUser } from './context/UserContext';
 
@@ -50,6 +50,7 @@ function App() {
                 <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} />
 
                 <Route path="/notebooks" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="notebooks" />}/>
+                <Route path="/notebook" element={ user? <Notebook /> :<LoginWarningModal isOpen={true} redirectPath="notebook" />}/>
                 <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
                 <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} />
 

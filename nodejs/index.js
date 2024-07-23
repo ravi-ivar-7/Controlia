@@ -35,6 +35,7 @@ const connection = new IORedis(redisOptions);
 
 // FOR UI
 const {scheduleScriptQueue} = require('./src/controllers/scripts/scheduleScript')
+const {scheduleNotebookQueue} = require('./src/controllers/notebooks/schduleNotebook')
 const {mailQueue} = require('./src/services/mail/manageMail')
 const { createBullBoard } = require('@bull-board/api');
 const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
@@ -44,7 +45,7 @@ const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
 
 const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
-  queues: [new BullMQAdapter(scheduleScriptQueue),new BullMQAdapter(mailQueue)],
+  queues: [new BullMQAdapter(scheduleScriptQueue),new BullMQAdapter(mailQueue),new BullMQAdapter(scheduleNotebookQueue)],
   serverAdapter: serverAdapter,
 });
 app.use('/admin/queues', serverAdapter.getRouter());
@@ -57,9 +58,12 @@ const {runBgJavaScriptFile} = require('./src/controllers/bgScripts/runBgJavaScri
 const {runBgPythonFile} = require('./src/controllers/bgScripts/runBgPythonFile')
 const {runBgShellFile} = require('./src/controllers/bgScripts/runBgShellFile');
 
+const {runBgNotebookFile} = require('./src/controllers/notebooks/runBgNotebookFile');
+
 const jobHandlers = {
   sendMail,
   runBgCppFile, runBgJavaScriptFile, runBgPythonFile, runBgShellFile,
+  runBgNotebookFile,
 };
 
 const processScheduleScriptJob = async (job) => {
@@ -75,6 +79,22 @@ const processScheduleScriptJob = async (job) => {
   } else {
       logger.error(`No handler found for job ${job.name} in scheduleScriptQueue`);
       throw new Error(`No handler found for job ${job.name} in scheduleScriptQueue`);
+  }
+};
+
+const processScheduleNotebookJob = async (job) => {
+  const handler = jobHandlers[job.name];
+  if (handler) {
+      logger.info(`Processing job ${job.id} in scheduleNotebookQueue: ${job.name}`);
+      try {
+          await handler(job);
+      } catch (error) {
+          logger.error(`Error processing job ${job.id} in scheduleNotebookQueue: ${error}`);
+          throw error;
+      }
+  } else {
+      logger.error(`No handler found for job ${job.name} in scheduleNotebookQueue`);
+      throw new Error(`No handler found for job ${job.name} in scheduleNotebookQueue`);
   }
 };
 
@@ -116,6 +136,17 @@ const scheduleScriptWorker = new Worker('scheduleScriptQueue',
   }
 );
 
+const scheduleNotebookWorker = new Worker('scheduleNotebookQueue',
+  async (job) => {
+      await processScheduleNotebookJob(job);
+      logger.info(`Started schedule notebook job ${job.id}`);
+  },
+  {
+      connection,
+      concurrency: 10,
+  }
+);
+
 scheduleScriptWorker.on("completed", (job) => {
   logger.info(`Job ${job.id} in scheduleScriptQueue has completed!`);
 });
@@ -123,6 +154,15 @@ scheduleScriptWorker.on("completed", (job) => {
 scheduleScriptWorker.on("failed", (job, err) => {
   logger.info(`Job ${job.id} in scheduleScriptQueue has failed with ${err.message}`);
 });
+
+scheduleNotebookWorker.on("completed", (job) => {
+  logger.info(`Job ${job.id} in scheduleNotebookQueue has completed!`);
+});
+
+scheduleNotebookWorker.on("failed", (job, err) => {
+  logger.info(`Job ${job.id} in scheduleNotebookQueue has failed with ${err.message}`);
+});
+
 
 sendMailWorker.on("completed", (job) => {
   logger.info(`Job ${job.id} in mailQueue has completed!`);

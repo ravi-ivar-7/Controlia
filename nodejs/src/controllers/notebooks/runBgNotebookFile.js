@@ -8,7 +8,7 @@ const { saveFileToContainer } = require('../../services/docker/manageVolumeFiles
 const { addToMailQueue } = require('../../services/mail/manageMail');
 
 const runBgNotebookFile = async (job) => {
-    const { userId, email, notebookName, notebookId } = job.data;
+    const { userId, email, notebookName } = job.data;
     const client = new MongoClient(process.env.MONGODB_URL);
     let output = [];
     try {
@@ -18,7 +18,7 @@ const runBgNotebookFile = async (job) => {
         const notebooksCollection = db.collection('notebooks');
 
         const user = await usersCollection.findOne({ userId: userId });
-        const notebook = await notebooksCollection.findOne({ userId: user.userId, notebookId: notebookId });
+        const notebook = await notebooksCollection.findOne({ userId: user.userId, notebookName: notebookName });
 
         if (!user || !notebook) {
             output.push('User or notebook not found.');
@@ -28,7 +28,6 @@ const runBgNotebookFile = async (job) => {
         const NOTEBOOK_DIR = `/${user.userId}/notebooks`;
         const container = docker.getContainer(user.containerId);
 
-        // Run the notebook needs to be executed
         let exec = await container.exec({
             Cmd: ['jupyter', 'nbconvert', '--to', 'notebook', '--execute', `${NOTEBOOK_DIR}/${notebook.notebookName}`, '--output', `${NOTEBOOK_DIR}/${notebook.scheduleOutputFileName}`],
             AttachStdin: true,
@@ -44,6 +43,7 @@ const runBgNotebookFile = async (job) => {
         });
 
         stream.on('error', (error) => {
+            console.log('error', error)
             const errorMessage = error.toString().replace(/[^\x20-\x7E]/g, '').trim();
             output.push(errorMessage);
         });
@@ -53,7 +53,7 @@ const runBgNotebookFile = async (job) => {
         });
 
         output.push(`Job done!`);
-
+        output.push(`You can view resultant notebook as: Go to Notebooks->Add Notebooks -> Start Notebook Server -> Open Notebook server and select your scheduleOutputFileName.ipynb`)
         if (notebook.scheduleOptions.includes('sendOverMail')) {
             const jsonData = JSON.stringify(output, null, 2);
 
@@ -61,10 +61,10 @@ const runBgNotebookFile = async (job) => {
                 from: process.env.NODEJS_FROM_EMAIL,
                 subject: `${notebook.scheduleName} completed.`,
                 to: email,
-                text: ` ${notebook.scheduleName} completed.`,
+                text: ` ${notebook.scheduleName} completed. \nInfo: You can view resultant notebook as: Go to Notebooks->Add Notebooks -> Start Notebook Server -> Open Notebook server and select your scheduleOutputFileName.ipynb`,
                 attachments: [
                     {
-                        filename: notebook.scheduleOutputFileName,
+                        filename: 'output.json',
                         content: jsonData,
                     }
                 ]

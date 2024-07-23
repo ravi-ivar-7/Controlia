@@ -8,7 +8,7 @@ const {runShellFile} = require('../controllers/scripts/runShellFile')
 
 const { jupyterServer } = require('../controllers/notebooks/startJupyterServer');
 
-
+const {containerTerminal} = require('../controllers/containers/containerTerminal')
 const {containerModule} = require('../controllers/containers/containerModules')
 const {containerCommand} = require('../controllers/containers/containerCommand');
 
@@ -44,6 +44,9 @@ module.exports = (io) => {
     })
     socket.on('containerCommand', (data) =>{
       containerCommand(io, socket, data)
+    })
+    socket.on('containerTerminal', (data) =>{
+      containerTerminal(io, socket, data)
     })
 
 

@@ -16,7 +16,7 @@ const resetNotebookSchedule = async (user, notebook) => {
         const notebookUpdateFields = {
             scheduleName: '',
             scheduleOutputFileName:'',
-            ScheduleOptions: [],
+            scheduleOptions: [],
             scheduleType: '',
             scheduleRule:'',
             date: new Date(),

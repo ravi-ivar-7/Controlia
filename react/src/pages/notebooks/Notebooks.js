@@ -34,6 +34,7 @@ const Notebooks = () => {
     const [showShareModal, setShowShareModal] = useState(false);
     const [scheduleNotebook, setScheduleNotebook] = useState('');
     const [shareNotebook, setShareNotebook] = useState('');
+    const [jupyterServerStarted, setJupyterServerStarted] = useState(false)
 
     const { showErrorToast, showSuccessToast } = useToast();
 
@@ -79,53 +80,63 @@ const Notebooks = () => {
 
 
     const handleStartJupyterServer = async () => {
-        setSocketOutput([]);
-        let token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found in local storage');
-            showErrorToast('No token found. Failed to start Jupyter server.');
-            return;
+        try {
+            setSocketOutput([]);
+            setJupyterToken('');
+            setJupyterUrl('');
+            setJupyterServerStarted(true);
+
+            let token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found in local storage');
+                showErrorToast('No token found. Failed to start Jupyter server.');
+                return;
+            }
+
+            const socket = socketIOClient(process.env.REACT_APP_NODEJS_API, {
+                transports: ['polling', 'websocket'],
+                extraHeaders: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            socket.on('data', (data) => {
+                const { output } = data;
+                setSocketOutput((prevMessages) => [...prevMessages, output]);
+            });
+
+            socket.on('connectionInfo', (data) => {
+                const { token, url } = data;
+                if (token) {
+                    setJupyterToken(token);
+                }
+                if (url) {
+                    setJupyterUrl(url);
+                }
+            });
+
+            socket.on('error', (data) => {
+                const { error } = data;
+                setSocketOutput((prevMessages) => [...prevMessages, error]);
+            });
+
+            socket.on('success', (message) => {
+                console.log(message)
+                showSuccessToast(message.message);
+                socket.disconnect();
+            });
+
+            socket.emit('startJupyterServer', {});
+
+            return () => {
+                showErrorToast('disconnected...');
+                socket.disconnect();
+            };
+        } finally {
+            setJupyterServerStarted(false);
         }
-
-        const socket = socketIOClient(process.env.REACT_APP_NODEJS_API, {
-            transports: ['polling', 'websocket'],
-            extraHeaders: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        socket.on('data', (data) => {
-            const { output } = data
-            setSocketOutput((prevMessages) => [...prevMessages, output]);
-        });
-        socket.on('connectionInfo', (data) => {
-            const { token, url } = data;
-            if (token) {
-                setJupyterToken(token);
-            }
-            if (url) {
-                setJupyterUrl(url);
-            }
-        });
-
-        socket.on('error', (data) => {
-            const {error} = data
-            setSocketOutput((prevMessages) => [...prevMessages, error]);
-        });
-
-        socket.on('success', (message) => {
-            showSuccessToast(message.message)
-            socket.disconnect();
-        });
-
-        socket.emit('startJupyterServer', {});
-
-        // Ensure cleanup of socket connection
-        return () => {
-            showErrorToast('disconnected...')
-            socket.disconnect();
-        };
     };
+
 
     const handleSchedule = async (notebook) => {
         setLoading(true)
@@ -198,71 +209,74 @@ const Notebooks = () => {
                             </div>) : (
 
                                 <div>
+                                    {(jupyterToken || jupyterUrl) ? (
+                                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                position: 'relative'
+                                            }}>
+                                                {jupyterUrl && (
+                                                    <div style={{ position: 'relative' }}>
+                                                        <CDBBtn
+                                                            type='primary'
+                                                            flat
+                                                            className="border-0 px-3"
+                                                            onClick={() => window.open(jupyterUrl, '_blank')}
+                                                        >
+                                                            Open Notebook Server
+                                                        </CDBBtn>
 
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-                                        <CDBBtn
-                                            type='primary'
-                                            flat
-                                            className="border-0 px-3"
-                                            onClick={() => handleStartJupyterServer()}
-                                        >
-                                            Start Notebook Server
-                                        </CDBBtn>
-                                    </div>
+                                                    </div>
+                                                )}
 
-                                    <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                            position: 'relative'
-                                        }}>
-                                            {jupyterUrl && (
-                                                <div style={{ position: 'relative' }}>
-                                                    <CDBBtn
-                                                        type='primary'
-                                                        flat
-                                                        className="border-0 px-3"
-                                                        onClick={() => window.open(jupyterUrl, '_blank')}
-                                                    >
-                                                        Open Notebook Server
-                                                    </CDBBtn>
-                                                   
-                                                </div>
-                                            )}
+                                                {jupyterToken && (
+                                                    <div style={{ position: 'relative' }}>
+                                                        <CDBBtn
+                                                            type='primary'
+                                                            flat
+                                                            className="border-0 px-3"
+                                                            onClick={() => copyToClipboard(jupyterToken)}
+                                                        >
+                                                            Copy Token
+                                                        </CDBBtn>
 
-                                            {jupyterToken && (
-                                                <div style={{ position: 'relative' }}>
-                                                    <CDBBtn
-                                                        type='primary'
-                                                        flat
-                                                        className="border-0 px-3"
-                                                        onClick={() => copyToClipboard(jupyterToken)}
-                                                    >
-                                                        Copy Token
-                                                    </CDBBtn>
-                                                    
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    
-
-
-
-
-                                    {socketOutput.length > 0 ? (
-                                        <div style={{ margin: '10px' }}>
-                                            <CodeiumEditor
-                                                theme="vs-dark"
-                                                value={socketOutput.join('\n')}
-                                            />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
-                                        <div></div>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+                                            <CDBBtn
+                                                disabled={jupyterServerStarted}
+                                                type='primary'
+                                                flat
+                                                className="border-0 px-3"
+                                                onClick={() => handleStartJupyterServer()}
+                                            >
+                                                Start Notebook Server
+                                            </CDBBtn>
+                                        </div>
                                     )}
+
+                                    <div>
+
+                                        {socketOutput.length > 0 ? (
+
+                                            <div style={{ margin: '10px' }}>
+                                                <h4> Jupyter Server console output</h4>
+                                                <CodeiumEditor
+                                                    theme="vs-dark"
+                                                    value={socketOutput.join('\n')}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div></div>
+                                        )}
+                                    </div>
+
 
 
                                     <div className="mt-5">
@@ -281,17 +295,17 @@ const Notebooks = () => {
                                                 </tr>
                                             </CDBTableHeader>
                                             <CDBTableBody>
-                                                {notebooks.filter(notebook => notebook.language === 'python').map((notebook, index) => (
+                                                {notebooks.map((notebook, index) => (
                                                     <tr key={index}>
                                                         <td>{index + 1}</td>
-                                                        <td>{notebook.notebookName}</td>
+                                                        <td>{notebook}</td>
                                                         <td>
                                                             {notebook.scheduleName ? notebook.scheduleName : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setScheduleNotebook(notebook); setShowScheduleModal(true); }}
+                                                                    onClick={() => { setScheduleNotebook({notebookName: notebook}); setShowScheduleModal(true); }}
                                                                 >
                                                                     <span className="msg-rem">Schedule</span>
                                                                 </CDBBtn>

@@ -31,6 +31,8 @@ const {getScheduleScripts} = require('../controllers/scripts/getScheduleScripts'
 const {ResetScheduleScript} = require('../controllers/scripts/resetScriptSchedule');
 const { containerModule } = require('../controllers/containers/containerModules');
 const { containerCommand } = require('../controllers/containers/containerCommand');
+const {scheduleNotebook} = require('../controllers/notebooks/schduleNotebook');
+const { containerTerminal } = require('../controllers/containers/containerTerminal');
 
 
 
@@ -57,6 +59,7 @@ router.post('/reset-scripts-schedule', verifyToken, ResetScheduleScript)
 // notebooks related
 router.post('/start-jupyter-server', verifyToken,jupyterServer)
 router.post('/notebooks', verifyToken,getAllNotebooks)
+router.post('/schedule-notebook', verifyToken,scheduleNotebook)
 
 
 // volume files related
@@ -70,6 +73,7 @@ router.post('/get-workspace-files', verifyToken,getWorkspaceFiles);
 router.post('/download-workspace-data', verifyToken,downloadVolumeData);
 router.post('/install-container-module', verifyToken,containerModule);
 router.post('/rum-container-command', verifyToken,containerCommand);
+router.post('/terminal', verifyToken,containerTerminal);
 
 // job/queues/tasks related
 router.get('/get-queue-jobs/:queuename', getQueueJobs)

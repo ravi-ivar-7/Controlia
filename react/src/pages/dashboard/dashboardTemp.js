@@ -1,18 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
+import { Form, InputGroup, DropdownButton, Dropdown, Button, Table } from 'react-bootstrap';
+import socketIOClient from 'socket.io-client';
 import { useUser } from '../../context/UserContext';
+import { CodeiumEditor } from "@codeium/react-code-editor";
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'
+import {
+  CDBBtn,
+  CDBTable,
+  CDBTableHeader,
+  CDBTableBody,
+} from "cdbreact";
 import Sidebar from "../../components/bars/Sidebar";
 import Navbar from "../../components/bars/Navbar";
 import "./Dashboard.css";
-import {  Table } from 'react-bootstrap';
+
 const Dashboard = () => {
 
   const [workspaceInfo, setWorkdspaceInfo] = useState('');
   const [workspaceFiles, setWorkdspaceFiles] = useState('');
   const [loading, setLoading] = useState(false)
+  const [moduleInstall, setModuleInstall] = useState({ provider: '', type: '', module: '' });
+  const [executeCommand, setExecuteCommand] = useState('');
+  const [socketOutput, setSocketOutput] = useState([]);
+  const [waiting, setWating] = useState(false)
   const { showErrorToast, showSuccessToast } = useToast();
   const { user } = useUser();
 
@@ -143,9 +157,57 @@ const Dashboard = () => {
     }
   }
 
- 
+  const handleProviderChange = (provider) => {
+    setModuleInstall(prevState => ({ ...prevState, provider }));
+  };
 
-   
+  const handleTypeChange = (type) => {
+    setModuleInstall(prevState => ({ ...prevState, type }));
+  };
+
+  const handleModuleChange = (e) => {
+    setModuleInstall(prevState => ({ ...prevState, module: e.target.value }));
+  };
+
+  const handleWorkspaceCommands = (type) => {
+    setSocketOutput([])
+    setWating(true)
+    const socket = socketIOClient(process.env.REACT_APP_NODEJS_API, {
+      transports: ['polling', 'websocket'],
+      extraHeaders: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    socket.on('data', (message) => {
+      const formattedMessage = JSON.stringify(message.message);
+      setSocketOutput((prevMessages) => [...prevMessages, formattedMessage]);
+    });
+    socket.on('error', (message) => {
+      const formattedMessage = JSON.stringify(message.message);
+      setSocketOutput((prevMessages) => [...prevMessages, formattedMessage]);
+      setWating(false)
+    });
+    socket.on('success', (message) => {
+      showSuccessToast(message.message);
+      socket.disconnect();
+      setWating(false)
+    });
+
+    if (type === 'containerModule') {
+      socket.emit('containerModule', { moduleInstall });
+    } else if (type === 'containerCommand') {
+      socket.emit('containerCommand', { executeCommand });
+    } else {
+      showErrorToast('Failed to run command.');
+    }
+
+    return () => {
+      socket.disconnect();
+      setWating(false)
+    };
+  };
+
 
   const renderFiles = (files, parentPath = '') => {
     const directories = [];
@@ -233,13 +295,125 @@ const Dashboard = () => {
 
 
 
+
                     <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
                       <div className="p-4 d-flex flex-column h-100">
                         <div className="d-flex align-items-center justify-content-between">
-                          <h4 className="m-0 h5 font-weight-bold text-white">Workspace Details</h4>
+                          <h4 className="m-0 h5 font-weight-bold text-white">Install/Uninstall Packages/Library/Modules</h4>
                         </div>
                         <div className="mt-3">
-                                     
+                          <Form>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Provider</Form.Label>
+                              <DropdownButton
+                                variant="outline-light"
+                                title={moduleInstall.provider || "Select Provider"}
+                                onSelect={handleProviderChange}
+                              >
+                                <Dropdown.Item eventKey="apt-get">apt-get</Dropdown.Item>
+                                <Dropdown.Item eventKey="pip">pip</Dropdown.Item>
+                                <Dropdown.Item eventKey="npm">npm</Dropdown.Item>
+                              </DropdownButton>
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                              <Form.Label>Action</Form.Label>
+                              <DropdownButton
+                                variant="outline-light"
+                                title={moduleInstall.type || "Select Action"}
+                                onSelect={handleTypeChange}
+                              >
+                                <Dropdown.Item eventKey="install">Install</Dropdown.Item>
+                                <Dropdown.Item eventKey="uninstall">Uninstall/remove/purge</Dropdown.Item>
+                              </DropdownButton>
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                              <Form.Label htmlFor="module">Module/Package Name</Form.Label>
+                              <InputGroup className="mb-3">
+                                <Form.Control
+                                  id="module"
+                                  aria-describedby="module"
+                                  onChange={handleModuleChange}
+                                />
+                              </InputGroup>
+                            </Form.Group>
+                            <Button variant="primary" disabled={waiting} onClick={() => { setExecuteCommand(''); handleWorkspaceCommands('containerModule'); }}>
+                              {moduleInstall.type === 'install' ? 'Install' : 'Uninstall'} Module
+                            </Button>
+
+                          </Form>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
+                      <div className="p-4 d-flex flex-column h-100">
+                        <div className="d-flex align-items-center justify-content-between">
+                          <h4 className="m-0 h5 font-weight-bold text-white">Run a command inside workspace.</h4>
+                        </div>
+                        <div className="mt-3">
+                          <Form>
+                            {/* Warning Alert */}
+                            <div className="alert alert-danger" role="alert">
+                              <strong>Caution:</strong> Executing commands can impact your workspace and data. Be sure of what you're executing.
+                              <ul className="mt-2">
+                                <li>Only execute commands you understand and trust.</li>
+                                <li>Commands like <code>rm -f filename</code> can irreversibly delete files.</li>
+                                <li>Avoid running commands from untrusted sources.</li>
+                                <li>Always verify the command and its consequences before execution.</li>
+                              </ul>
+                            </div>
+                            <InputGroup className="mb-3">
+                              <Form.Control
+                                type="text"
+                                placeholder="Command to execute"
+                                aria-label="Command to execute"
+                                aria-describedby="basic-addon2"
+                                value={executeCommand}
+                                onChange={(e) => setExecuteCommand(e.target.value)}
+                              />
+                              <Button variant="primary" disabled={waiting} onClick={() => { handleWorkspaceCommands('containerCommand') }}>
+                                Execute
+                              </Button>
+                            </InputGroup>
+                          </Form>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
+                      <div className="p-4 d-flex flex-column h-100">
+                        <div className="d-flex align-items-center justify-content-between">
+                          <h4 className="m-0 h5 font-weight-bold text-white">Workspace Output</h4>
+                        </div>
+                        <div className="mt-3">
+                          <Form.Group controlId="output" style={{ margin: '5px' }}>
+                            <div style={{ height: 'calc(100% - 30px)' }}>
+                              <CodeiumEditor
+                                theme="vs-dark"
+                                value={socketOutput.join('\n')}
+                              />
+                            </div>
+                          </Form.Group>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+
+
+
+                <div className="d-flex card-section">
+                  <div className="cards-container">
+
+                    <div className="card-bg w-100 border d-flex flex-column p-4" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
+                      <div className="d-flex">
+                        <h6 className="h5 font-weight-bold text-white">Workspace Details</h6>
+                      </div>
+                      <div className="mt-4">
                         <Table striped bordered hover variant="dark">
                           <tbody>
                             <tr>
@@ -268,22 +442,10 @@ const Dashboard = () => {
                             </tr>
                           </tbody>
                         </Table>
-
-
-                        </div>
                       </div>
                     </div>
 
-                  </div>
-                </div>
-
-
-
-
-                <div className="d-flex card-section">
-                  {/* <div className="cards-container"> */}
-
-                    <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" >
+                    <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column">
                       <div className="d-flex flex-column p-0 h-100">
                         <div className="mx-4 mt-3 d-flex justify-content-between align-items-center">
                           <h4 className="m-0 h5 font-weight-bold text-white">Workspace File System</h4>
@@ -314,7 +476,7 @@ const Dashboard = () => {
                     </div>
 
                   </div>
-                {/* </div> */}
+                </div>
 
               </div>)}
 

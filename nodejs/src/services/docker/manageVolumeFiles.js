@@ -196,10 +196,10 @@ async function getFileFolderFromContainer(containerId, path) {
 }
 
 
-async function getFilesFromContainer(containerId, dirpath) {
+async function getFilesFromContainer(containerId, dirpath) { // filename and their contents
     const container = docker.getContainer(containerId);
     const extract = tar.extract();
-    const scripts = [];
+    const files = [];
 
     extract.on('entry', (header, fileStream, next) => {
         if (header.type === 'file') {
@@ -208,7 +208,7 @@ async function getFilesFromContainer(containerId, dirpath) {
                 fileContent += chunk.toString();
             });
             fileStream.on('end', () => {
-                scripts.push({ name: header.name, content: fileContent });
+                files.push({ name: header.name, content: fileContent });
                 next();
             });
         } else {
@@ -226,7 +226,7 @@ async function getFilesFromContainer(containerId, dirpath) {
             tarStream.pipe(extract);
 
             extract.on('finish', () => {
-                resolve(scripts);
+                resolve(files);
             });
 
             extract.on('error', (err) => {
@@ -237,7 +237,38 @@ async function getFilesFromContainer(containerId, dirpath) {
 }
 
 
+async function getFileNamesFromContainer(containerId, dirpath) {
+    const container = docker.getContainer(containerId);
+    const extract = tar.extract();
+    const fileNames = [];
+
+    extract.on('entry', (header, fileStream, next) => {
+        if (header.type === 'file') {
+            fileNames.push(header.name);
+        }
+        // Skip the file content
+        fileStream.resume();
+        next();
+    });
+
+    return new Promise((resolve, reject) => {
+        container.getArchive({ path: dirpath }, (err, tarStream) => {
+            if (err) {
+                return reject(err);
+            }
+
+            tarStream.pipe(extract);
+
+            extract.on('finish', () => {
+                resolve(fileNames);
+            });
+
+            extract.on('error', (err) => {
+                reject(err);
+            });
+        });
+    });
+}
 
 
-
-module.exports = { saveFileToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive};
+module.exports = { saveFileToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive,getFileNamesFromContainer};

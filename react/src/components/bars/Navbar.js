@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
 import { Header, ThreeStateButton } from './Navbar.style.js'
 import { Modal, Button } from 'react-bootstrap';
+import TerminalModal from "../../pages/dashboard/TerminalModal.js";
 
 import { CDBBtn } from "cdbreact";
 const Navbar = ({ pageTitle }) => {
@@ -13,6 +14,7 @@ const Navbar = ({ pageTitle }) => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [betaModal, setBetaModal] = useState(false);
   const { sidebarState, setSidebarContext } = useSidebar();
+  const [terminalModal, setTerminalModal] = useState(false)
 
   const togglePopup = () => {
     setPopupVisible(!popupVisible);
@@ -38,29 +40,33 @@ const Navbar = ({ pageTitle }) => {
   return (
     <Header>
       <ThreeStateButton>
-      <div className="tri-state-toggle">
-        <button
-          className={`tri-state-toggle-button ${sidebarState === 'nosidebar' ? 'active' : ''}`}
-          onClick={() => handleClick('nosidebar')}
-        >
-          <i className="fa fa-times"></i>
-        </button>
+        <div className="tri-state-toggle">
+          <button
+            className={`tri-state-toggle-button ${sidebarState === 'nosidebar' ? 'active' : ''}`}
+            onClick={() => handleClick('nosidebar')}
+          >
+            <i className="fa fa-times"></i>
+          </button>
 
-        <button
-          className={`tri-state-toggle-button ${sidebarState === 'fullsidebar' ? 'active' : ''}`}
-          onClick={() => handleClick('fullsidebar')}
-        >
-          <i className="fa fa-align-left"></i>
-        </button>
+          <button
+            className={`tri-state-toggle-button ${sidebarState === 'fullsidebar' ? 'active' : ''}`}
+            onClick={() => handleClick('fullsidebar')}
+          >
+            <i className="fa fa-align-left"></i>
+          </button>
 
-        <button 
-          className={`tri-state-toggle-button ${sidebarState === 'halfsidebar' ? 'active' : ''}`}
-          onClick={() => handleClick('halfsidebar')}
-        >
-          <i className="fa fa-bars"></i>
-        </button>
-      </div>
-    </ThreeStateButton>
+          <button
+            className={`tri-state-toggle-button ${sidebarState === 'halfsidebar' ? 'active' : ''}`}
+            onClick={() => handleClick('halfsidebar')}
+          >
+            <i className="fa fa-bars"></i>
+          </button>
+        </div>
+      </ThreeStateButton>
+
+      <CDBBtn onClick={() => { setTerminalModal(true) }}>
+      <i className="fas fa-terminal"></i>
+      </CDBBtn>
 
 
       <h1 style={{ fontSize: '1rem' }}>{pageTitle}</h1>
@@ -104,7 +110,7 @@ const Navbar = ({ pageTitle }) => {
                     </CDBBtn>
 
                     <CDBBtn size="small" color="primary" style={{ margin: '10px 0', padding: '8px 16px' }}>
-                      <Link className="popup-item"  style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                      <Link className="popup-item" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                         <i className="fas fa-comment-alt" style={{ marginRight: '8px' }}></i> Notificaton
                       </Link>
                     </CDBBtn>
@@ -141,7 +147,10 @@ const Navbar = ({ pageTitle }) => {
           )}
         </div>
       </div>
+      <TerminalModal show={terminalModal}
+        handleClose={() => setTerminalModal(false)} />
     </Header>
+
   );
 };
 

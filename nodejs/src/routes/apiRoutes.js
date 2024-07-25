@@ -11,7 +11,7 @@ const { verifyToken } = require('../middlewares/verifyToken')
 const { loginWithContainer } = require('../controllers/user/loginWithContainer');
 const { registerWithContainer } = require('../controllers/user/registerWithContainer');
 const {githubAuth} = require('../controllers/externalAuth/githubAuth')
-const {githubRepo} = require('../controllers/externalAuth/githubRepo')
+const {githubRepo} = require('../controllers/projects/githubRepos')
 const {googleAuth} = require('../controllers/externalAuth/googleAuth')
 
 const {getWorkspaceInfo} = require('../controllers/containers/getContainerInfo')
@@ -48,9 +48,10 @@ router.post('/login', loginWithContainer);
 router.post('/register', registerWithContainer);
 router.get('/validate-token', verifyToken, (req, res) => { return res.status(200).json({ message: 'Token is valid', userData: req.data }); });
 
-router.post('/github-auth', githubAuth);
-router.post('/github-repo', githubRepo);
 router.post('/google-auth', googleAuth);
+router.post('/github-auth', githubAuth);
+router.post('/github-repo',verifyToken, githubRepo);
+
 
 
 // scripts related

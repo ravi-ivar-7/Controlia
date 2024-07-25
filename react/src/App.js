@@ -10,9 +10,6 @@ import Dashboard from './pages/dashboard/Dashboard';
 import LoginWarningModal from './components/userModals/LoginWarningModal';
 import LoginModal from './components/userModals/LoginModal';
 import RegisterModal from './components/userModals/RegisterModal';
-import GoogleAuth from './pages/auth/GoogleAuth';
-import GitHubAuth from './pages/auth/GithubAuth';
-import GitHubRedirect from './pages/auth/GithubRedirect';
 
 import ScheduleScripts from './pages/scripts/scheduleScripts';
 import Analytics from './pages/analytics/Analytics';
@@ -25,6 +22,8 @@ import Notebook from './pages/notebooks/Notebook';
 
 import GrapesEditor from './pages/graphjs/editor';
 import DragDropContainer from './pages/frontend/DragDropContainer';
+import Projects from './pages/projects/Projects';
+import GithubRepos from './pages/projects/GithubRepos';
 
 
 function App() {
@@ -55,9 +54,8 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
-                <Route path="/google" element={<GoogleAuth/>} />
-                <Route path="/github" element={<GitHubAuth/>} />
-                <Route path="/github-redirect" element={<GitHubRedirect/>} />
+         
+                <Route path="/github-redirect" element={<GithubRepos/>} />
                 <Route path="/logout" element={<Home />} />
 
                 <Route path="/profile" element={ user? <Profile /> :<LoginWarningModal isOpen={true} redirectPath="profile" />}/>
@@ -72,7 +70,7 @@ function App() {
                 <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
                 <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} />
 
-                <Route path="/projects" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="projects" />}/>
+                <Route path="/projects" element={ user? <Projects /> :<LoginWarningModal isOpen={true} redirectPath="projects" />}/>
                 <Route path="/deploy-projects" element={ user? <Notebooks /> :<LoginWarningModal isOpen={true} redirectPath="deploy-projects" />}/>
 
                 <Route path="/dashboard" element={ user? <Dashboard /> :<LoginWarningModal isOpen={true} redirectPath="/dashboard" />}/>

@@ -12,6 +12,7 @@ const {containerTerminal} = require('../controllers/containers/containerTerminal
 const {containerModule} = require('../controllers/containers/containerModules')
 const {containerCommand} = require('../controllers/containers/containerCommand');
 
+const {deployProject} = require('../controllers/projects/deployProject')
 
 
 module.exports = (io) => {
@@ -47,6 +48,10 @@ module.exports = (io) => {
     })
     socket.on('containerTerminal', (data) =>{
       containerTerminal(io, socket, data)
+    })
+
+    socket.on('deployProject', (data) =>{
+      deployProject(io, socket, data)
     })
 
 

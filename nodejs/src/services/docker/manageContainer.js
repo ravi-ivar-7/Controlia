@@ -29,4 +29,37 @@ const  containerDetails = async (containerId) => {
     }
 }
 
-module.exports = { containerDetails }
+const execInContainer = async (containerId, cmd) => {
+    const container = docker.getContainer(containerId);
+
+    try {
+        let exec = await container.exec({
+            Cmd: cmd,
+            AttachStdout: true,
+            AttachStderr: true,
+            Tty: true,
+        });
+
+        let response = await exec.start({ hijack: true });
+
+        let output = '';
+        response.on('data', (data) => {
+            output += data.toString();
+        });
+
+        response.on('error', (error) => {
+            console.error('Exec error:', error.toString());
+        });
+
+        await new Promise((resolve) => {
+            response.on('end', resolve);
+        });
+
+        return output;
+    } catch (error) {
+        console.error(`Failed to execute command '${cmd.join(' ')}' in container '${containerId}': ${error}`);
+        throw error;
+    }
+};
+
+module.exports = { containerDetails , execInContainer}

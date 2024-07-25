@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import useToast from '../../hooks/useToast';
 import axiosInstance from '../../services/axiosInstance';
 import { useUser } from '../../context/UserContext';
+
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
+const clientId = '1020802754930-t0s2jcpvq5qvltpahol8l5pjvfnga3d6.apps.googleusercontent.com';
 
 const RegisterModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
@@ -41,34 +45,51 @@ const RegisterModal = ({ isOpen, onClose }) => {
         }
         setLoading(true);
         try {
-          const response = await axiosInstance.post('/register', formData);
-          if (response.status === 200) {
-            const { token, user } = response.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            setUser(user);
-            showSuccessToast(response.data.info || 'Registration successful');
+            const response = await axiosInstance.post('/register', formData);
+            if (response.status === 200) {
+                const { token, user } = response.data;
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+                setUser(user);
+                showSuccessToast(response.data.info || 'Registration successful');
 
-            const params = new URLSearchParams(location.search);
-            const redirectPath = params.get('redirect') || '/';
-            navigate(redirectPath);
-          } else {
-            showErrorToast(response.data.warn);
-          }
+                const params = new URLSearchParams(location.search);
+                const redirectPath = params.get('redirect') || '/';
+                navigate(redirectPath);
+            } else {
+                showErrorToast(response.data.warn);
+            }
         } catch (err) {
-           showErrorToast(`Registration error: ${err}`);
+            showErrorToast(`Registration error: ${err}`);
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
-    };
-
-    const handleForgotPassword = () => {
-        console.log('Feature will be added shortly');
     };
 
     const handleBack = () => {
         navigate(-1);
     };
+
+    const onSuccess = async (response) => {
+        try {
+            const result = await axiosInstance.post('/google-auth', { response }, {
+                withCredentials: true
+            });
+            console.log(result.data.payload);
+            showSuccessToast(result.data.info)
+
+        } catch (error) {
+            console.error('Login failed:', error);
+            showErrorToast('Google Login failed.')
+        }
+    };
+
+    const onFailure = (response) => {
+        console.error('Login failed:', response);
+        showErrorToast('Failed goolge login response.')
+    };
+
+
 
     if (!isOpen) return null;
 
@@ -140,38 +161,45 @@ const RegisterModal = ({ isOpen, onClose }) => {
                         {formData.passwordMatchError && <p className="text-danger">{formData.passwordMatchError}</p>}
                     </Form.Group>
 
-                    <Modal.Footer>
-                        <div className="mr-auto">
-                            <Form.Group controlId="termsChecked" className="mb-0">
-                                <Form.Check
-                                    type="checkbox"
-                                    name="termsChecked"
-                                    label="I agree to the Terms and Services"
-                                    checked={formData.termsChecked}
-                                    onChange={handleChange}
-                                    required
-                                    style={{ marginLeft: '0px' }} // Adjust the checkbox alignment
-                                />
-                            </Form.Group>
-                        </div>
+                    
+    <Modal.Footer style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <Form.Group controlId="termsChecked" className="mb-3">
+        <Form.Check
+          type="checkbox"
+          name="termsChecked"
+          label="I agree to the Terms and Services"
+          checked={formData.termsChecked}
+          onChange={handleChange}
+          required
+          style={{ marginLeft: '0px' }}
+        />
+      </Form.Group>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <Link to="/login" style={{ textDecoration: 'none', color: '#007bff' }}>
+          Already have an account? Login here
+        </Link>
+        <Button variant="primary" type="submit" disabled={loading}>
+          {loading ? 'Registering...' : 'Register'}
+        </Button>
+      </div>
+    </Modal.Footer>
 
-                        <div className="ml-auto">
-                            <Button variant="primary" type="submit" disabled={loading}>
-                                {loading ? 'Registering...' : 'Register'}
-                            </Button>
-                        </div>
-
-                        <div className="ml-3">
-                            <Button variant="secondary" onClick={handleForgotPassword}>
-                                Forgot Password
-                            </Button>
-                            {' '}
-                            <Button variant="secondary" onClick={handleBack}>
-                                Back
-                            </Button>
-                        </div>
-                    </Modal.Footer>
                 </Form>
+
+                <GoogleOAuthProvider clientId={clientId}>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                        <GoogleLogin
+                            onSuccess={onSuccess}
+                            onFailure={onFailure}
+                            useOneTap
+                            className="google-login-button"
+                        />
+                    </div>
+                </GoogleOAuthProvider>
             </Modal.Body>
         </Modal>
     );

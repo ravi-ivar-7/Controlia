@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
 import { useUser } from '../../context/UserContext';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
-const LoginModal = ({ isOpen: initialIsOpen,onClose }) => {
+const clientId = '1020802754930-t0s2jcpvq5qvltpahol8l5pjvfnga3d6.apps.googleusercontent.com';
+
+const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
   const [isOpen, setIsOpen] = useState(initialIsOpen);
   const [credentials, setCredentials] = useState({ userId: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -55,6 +58,26 @@ const LoginModal = ({ isOpen: initialIsOpen,onClose }) => {
     navigate(-1);
   };
 
+  const onSuccess = async (response) => {
+    try {
+      const result = await axiosInstance.post('/google-auth', { response }, {
+        withCredentials: true
+      });
+      console.log(result.data.payload);
+      showSuccessToast(result.data.info)
+
+    } catch (error) {
+      console.error('Login failed:', error);
+      showErrorToast('Google Login failed.')
+    }
+  };
+
+  const onFailure = (response) => {
+    console.error('Login failed:', response);
+    showErrorToast('Failed goolge login response.')
+  };
+
+
   if (!isOpen) return null;
 
   return (
@@ -95,14 +118,42 @@ const LoginModal = ({ isOpen: initialIsOpen,onClose }) => {
               </button>
             </div>
           </div>
-          <Modal.Footer>
+
+          <Modal.Footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <Link to="/register" style={{ marginBottom: '5px', textDecoration: 'none', color: '#007bff' }}>
+                New? Register here
+              </Link>
+              <Link to="/password" style={{ textDecoration: 'none', color: '#007bff' }}>
+                Forget Password?
+              </Link>
+            </div>
             <Button variant="primary" type="submit" disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
             </Button>
-            <Button variant="secondary" onClick={handleBack}>Back</Button>
           </Modal.Footer>
         </form>
+
+        <GoogleOAuthProvider clientId={clientId}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <GoogleLogin
+              onSuccess={onSuccess}
+              onFailure={onFailure}
+              useOneTap
+              className="google-login-button"
+            />
+          </div>
+        </GoogleOAuthProvider>
+
+
+
+
       </Modal.Body>
+
     </Modal>
   );
 };

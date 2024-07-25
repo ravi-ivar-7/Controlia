@@ -40,7 +40,7 @@ const createArchive = async (data) => {
 
 
 
-const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) => {
+const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) => { // using for scripts
     const container = docker.getContainer(containerId);
 
     try {
@@ -90,6 +90,74 @@ const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) 
         throw error;
     }
 }
+
+const saveFileStreamToContainer = async (containerId, fileDir, fileName, fileContentStream) => { // for github zipped repos, unzip and remove
+    const container = docker.getContainer(containerId);
+
+    try {
+        // Create directory inside the container
+        let exec = await container.exec({
+            Cmd: ['mkdir', '-p', fileDir],
+            AttachStdout: true,
+            AttachStderr: true,
+            Tty: true,
+        });
+
+        let response = await exec.start({ hijack: true });
+
+        response.on('data', (data) => {
+            console.log(data.toString());
+        });
+
+        response.on('error', (error) => {
+            console.error(error.toString());
+        });
+
+        await new Promise((resolve) => {
+            response.on('end', resolve);
+        });
+
+        // Buffer the response stream
+        const chunks = [];
+        fileContentStream.on('data', (chunk) => chunks.push(chunk));
+        await new Promise((resolve, reject) => {
+            fileContentStream.on('end', resolve);
+            fileContentStream.on('error', reject);
+        });
+        const buffer = Buffer.concat(chunks);
+
+        // Create a tar stream for the file to be copied
+        const pack = tar.pack();
+
+        // Add the file to the tar stream
+        pack.entry({ name: fileName }, buffer, (err) => {
+            if (err) {
+                throw err;
+            }
+            pack.finalize();
+        });
+
+        // Create a stream that Dockerode can use
+        const tarStream = new stream.PassThrough();
+        pack.pipe(tarStream);
+
+        // Upload the tar archive to the container
+        await container.putArchive(tarStream, { path: fileDir });
+
+        console.log(`${fileName} saved to container`);
+
+
+
+        return  json({info: `${fileName} saved.`});
+
+    } catch (error) {
+        console.error(`Failed to save file '${fileName}' to container '${containerId}': ${error}`);
+        throw error;
+    }
+};
+
+
+
 
 async function deleteFileFromContainer(containerId, filePath) {
     const container = docker.getContainer(containerId);
@@ -271,4 +339,4 @@ async function getFileNamesFromContainer(containerId, dirpath) {
 }
 
 
-module.exports = { saveFileToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive,getFileNamesFromContainer};
+module.exports = { saveFileToContainer,saveFileStreamToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive,getFileNamesFromContainer};

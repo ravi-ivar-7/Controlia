@@ -11,16 +11,22 @@ RUN apt-get update \
     ttyd \
     wget \
     nano \
+    pipx \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 
 # Install Jupyter, notebook, and nbconvert system-wide
-RUN pip3 install --break-system-packages jupyter notebook nbconvert
+RUN pip3 install --break-system-packages jupyter notebook nbconvert \
+    && rm -rf /root/.cache/pip
 
-# Clean up pip cache to reduce image size
-RUN rm -rf /root/.cache/pip
+# Expose the ports
+EXPOSE  80 443 3000 3001 3002 8881
 
 
 #  docker build -t controlia:latest -f Dockerfile.controlia .
+
+# dccdc626bb02695a6451f76a5c8b69225250767a   Iv23ctSvHPR6bnN27qhA
+
+# google key=AIzaSyBW150jN6ELdtZQrJ_7Wui3_Jjnx1-FdVs

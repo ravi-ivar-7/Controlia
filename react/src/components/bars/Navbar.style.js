@@ -19,7 +19,7 @@ export const  Header = styled.header`
   .icon-container {
     display: flex;
     align-items: center;
-    gap: 1rem; /* Adds spacing between icons */
+    gap: 1rem;
   }
 
   img {
@@ -43,9 +43,9 @@ export const ThreeStateButton = styled.div`
   }
   
   .tri-state-toggle-button {
-    padding: 6px 12px; /* Smaller padding for smaller buttons */
+    // padding: 6px 12px;
     border: 1px solid #ccc;
-    border-radius: 4px; /* Slightly smaller border radius */
+    border-radius: 4px;
     background: #f0f0f0;
     cursor: pointer;
     font-size: 14px; /* Smaller font size */

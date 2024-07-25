@@ -21,12 +21,10 @@ const LoginWarningModal = ({ isOpen, onClose, redirectPath }) => {
         <Button variant="primary" onClick={() => navigate(`/login?redirect=${redirectPath}`)}>
           Login
         </Button>
-        <Button variant="primary" onClick={() => navigate('/dashboard')}>
-          Dashboard
+        <Button variant="primary" onClick={() => navigate('/home')}>
+          Home
         </Button>
-        <Button variant="secondary" onClick={() => navigate('/execute-script-test-mode')}>
-          Test Mode
-        </Button>
+        
       </Modal.Footer>
     </Modal>
   );

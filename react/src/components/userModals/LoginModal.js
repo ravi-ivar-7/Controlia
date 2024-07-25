@@ -6,7 +6,8 @@ import axiosInstance from '../../services/axiosInstance';
 import useToast from '../../hooks/useToast';
 import { useUser } from '../../context/UserContext';
 
-const LoginModal = ({ isOpen, onClose }) => {
+const LoginModal = ({ isOpen: initialIsOpen,onClose }) => {
+  const [isOpen, setIsOpen] = useState(initialIsOpen);
   const [credentials, setCredentials] = useState({ userId: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,14 +31,14 @@ const LoginModal = ({ isOpen, onClose }) => {
         const { token, user } = response.data;
         localStorage.setItem('token', token);
         setUser(user);
-        showSuccessToast('Login successful');
+        showSuccessToast(response.data.info || 'Login successful');
 
-        // Extract redirect path from URL query parameters
         const params = new URLSearchParams(location.search);
         const redirectPath = params.get('redirect') || '/';
         navigate(redirectPath);
+        setIsOpen(false);
       } else {
-        showErrorToast(response.data.info);
+        showErrorToast(response.data.warn);
       }
     } catch (err) {
       showErrorToast(`Login error: ${err}`);
@@ -58,7 +59,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 
   return (
     <Modal show={isOpen} onHide={onClose}>
-      <Modal.Header closeButton>
+      <Modal.Header closeButton onClick={handleBack}>
         <Modal.Title>Login</Modal.Title>
       </Modal.Header>
       <Modal.Body>

@@ -16,11 +16,7 @@ import './notebooks.css'
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-        .then(() => alert('Token copied to clipboard!'))
-        .catch((err) => console.error('Failed to copy token: ', err));
-};
+
 
 
 const Notebooks = () => {
@@ -39,6 +35,12 @@ const Notebooks = () => {
     const { showErrorToast, showSuccessToast } = useToast();
 
     const navigate = useNavigate();
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text)
+            .then(() => showSuccessToast('Token copied to clipboard.'))
+            .catch((err) => showErrorToast(`Failed to copy token: ${err}`));
+    };
 
     const fetchData = useCallback(async (token) => {
         setLoading(true);
@@ -117,6 +119,7 @@ const Notebooks = () => {
 
             socket.on('error', (data) => {
                 const { error } = data;
+                showErrorToast(error)
                 setSocketOutput((prevMessages) => [...prevMessages, error]);
             });
 

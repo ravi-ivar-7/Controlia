@@ -64,7 +64,7 @@ const jupyterServer = async (io, socket, data) => {
         io.to(socket.decodedToken.userId).emit('data', { output: processKillResponse });
 
         let exec = await container.exec({
-            Cmd: ['jupyter', 'notebook', '--no-browser', '--ip=0.0.0.0', '--port=8881', '--notebook-dir=' + notebookDirectory, '--allow-root'],
+            Cmd: ['jupyter', 'notebook', '--no-browser', '--ip=0.0.0.0', `--port=8888`, '--notebook-dir=' + notebookDirectory, '--allow-root'],
             AttachStdout: true,
             AttachStderr: true,
             Tty: true,
@@ -79,8 +79,8 @@ const jupyterServer = async (io, socket, data) => {
             const output = data.toString().replace(/[^\x20-\x7E]/g, '').trim();
             io.to(socket.decodedToken.userId).emit('data', { output });
 
-            const tokenMatch = output.match(/token=([a-f0-9]{32})/);
-            const urlRegex = /http:\/\/[^\s]+token=[a-f0-9]{32}/g;
+            const tokenMatch = output.match(/token=([a-f0-9]{32,})/);
+            const urlRegex =/http:\/\/127.0.0.1:\d+[^\s]*token=[a-f0-9]{32,}/g; // /http:\/\/[^\s]+token=[a-f0-9]{32,}/g;
             const urlMatch = output.match(urlRegex);
 
             if (tokenMatch) {
@@ -88,7 +88,8 @@ const jupyterServer = async (io, socket, data) => {
                 io.to(socket.decodedToken.userId).emit('connectionInfo', { token });
             }
             if (urlMatch) {
-                url = urlMatch[0];
+                // url = urlMatch[0];
+                url = `http://${process.env.HTTP_HOST}:${user.hostPort8888}/tree?token=${token}`
                 io.to(socket.decodedToken.userId).emit('connectionInfo', { url });
             }
         });
@@ -114,7 +115,7 @@ const jupyterServer = async (io, socket, data) => {
         await client.close();
         let processKillResponse = await killJupyterProcess(container, ['sh', '-c', 'ps aux | grep "jupyter"']);
         io.to(socket.decodedToken.userId).emit('data', { output: processKillResponse });
-        io.to(socket.decodedToken.userId).emit('success', { message: 'Click "Start Notebook Server" again' });
+        io.to(socket.decodedToken.userId).emit('error', { error: 'Click "Start Notebook Server" again' });
     }
 };
 

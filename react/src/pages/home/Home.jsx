@@ -15,96 +15,6 @@ const Home = () => {
   const [showPrivacyPolicies, setShowPrivacyPolicies] = useState(false);
   const [showTermsConditions, setShowTermsConditions] = useState(false);
 
-
-  const content = [
-    {
-      title: 'Live Execute',
-      subtitle: 'Instant Code Feedback',
-      text: 'Write code and see live results as the server executes your code. This feature supports various languages and provides instant feedback, enabling rapid prototyping and debugging.'
-    },
-    {
-      title: 'Schedule Scripts',
-      subtitle: 'Automate Task Execution',
-      text: 'All your execution scripts can be scheduled. No need to wait for long. Schedule complex tasks to run at specific times, allowing for automation and improved efficiency in your workflow.'
-    },
-    {
-      title: 'Deploy Scripts',
-      subtitle: 'Seamless Integration',
-      text: 'Instant deploy of all your execute scripts. Share with friends with full control over your script. This feature ensures seamless integration and deployment across different environments.'
-    },
-    {
-      title: 'Analytics',
-      subtitle: 'Performance Insights',
-      text: 'See how your deployed code is making space between people. See all your analytics on a single page. Get detailed insights into performance, usage patterns, and more to optimize your scripts.'
-    },
-    {
-      title: 'ML/AI',
-      subtitle: 'Interactive Notebooks',
-      text: 'With interactive notebooks, code effortlessly, then schedule or deploy your models instantly and share with full code protection and privacy. Leverage powerful ML/AI tools to enhance your projects.'
-    },
-    {
-      title: 'Supported Languages',
-      subtitle: 'Diverse Programming Options',
-      text: 'Currently, we support Javascript, Python, Bash, and C++. Expand your capabilities with support for multiple programming languages, allowing for diverse project requirements.'
-    },
-    {
-      title: 'User Management',
-      subtitle: 'Secure Access Control',
-      text: 'Manage user accounts and permissions with ease. Ensure secure access control and user authentication. Implement robust user management to protect your data and manage access effectively.'
-    },
-    {
-      title: 'Customizable Dashboards',
-      subtitle: 'Tailor Your Workspace',
-      text: 'Create and customize your own dashboards to monitor and manage your scripts and deployments effectively. Tailor your dashboard to fit your unique workflow and preferences.'
-    },
-    {
-      title: 'Real-Time Collaboration',
-      subtitle: 'Enhance Team Productivity',
-      text: 'Collaborate with team members in real-time. Share scripts and results instantly. Enhance team productivity with real-time collaboration tools and features.'
-    },
-    {
-      title: 'Extensive Documentation',
-      subtitle: 'Comprehensive Guides',
-      text: 'Access comprehensive documentation and tutorials to help you get started and make the most of all features. Benefit from detailed guides and resources to support your development journey.'
-    },
-    {
-      title: 'Integrated Version Control',
-      subtitle: 'Manage Code Changes',
-      text: 'Track changes to your scripts and deployments with integrated version control. Roll back to previous versions as needed. Maintain control over your codebase with powerful versioning tools.'
-    },
-    {
-      title: 'API Access',
-      subtitle: 'Automate Workflows',
-      text: 'Programmatically interact with your scripts and deployments through a robust API. Automate workflows and integrate with other tools. Extend the functionality of your projects with API access.'
-    },
-    {
-      title: 'Cloud Integration',
-      subtitle: 'Seamless Scaling',
-      text: 'Easily integrate with cloud services for storage, compute, and more. Leverage the power of cloud computing in your scripts. Scale your applications seamlessly with cloud integration.'
-    },
-    {
-      title: 'Security and Compliance',
-      subtitle: 'Protect Your Data',
-      text: 'Ensure your scripts and deployments meet industry standards for security and compliance. Protect your data with advanced encryption. Stay compliant with regulations and safeguard your information.'
-    },
-    {
-      title: 'Workspace Access',
-      subtitle: 'Full Control and Flexibility',
-      text: 'Site supports workspace access, including access to sudo and filesystem. Enjoy full control and flexibility over your environment, enabling a more customized and secure workspace.'
-    },
-    {
-      title: 'Preinstalled Packages/Libraries',
-      subtitle: 'Ready to Use',
-      text: 'Most used packages and libraries are already preinstalled, allowing you to code, execute, schedule, and deploy scripts without additional setup. Start working immediately with essential tools already in place.'
-    },
-    {
-      title: 'Custom Installation',
-      subtitle: 'Tailor Your Environment',
-      text: 'Easily perform custom installations as needed. Tailor your environment to meet specific needs and preferences by adding or modifying packages and libraries beyond the preinstalled ones.'
-    }
-  ];
-
-
   return (
 
     <div className="home d-flex">
@@ -116,7 +26,7 @@ const Home = () => {
         <div style={{ height: "100%" }}>
           <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
-            <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/bgblack.jpg")', padding: '10px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
+            <div className="d-flex card-section" style={{backgroundImage: 'url("img/pages/simplebg.webp")', padding: '10px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
               <div className="cards-container">
                 <div className="d-flex flex-column h-100 justify-content-center align-items-center">
                   <div className="mx-4 mt-3 d-flex justify-content-center align-items-center" style={{ marginBottom: '20px' }}>
@@ -129,7 +39,7 @@ const Home = () => {
                       Control It All!
                     </h4>
                     <p style={{ fontSize: '1rem', lineHeight: '1.5' }}>
-                      Automate, schedule, deploy, track.
+                      Build, Schedule, Automate, Deploy
                     </p>
 
                     {user ? (
@@ -189,7 +99,7 @@ const Home = () => {
             </div>
 
 
-            <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/bgblack.jpg")', padding: '20px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
+            <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/codingbg.jpg")', padding: '20px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
               <div className="cards-container">
                 <div className="d-flex flex-column h-100 justify-content-center align-items-center">
                   <div className="mx-4 mt-3 d-flex justify-content-center align-items-center" style={{ marginBottom: '20px' }}>
@@ -199,7 +109,7 @@ const Home = () => {
                   </div>
                   <div className="mt-3 text-center" style={{ margin: '10px' }}>
                     <p style={{ fontSize: '1rem', lineHeight: '1.5', marginBottom: '20px' }}>
-                      Automate, schedule, deploy, track. <br /> &copy; {new Date().getFullYear()} Controlia. All rights reserved.
+                      &copy; {new Date().getFullYear()} Controlia. All rights reserved.
                     </p>
 
                     <div className="footer-links" style={{ marginBottom: '20px' }}>
@@ -212,24 +122,24 @@ const Home = () => {
                       <p style={{ margin: '0', fontSize: '1rem' }}>
                         <i className="fas fa-envelope" style={{ marginRight: '8px' }}></i>controlia.services@gmail.com
                       </p>
-                      <p style={{ margin: '0', fontSize: '1rem' }}>
+                      {/* <p style={{ margin: '0', fontSize: '1rem' }}>
                         <i className="fas fa-phone" style={{ marginRight: '8px' }}></i> ...
-                      </p>
+                      </p> */}
                     </div>
 
                     <div className="footer-social" style={{ marginBottom: '20px' }}>
-                      <Link to="/facebook" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
+                      {/* <Link to="/facebook" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
                         <i className="fab fa-facebook-f"></i>
-                      </Link>
+                      </Link> */}
                       <Link to="/twitter" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
                         <i className="fab fa-twitter"></i>
                       </Link>
                       <Link to="/linkedin" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
                         <i className="fab fa-linkedin-in"></i>
                       </Link>
-                      <Link to="/instagram" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
+                      {/* <Link to="/instagram" style={{ color: 'white', textDecoration: 'none', margin: '0 10px' }}>
                         <i className="fab fa-instagram"></i>
-                      </Link>
+                      </Link> */}
                     </div>
                   </div>
                 </div>
@@ -242,7 +152,7 @@ const Home = () => {
                 <Modal.Header closeButton className="dark-modal-header" style={{ backgroundColor: '#333', color: '#fff', }}>
                   <Modal.Title id="beta-info-modal">About Us</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{  padding: '20px', backgroundColor: '#222', color: '#fff', }}
+                <Modal.Body style={{ padding: '20px', backgroundColor: '#222', color: '#fff', }}
                   dangerouslySetInnerHTML={{ __html: aboutUsInfo }}
                 />
                 <Modal.Footer className="dark-modal-footer" style={{ backgroundColor: '#333', color: '#fff', }}>
@@ -275,7 +185,7 @@ const Home = () => {
                 <Modal.Header closeButton className="dark-modal-header" style={{ backgroundColor: '#333', color: '#fff', }}>
                   <Modal.Title id="beta-info-modal">Privacy Policies</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{  padding: '20px', backgroundColor: '#222', color: '#fff', }}
+                <Modal.Body style={{ padding: '20px', backgroundColor: '#222', color: '#fff', }}
                   dangerouslySetInnerHTML={{ __html: privacyPolicies }}
                 />
                 <Modal.Footer className="dark-modal-footer" style={{ backgroundColor: '#333', color: '#fff', }}>
@@ -296,6 +206,56 @@ const Home = () => {
 }
 
 export default Home;
+
+const content = [
+  {
+    title: 'Inbuilt Code Execution Environment',
+    subtitle: 'Instant Coding and Testing',
+    text: 'Develop and test your scripts in real-time without any setup hassle.'
+  },
+  {
+    title: 'Preinstalled Packages/Libraries',
+    subtitle: 'Ready to Use',
+    text: 'Most used packages and libraries are already preinstalled. Start working immediately with essential tools already in place.'
+  },
+  {
+    title: 'Custom Installation',
+    subtitle: 'Tailor Your Environment',
+    text: 'Easily perform custom installations to meet specific needs and preferences. Add or modify packages and libraries beyond the preinstalled ones.'
+  },
+  {
+    title: 'Schedule',
+    subtitle: 'Automate Task Execution',
+    text: 'All scripts and notebooks can be scheduled to run at specific times or in background. No need to wait for long processes.'
+  },
+  {
+    title: 'Deploy',
+    subtitle: 'Seamless Integration',
+    text: 'Instantly deploy all your projects. With our no-code frontend development, easily integrate your projects and release them to the public.'
+  },
+  {
+    title: 'Workspace Access',
+    subtitle: 'Full Control and Flexibility',
+    text: 'Get full access to the workspace, including sudo and filesystem access. Enjoy complete control and flexibility over your environment.'
+  },
+  {
+    title: 'ML/AI',
+    subtitle: 'Interactive Notebooks',
+    text: 'With interactive notebooks, code effortlessly, schedule , run in background or share instantly.'
+  },
+  {
+    title: 'Analytics',
+    subtitle: 'Performance Insights',
+    text: 'See how your deployed projects and shared notebooks/scripts are making an impact. Get detailed insights into performance, usage patterns, and more.'
+  },
+  {
+    title: 'Resources',
+    subtitle: 'Comprehensive Guides',
+    text: 'Access comprehensive documentation and tutorials to help you get started and make the most of all features. Benefit from detailed guides and resources to support your development journey.'
+  }
+];
+
+
 const aboutUsInfo = `
 <h3>Who We Are</h3>
 <p>Controlia is dedicated to empowering developers and teams with a robust platform for automating, scheduling, deploying, and tracking scripts and code. Our mission is to streamline your workflow and enhance productivity through innovative features and tools.</p>
@@ -305,18 +265,12 @@ const aboutUsInfo = `
 <ul>
   <li><strong>Live Execute:</strong> Write code and see live results instantly.</li>
   <li><strong>Schedule Scripts:</strong> Automate tasks by scheduling scripts to run at specific times.</li>
-  <li><strong>Deploy Scripts:</strong> Seamlessly deploy scripts and share them with full control.</li>
-  <li><strong>Analytics:</strong> Gain insights into the performance and usage of your deployed code.</li>
+  <li><strong>Deploy Projects:</strong> Seamlessly deploy projects and share them to public.</li>
+  <li><strong>Analytics:</strong> Gain insights into the performance and usage of your deployed/shared code.</li>
   <li><strong>ML/AI:</strong> Use interactive notebooks for effortless coding, scheduling, and deploying of ML/AI models.</li>
   <li><strong>Supported Languages:</strong> Work with Javascript, Python, Bash, and C++.</li>
-  <li><strong>User Management:</strong> Securely manage user accounts and permissions.</li>
   <li><strong>Customizable Dashboards:</strong> Tailor your workspace with customizable dashboards.</li>
-  <li><strong>Real-Time Collaboration:</strong> Enhance team productivity with real-time collaboration.</li>
   <li><strong>Extensive Documentation:</strong> Access comprehensive guides and tutorials.</li>
-  <li><strong>Integrated Version Control:</strong> Track and manage code changes effectively.</li>
-  <li><strong>API Access:</strong> Automate workflows and integrate with other tools.</li>
-  <li><strong>Cloud Integration:</strong> Seamlessly scale your applications with cloud services.</li>
-  <li><strong>Security and Compliance:</strong> Protect your data with advanced security measures.</li>
   <li><strong>Workspace Access:</strong> Enjoy full control and flexibility over your environment.</li>
   <li><strong>Preinstalled Packages/Libraries:</strong> Start working immediately with essential tools already in place.</li>
   <li><strong>Custom Installation:</strong> Tailor your environment to meet specific needs.</li>
@@ -332,13 +286,13 @@ const termsConditions = `
 <p>Controlia grants you a limited, non-exclusive, non-transferable license to access and use our services for personal or internal business purposes. You agree not to misuse our services, and to use them in compliance with applicable laws and regulations.</p>
 
 <h3>3. User Accounts</h3>
-<p>You are responsible for maintaining the confidentiality of your account information and for all activities that occur under your account. Please notify us immediately of any unauthorized use of your account.</p>
+<p>You are responsible for maintaining the confidentiality of your account information and for all activities that occur under your account. Please notify us immediately of any unauthorized use. Misuse of the workspace, such as deleting unauthorized files or folders, may result in malfunctioning. You will be held accountable for such incidents.</p>
 
 <h3>4. Privacy</h3>
 <p>Our Privacy Policy outlines how we collect, use, and protect your personal information. By using our services, you consent to our data practices as described in the Privacy Policy.</p>
 
 <h3>5. Intellectual Property</h3>
-<p>All content, trademarks, and data on Controlia are the property of Controlia or its licensors. You may not use any of these materials without our prior written permission.</p>
+<p>All content, trademarks, and data on Controlia are the property of Controlia or its licensors/contriubters. You may not use any of these materials without our prior written permission.</p>
 
 <h3>6. Termination</h3>
 <p>We reserve the right to terminate or suspend your account at any time, without prior notice, for conduct that we believe violates these Terms of Service or is harmful to other users of Controlia.</p>

@@ -9,6 +9,37 @@ const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
 
 const logger = require('../../services/logs/winstonLogger');
 
+async function findAvailablePort(start, end) {
+    for (let port = start; port <= end; port++) {
+        const isAvailable = await checkPortAvailability(port);
+        if (isAvailable) {
+            return port;
+        }
+    }
+    throw new Error('No available ports found in the specified range');
+}
+
+function checkPortAvailability(port) {
+    return new Promise((resolve, reject) => {
+        const server = require('net').createServer();
+
+        server.once('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                resolve(false);
+            } else {
+                reject(err);
+            }
+        });
+
+        server.once('listening', () => {
+            server.close();
+            resolve(true);
+        });
+
+        server.listen(port);
+    });
+}
+
 const loginWithContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     console.log(process.env.MONGODB_URL)
@@ -39,38 +70,55 @@ const loginWithContainer = async (req, res) => {
             const USERNAME = userId;
             const UID = user.UID;
             const PASSWORD = password;
-            const GID = 1001;
+            const GID = user.GID || 1001;
 
-            // Check if the container exists and remove it
             if (containerId) {
                 try {
                     const oldContainer = docker.getContainer(containerId);
                     await oldContainer.stop().catch(err => {
                         if (err.statusCode !== 304) { // Ignore error if container is already stopped
-                            throw err;
+                            console.log(`Some other error occured apart from already stopped container: ${err}`)
+                            return res.status(209).json({ warn:`Error occured: ${err}` });
+
+
                         }
                     });
                     await oldContainer.remove();
                     console.log(`Old container ${containerId} removed successfully.`);
                 } catch (err) {
                     console.error(`Error removing old container ${containerId}:`, err.message);
+                    return res.status(209).json({ warn:`Error occured: ${err}` });
                 }
             }
 
-            // Command to create user and setup environment inside container
+            const hostPortMappings = await Promise.all([
+                findAvailablePort(9001, 10000), // for port 80
+                findAvailablePort(10001, 11000), // for port 443
+                findAvailablePort(13001, 14000),  // for port 3000
+                findAvailablePort(11001, 12000), // for port 3001
+                findAvailablePort(12001, 13000), // for port 3002
+                findAvailablePort(8000, 9000), // for port 8888
+                
+            ]);
+
+            const [ hostPort80, hostPort443, hostPort3000,hostPort3001, hostPort3002,hostPort8888 ] = hostPortMappings;
+
             const containerCmd = `
             groupadd -g ${GID} ${USERNAME} \
             && useradd -u ${UID} -g ${GID} -m ${USERNAME} \
             && echo "${USERNAME}:${PASSWORD}" | chpasswd \
             && usermod -aG sudo ${USERNAME} \
             && mkdir -p /${USERNAME} \
+            && mkdir -p /${USERNAME}/temp \
+            && mkdir -p /${USERNAME}/scripts \
+            && mkdir -p /${USERNAME}/notebooks \
+            && mkdir -p /${USERNAME}/projects \
             && chown -R ${USERNAME}:${USERNAME} /${USERNAME} \
-            && su - ${USERNAME} -c "while :; do sleep 2073600; done"
-        `;
+            && su - ${USERNAME} -c "while :; do sleep 604800 ; done"
+            `;
 
-            // Create the new container
             const container = await docker.createContainer({
-                Image: `controlia:latest`,
+                Image: 'controlia:latest',
                 name: containerName,
                 Cmd: ['sh', '-c', containerCmd],
                 HostConfig: {
@@ -78,15 +126,22 @@ const loginWithContainer = async (req, res) => {
                     Memory: 100 * 1024 * 1024,
                     Binds: [`${volumeName}:/${USERNAME}`],
                     PortBindings: {
-                        "8881/tcp": [
-                            {
-                                "HostPort": "8881"
-                            }
-                        ]
+                        "80/tcp": [{ "HostPort": `${hostPort80}` }],
+                        "443/tcp": [{ "HostPort": `${hostPort443}` }],
+                        "3000/tcp": [{ "HostPort": `${hostPort3000}` }],
+                        "3001/tcp": [{ "HostPort": `${hostPort3001}` }],
+                        "3002/tcp": [{ "HostPort": `${hostPort3002}` }],
+                        "8888/tcp": [{ "HostPort": `${hostPort8888}` }],
                     }
                 },
                 ExposedPorts: {
-                    "8881/tcp": {}
+                    "80/tcp": {},
+                    "443/tcp": {},
+                    "3000/tcp": {},
+                    "3001/tcp": {},
+                    "3002/tcp": {},
+                    "8888/tcp": {},
+                    
                 },
                 Env: [
                     `USER_ID=${UID}`,
@@ -95,18 +150,23 @@ const loginWithContainer = async (req, res) => {
                     `USER_PASSWORD=${PASSWORD}`
                 ],
             });
-
+    
             if (!container) {
-                return res.status(209).json({ warn: "Failed to login due to container creation failure." });
+                return { status: 209, json: { warn: "Failed to login due to container creation failure." } };
             }
 
             await container.start();
-
             // Update the user record with the new container ID
             const updateFields = {
                 $set: {
                     containerId: container.id,
-                    date: new Date(),
+                    hostPort80,
+                    hostPort443,
+                    hostPort3000,
+                    hostPort3001,
+                    hostPort3002,
+                    hostPort8888,
+                    lastLogin: new Date(),
                 }
             };
 

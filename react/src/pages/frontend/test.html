@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Page</title>
+  <style>
+    .draggable {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid gray;
+      border-radius: 5px;
+      text-align: center;
+      user-select: none;
+    }
+    .droppable {
+      padding: 20px;
+      background-color: #f0f0f0;
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div class="droppable">
+    
+        <div class="draggable" draggable="true" data-id="1721837683002" style="background-color: lightblue; font-size: 16px; ">
+          
+            <button onclick="handleClick('')" style="background-color: lightblue; font-size: 16px; "></button>
+          
+        </div>
+      
+
+        <div class="draggable" draggable="true" data-id="1721837685256" style="background-color: lightblue; font-size: 16px; ">
+          
+            <button onclick="handleClick('')" style="background-color: lightblue; font-size: 16px; "></button>
+          
+        </div>
+      
+
+        <div class="draggable" draggable="true" data-id="1721837689096" style="background-color: lightblue; font-size: 16px; ">
+          
+            <input type="file" style="background-color: lightblue; font-size: 16px; " />
+          
+        </div>
+      
+
+        <div class="draggable" draggable="true" data-id="1721837697592" style="background-color: lightblue; font-size: 16px; ">
+          
+            <input type="file" accept="image/*" style="background-color: lightblue; font-size: 16px; " />
+          
+        </div>
+      
+
+        <div class="draggable" draggable="true" data-id="1721837702336" style="background-color: lightblue; font-size: 16px; ">
+          
+            <div id="1721837702336" style="background-color: lightblue; font-size: 16px; "></div>
+            <script>
+              fetch('')
+                .then(response => response.json())
+                .then(data => {
+                  const container = document.getElementById('1721837702336');
+                  // Display data in a table or chart format
+                  const table = document.createElement('table');
+                  const thead = document.createElement('thead');
+                  const tbody = document.createElement('tbody');
+                  
+                  // Generate table headers
+                  const headers = Object.keys(data[0] || {});
+                  const headerRow = document.createElement('tr');
+                  headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                  });
+                  thead.appendChild(headerRow);
+
+                  // Generate table rows
+                  data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    headers.forEach(header => {
+                      const td = document.createElement('td');
+                      td.textContent = row[header];
+                      tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                  });
+
+                  table.appendChild(thead);
+                  table.appendChild(tbody);
+                  container.appendChild(table);
+                });
+            </script>
+          
+        </div>
+      
+
+        <div class="draggable" draggable="true" data-id="1721837709500" style="background-color: lightblue; font-size: 16px; ">
+          
+            <button onclick="handleClick('')" style="background-color: lightblue; font-size: 16px; "></button>
+          
+        </div>
+      
+  </div>
+  <script>
+    function handleClick(apiUrl) {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          console.log('API Response:', data);
+          alert('API call successful! Check the console for data.');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('API call failed.');
+        });
+    }
+  </script>
+</body>
+</html>
+    

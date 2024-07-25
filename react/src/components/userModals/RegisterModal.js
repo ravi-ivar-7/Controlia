@@ -35,7 +35,6 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { userId, email, name, password } = formData;
         if (formData.password !== formData.repeatPassword) {
             setFormData({ ...formData, passwordMatchError: 'Passwords do not match' });
             return;
@@ -48,13 +47,13 @@ const RegisterModal = ({ isOpen, onClose }) => {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             setUser(user);
-            showSuccessToast('Registration successful');
+            showSuccessToast(response.data.info || 'Registration successful');
 
             const params = new URLSearchParams(location.search);
             const redirectPath = params.get('redirect') || '/';
             navigate(redirectPath);
           } else {
-            showErrorToast(response.data.info);
+            showErrorToast(response.data.warn);
           }
         } catch (err) {
            showErrorToast(`Registration error: ${err}`);
@@ -75,7 +74,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
     return (
         <Modal show={isOpen} onHide={onClose}>
-            <Modal.Header closeButton>
+            <Modal.Header closeButton onClick={handleBack}>
                 <Modal.Title>Register</Modal.Title>
             </Modal.Header>
             <Modal.Body>

@@ -212,13 +212,9 @@ const Sidebar = () => {
                 </a>
               </div>
             </CDBSidebarFooter>
-
-
           </CDBSidebar>
-
         </div>
       )}
-
     </div>
   );
 };

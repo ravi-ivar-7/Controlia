@@ -2,12 +2,18 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useUser } from './context/UserContext';
 import MatomoTracker from './services/matomo/matomoTracker';
 import Home from './pages/home/Home'
 import Dashboard from './pages/dashboard/Dashboard';
+
 import LoginWarningModal from './components/userModals/LoginWarningModal';
 import LoginModal from './components/userModals/LoginModal';
 import RegisterModal from './components/userModals/RegisterModal';
+import GoogleAuth from './pages/auth/GoogleAuth';
+import GitHubAuth from './pages/auth/GithubAuth';
+import GitHubRedirect from './pages/auth/GithubRedirect';
+
 import ScheduleScripts from './pages/scripts/scheduleScripts';
 import Analytics from './pages/analytics/Analytics';
 import  Profile  from './pages/profile/Profile';
@@ -17,12 +23,12 @@ import Scripts from './pages/scripts/Scripts';
 import Notebooks from './pages/notebooks/Notebooks';
 import Notebook from './pages/notebooks/Notebook';
 
-import { useUser } from './context/UserContext';
+import GrapesEditor from './pages/graphjs/editor';
+import DragDropContainer from './pages/frontend/DragDropContainer';
 
 
 function App() {
   const { user } = useUser();
-  console.log(user)
   return (
 
     <div className="App">
@@ -36,10 +42,22 @@ function App() {
 
             <div className="main">
               <Routes>
+
+              <Route path="/editor"element={<GrapesEditor/>}/>
+              <Route path="/dndcomp"element={<DragDropContainer/>}/>
+              <Route path="/editor"element={<GrapesEditor/>}/>
+              <Route path="/editor"element={<GrapesEditor/>}/>
+
+
+
+
                 <Route path="/"element={ user? <Dashboard /> :<Home/>}/>
                 <Route path="/home" element={<Home />} />
                 <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
+                <Route path="/google" element={<GoogleAuth/>} />
+                <Route path="/github" element={<GitHubAuth/>} />
+                <Route path="/github-redirect" element={<GitHubRedirect/>} />
                 <Route path="/logout" element={<Home />} />
 
                 <Route path="/profile" element={ user? <Profile /> :<LoginWarningModal isOpen={true} redirectPath="profile" />}/>

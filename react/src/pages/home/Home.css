@@ -25,6 +25,7 @@
   min-width: 3rem;
   height: 3rem;
   margin-right: 1rem;
+  
 }
 
 .home .card-section {
@@ -111,21 +112,24 @@
 
 .info-box .card-text {
   color: #f8f9fa;
-  animation: textSlide 3s ease-out;
+  animation: textSlide 5s ease-out;
 }
 
 @keyframes borderColorChange {
   0% {
     border-color: #007bff;
   }
-  33% {
+  25% {
     border-color: #28a745;
   }
-  66% {
+  50% {
     border-color: #ff69b4;
   }
-  100% {
+  75% {
     border-color: #6f42c1;
+  }
+  100% {
+    border-color: #007bff;
   }
 }
 

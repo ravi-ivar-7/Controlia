@@ -65,34 +65,17 @@ const Navbar = ({ pageTitle }) => {
       </ThreeStateButton>
 
       <CDBBtn onClick={() => { setTerminalModal(true) }}>
-      <i className="fas fa-terminal"></i>
+        <i className="fas fa-terminal"></i>
       </CDBBtn>
 
 
-      <h1 style={{ fontSize: '1rem' }}>{pageTitle}</h1>
+      <h1 style={{ fontSize: '1rem', marginTop: '10px' }}>{pageTitle}</h1>
+
+      <CDBBtn color="warning" onClick={() => setBetaModal(true)} >
+        <i className="fas fa-info"></i>
+      </CDBBtn>
 
       <div className="icon-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-
-        <div>
-          <Button size="sm" variant="warning" onClick={() => setBetaModal(true)} >
-            <i className="fas fa-info"></i>
-          </Button>
-
-          <Modal show={betaModal} onHide={() => setBetaModal(false)} size="lg" aria-labelledby="beta-info-modal" centered dialogClassName="dark-modal">
-            <Modal.Header closeButton className="dark-modal-header" style={{ backgroundColor: '#333', color: '#fff', }}>
-              <Modal.Title id="beta-info-modal">Beta Information</Modal.Title>
-            </Modal.Header>
-            <Modal.Body style={{ textAlign: 'center', padding: '20px', backgroundColor: '#222', color: '#fff', }}
-              dangerouslySetInnerHTML={{ __html: betaInfo }}
-            />
-            <Modal.Footer className="dark-modal-footer" style={{ backgroundColor: '#333', color: '#fff', }}>
-              <Button variant="primary" onClick={() => setBetaModal(false)} size="sm">
-                Got it!
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        </div>
-
         <div className="popup" onClick={togglePopup} style={{ cursor: 'pointer', marginLeft: '15px', }}>
           <i
             className="fas fa-user-circle"
@@ -147,8 +130,25 @@ const Navbar = ({ pageTitle }) => {
           )}
         </div>
       </div>
+
+      <Modal show={betaModal} onHide={() => setBetaModal(false)} size="lg" aria-labelledby="beta-info-modal" centered dialogClassName="dark-modal">
+        <Modal.Header closeButton className="dark-modal-header" style={{ backgroundColor: '#333', color: '#fff', }}>
+          <Modal.Title id="beta-info-modal">Beta Information</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ textAlign: 'center', padding: '20px', backgroundColor: '#222', color: '#fff', }}
+          dangerouslySetInnerHTML={{ __html: betaInfo }}
+        />
+        <Modal.Footer className="dark-modal-footer" style={{ backgroundColor: '#333', color: '#fff', }}>
+          <Button variant="primary" onClick={() => setBetaModal(false)} size="sm">
+            Got it!
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <TerminalModal show={terminalModal}
-        handleClose={() => setTerminalModal(false)} />
+        handleClose={() => setTerminalModal(false)}
+      />
+
     </Header>
 
   );

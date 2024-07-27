@@ -79,7 +79,7 @@ const Sidebar = () => {
                     <div style={{ paddingLeft: "20px" }}>
                       
                       <NavLink exact to="/scripts" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="plus-circle">Add Scripts</CDBSidebarMenuItem>
+                        <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
                       </NavLink>
 
                       <NavLink exact to="/schedule-scripts" activeClassName="activeClicked">
@@ -92,34 +92,9 @@ const Sidebar = () => {
                   )}
                 </div>
 
-                <div>
-                  <div
-                    onClick={handleNotebookSubMenuToggle}
-                    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
-                  >
-                    <CDBSidebarMenuItem icon="book">
-                      <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                        Notebooks
-                        <i className={`fa fa-chevron-${notebookSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
-                      </div>
-                    </CDBSidebarMenuItem>
-                  </div>
-                  {notebookSubMenuOpen && (
-                    <div style={{ paddingLeft: "20px" }}>
-                      
-                      <NavLink exact to="/notebooks" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="plus-circle">Add Notebooks</CDBSidebarMenuItem>
-                      </NavLink>
-
-                      <NavLink exact to="/schedule-notebooks" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="calendar-alt">Scheduled</CDBSidebarMenuItem>
-                      </NavLink>
-                      <NavLink exact to="/share-notebooks" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="share-alt">Shared</CDBSidebarMenuItem>
-                      </NavLink>
-                    </div>
-                  )}
-                </div>
+                <NavLink exact to="/notebooks" activeClassName="activeClicked">
+                  <CDBSidebarMenuItem icon="book">Notebooks</CDBSidebarMenuItem>
+                </NavLink>
 
                 <NavLink exact to="/projects" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="project-diagram">Projects</CDBSidebarMenuItem>

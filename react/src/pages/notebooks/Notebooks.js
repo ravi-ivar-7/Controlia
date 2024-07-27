@@ -107,12 +107,12 @@ const Notebooks = () => {
                 }
             });
 
-            socket.on('data', (data) => {
+            socket.on('jupyterOutput', (data) => {
                 const { output } = data;
                 setSocketOutput((prevMessages) => [...prevMessages, output]);
             });
 
-            socket.on('connectionInfo', (data) => {
+            socket.on('jupyterConnection', (data) => {
                 const { token, url } = data;
                 if (token) {
                     setJupyterToken(token);
@@ -122,10 +122,9 @@ const Notebooks = () => {
                 }
             });
 
-            socket.on('error', (data) => {
-                const { error } = data;
-                showErrorToast(error)
-                setSocketOutput((prevMessages) => [...prevMessages, error]);
+            socket.on('jupyterWarn', (data) => {
+                const { warn } = data;
+                showErrorToast(warn)
             });
 
             socket.on('success', (message) => {
@@ -145,11 +144,26 @@ const Notebooks = () => {
         }
     };
 
-
     const handleSchedule = async (notebook) => {
         setLoading(true)
         try {
-            const response = await axiosInstance.post('/schedule-notebook', { notebook }, {
+            const scheduleResponse = await axiosInstance.post('/schedule-notebook', { notebook }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (scheduleResponse.status === 200) {
+                if (scheduleResponse.data && scheduleResponse.data.info) {
+                    showSuccessToast(scheduleResponse.data.info);
+                }
+                await fetchData(token);
+            } else {
+                console.error('Internal Server Error:', scheduleResponse.data.warn);
+                showErrorToast(scheduleResponse.data.warn || 'Internal Server Error');
+            }
+
+            const response = await axiosInstance.post('/notebooks', {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -159,11 +173,13 @@ const Notebooks = () => {
                 if (response.data && response.data.info) {
                     showSuccessToast(response.data.info);
                 }
-                await fetchData(token);
+                setNotebooks(response.data.notebooks || []);
             } else {
                 console.error('Internal Server Error:', response.data.warn);
                 showErrorToast(response.data.warn || 'Internal Server Error');
             }
+
+
         } catch (error) {
             console.error('Failed to add schedule.', error);
             showErrorToast('Failed to add schedule.');
@@ -171,6 +187,10 @@ const Notebooks = () => {
             setLoading(false);
         }
     };
+    const handleRemoveSchedule = async (notebook) => {
+
+    }
+
     const handleShare = async (notebook) => {
         setLoading(true)
         try {
@@ -213,124 +233,140 @@ const Notebooks = () => {
                                     <Skeleton count={5} />
                                 </p>
                             </SkeletonTheme>
-                        </div>) : (<div>
-                            {(jupyterToken || jupyterUrl) ? (
-                                <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        position: 'relative'
-                                    }}>
-                                        {jupyterUrl && (
-                                            <div style={{ position: 'relative' }}>
-                                                <CDBBtn
-                                                    type='primary'
-                                                    flat
-                                                    className="border-0 px-3"
-                                                    onClick={() => window.open(jupyterUrl, '_blank')}
-                                                >
-                                                    Open Notebook Server
-                                                </CDBBtn>
+                        </div>) : (
+                            <div>
+                                {(jupyterToken || jupyterUrl) ? (
+                                    <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            position: 'relative'
+                                        }}>
+                                            {jupyterUrl && (
+                                                <div style={{ position: 'relative' }}>
+                                                    <CDBBtn
+                                                        type='primary'
+                                                        flat
+                                                        className="border-0 px-3"
+                                                        onClick={() => window.open(jupyterUrl, '_blank')}
+                                                    >
+                                                        Open Notebook Server
+                                                    </CDBBtn>
 
-                                            </div>
-                                        )}
+                                                </div>
+                                            )}
 
-                                        {jupyterToken && (
-                                            <div style={{ position: 'relative' }}>
-                                                <CDBBtn
-                                                    type='primary'
-                                                    flat
-                                                    className="border-0 px-3"
-                                                    onClick={() => copyToClipboard(jupyterToken)}
-                                                >
-                                                    Copy Token
-                                                </CDBBtn>
+                                            {jupyterToken && (
+                                                <div style={{ position: 'relative' }}>
+                                                    <CDBBtn
+                                                        type='primary'
+                                                        flat
+                                                        className="border-0 px-3"
+                                                        onClick={() => copyToClipboard(jupyterToken)}
+                                                    >
+                                                        Copy Token
+                                                    </CDBBtn>
 
-                                            </div>
-                                        )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-                                    <CDBBtn
-                                        disabled={jupyterServerStarted}
-                                        type='primary'
-                                        flat
-                                        className="border-0 px-3"
-                                        onClick={() => handleStartJupyterServer()}
-                                    >
-                                        Start Notebook Server
-                                    </CDBBtn>
-                                </div>
-                            )}
+                                ) : (
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+                                        <CDBBtn
+                                            disabled={jupyterServerStarted}
+                                            type='primary'
+                                            flat
+                                            className="border-0 px-3"
+                                            onClick={() => handleStartJupyterServer()}
+                                        >
+                                            Start Notebook Server
+                                        </CDBBtn>
+                                    </div>
+                                )}
 
-                            <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
-                                <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" style={{ height: '400px', overflow: 'auto' }}>
-                                    <div className="d-flex flex-column p-0 h-100">
-                                        <div className="mt-3" style={{ flex: 1 }}>
-                                            <Editor
-                                                value={socketOutput.join('\n')}
+                                <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
+                                    <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" style={{ height: '400px', overflow: 'auto' }}>
+                                        <div className="d-flex flex-column p-0 h-100">
+                                            <div className="mt-3" style={{ flex: 1 }}>
+                                                <Editor
+                                                    value={socketOutput.join('\n')}
 
-                                                readOnly
-                                                highlight={code => highlight(code, languages.text)}
-                                                padding={10}
-                                                style={{
-                                                    fontFamily: '"Fira code", "Fira Mono", monospace',
-                                                    color: 'white',
-                                                    height: '100%',
-                                                    overflow: 'auto'
-                                                }}
-                                            />
+                                                    readOnly
+                                                    highlight={code => highlight(code, languages.text)}
+                                                    padding={10}
+                                                    style={{
+                                                        fontFamily: '"Fira code", "Fira Mono", monospace',
+                                                        color: 'white',
+                                                        height: '100%',
+                                                        overflow: 'auto'
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <div>
-                                <div className="d-flex card-section">
-                                    <div className="cards-container">
-
-                                        {notebooks.map((notebook, index) => (
-                                            <div>
-                                                <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
-                                                    <div className="p-4 d-flex flex-column h-100">
-
-                                                        <div className="d-flex align-items-center justify-content-between">
-                                                            <h4 className="m-0 h5 font-weight-bold text-white">Workspace {notebook}</h4>
-                                                        </div>
-                                                        <div className="mt-3">
-                                                            {notebook.scheduleName ? notebook.scheduleName : (
-                                                                <CDBBtn
-                                                                    type="primary"
-                                                                    flat
-                                                                    className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setScheduleNotebook({ notebookName: notebook }); setShowScheduleModal(true); }}
-                                                                >
-                                                                    <span className="msg-rem">Schedule</span>
-                                                                </CDBBtn>
-                                                            )}
-                                                            {notebook.shareUrl ? notebook.shareUrl : (
-                                                                <CDBBtn
-                                                                    type="primary"
-                                                                    flat
-                                                                    className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setShareNotebook(notebook); setShowShareModal(true); }}
-                                                                >
-                                                                    <span className="msg-rem">Share</span>
-                                                                </CDBBtn>
-                                                            )}
+                                <div>
+                                    <div className="d-flex card-section">
+                                        <div className="cards-container">
+                                            {notebooks.map((notebook, index) => (
+                                                <div key={index} className="card-item">
+                                                    <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
+                                                        <div className="p-4 d-flex flex-column h-100">
+                                                            <div className="d-flex align-items-center justify-content-between mb-3">
+                                                                <h4 className="m-0 h5 font-weight-bold text-white">{notebook}</h4>
+                                                            </div>
+                                                            <div className="d-flex flex-column align-items-start">
+                                                                {notebook.scheduleName ? (
+                                                                    <div className="d-flex align-items-center w-100">
+                                                                        <span className="mr-2">{notebook.scheduleName}</span>
+                                                                        <CDBBtn
+                                                                            type="primary"
+                                                                            flat
+                                                                            className="border-0 px-2 my-2"
+                                                                            onClick={() => handleRemoveSchedule(notebook)}
+                                                                        >
+                                                                            <span className="msg-rem">Remove Schedule</span>
+                                                                        </CDBBtn>
+                                                                    </div>
+                                                                ) : (
+                                                                    <CDBBtn
+                                                                        type="primary"
+                                                                        flat
+                                                                        className="border-0 px-2 my-2 align-self-start"
+                                                                        onClick={() => { setScheduleNotebook({ notebookName: notebook }); setShowScheduleModal(true); }}
+                                                                    >
+                                                                        <span className="msg-rem">Schedule</span>
+                                                                    </CDBBtn>
+                                                                )}
+                                                                {notebook.shareUrl ? (
+                                                                    <div className="d-flex align-items-center w-100">
+                                                                        <span className="mr-2">{notebook.shareUrl}</span>
+                                                                        {/* You can add a button here if needed */}
+                                                                    </div>
+                                                                ) : (
+                                                                    <CDBBtn
+                                                                        type="primary"
+                                                                        flat
+                                                                        className="border-0 px-2 my-2 align-self-start"
+                                                                        onClick={() => { setShareNotebook(notebook); setShowShareModal(true); }}
+                                                                    >
+                                                                        <span className="msg-rem">Share</span>
+                                                                    </CDBBtn>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )
-                                        )}
-
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
+
 
 
 
@@ -349,13 +385,13 @@ const Notebooks = () => {
                                 />
 
                             </div>
-                        </div >
                         )}
+
                     </div>
-                </div>
+                </div >
+
             </div>
         </div>
-
     )
 }
 

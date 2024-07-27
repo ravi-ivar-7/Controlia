@@ -91,73 +91,37 @@ const saveFileToContainer = async (containerId, fileDir, fileName, fileContent) 
     }
 }
 
-const saveFileStreamToContainer = async (containerId, fileDir, fileName, fileContentStream) => { // for github zipped repos, unzip and remove
+const getFileFromContainer = async (containerId, filePath) => { // get single file only
     const container = docker.getContainer(containerId);
-
     try {
-        // Create directory inside the container
-        let exec = await container.exec({
-            Cmd: ['mkdir', '-p', fileDir],
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: true,
+        const stream = await container.getArchive({ path: filePath });
+        return new Promise((resolve, reject) => {
+            const chunks = [];
+            stream.on('data', (chunk) => chunks.push(chunk));
+            stream.on('end', () => resolve(Buffer.concat(chunks).toString()));
+            stream.on('error', (err) => reject(err));
         });
-
-        let response = await exec.start({ hijack: true });
-
-        response.on('data', (data) => {
-            console.log(data.toString());
-        });
-
-        response.on('error', (error) => {
-            console.error(error.toString());
-        });
-
-        await new Promise((resolve) => {
-            response.on('end', resolve);
-        });
-
-        // Buffer the response stream
-        const chunks = [];
-        fileContentStream.on('data', (chunk) => chunks.push(chunk));
-        await new Promise((resolve, reject) => {
-            fileContentStream.on('end', resolve);
-            fileContentStream.on('error', reject);
-        });
-        const buffer = Buffer.concat(chunks);
-
-        // Create a tar stream for the file to be copied
-        const pack = tar.pack();
-
-        // Add the file to the tar stream
-        pack.entry({ name: fileName }, buffer, (err) => {
-            if (err) {
-                throw err;
-            }
-            pack.finalize();
-        });
-
-        // Create a stream that Dockerode can use
-        const tarStream = new stream.PassThrough();
-        pack.pipe(tarStream);
-
-        // Upload the tar archive to the container
-        await container.putArchive(tarStream, { path: fileDir });
-
-        console.log(`${fileName} saved to container`);
-
-
-
-        return  json({info: `${fileName} saved.`});
-
     } catch (error) {
-        console.error(`Failed to save file '${fileName}' to container '${containerId}': ${error}`);
+        console.error(`Failed to get file '${filePath}' from container '${containerId}': ${error}`);
         throw error;
     }
 };
 
+async function getFileFromContainerAndSaveLocally(containerId, containerFilePath, localDestPath) {
+    const container = docker.getContainer(containerId);
+    const stream = await container.getArchive({ path: containerFilePath });
 
-
+    const extract = tar.extract();
+    extract.on('entry', (header, stream, next) => {
+        if (header.type === 'file') {
+            const filePath = `${localDestPath}/${header.name}`;
+            stream.pipe(fs.createWriteStream(filePath));
+        }
+        stream.on('end', next);
+        stream.resume();
+    });
+    stream.pipe(extract);
+}
 
 async function deleteFileFromContainer(containerId, filePath) {
     const container = docker.getContainer(containerId);
@@ -191,24 +155,7 @@ async function deleteFileFromContainer(containerId, filePath) {
     }
 }
 
-async function getFileFromContainerAndSave(containerId, containerFilePath, localDestPath) {
-    const container = docker.getContainer(containerId);
 
-    // Get a tar stream of the file from the container
-    const stream = await container.getArchive({ path: containerFilePath });
-
-    // Extract the file from the tar stream
-    const extract = tar.extract();
-    extract.on('entry', (header, stream, next) => {
-        if (header.type === 'file') {
-            const filePath = `${localDestPath}/${header.name}`;
-            stream.pipe(fs.createWriteStream(filePath));
-        }
-        stream.on('end', next);
-        stream.resume();
-    });
-    stream.pipe(extract);
-}
 
 async function getFileFolderFromContainer(containerId, path) {
     const container = docker.getContainer(containerId);
@@ -264,7 +211,7 @@ async function getFileFolderFromContainer(containerId, path) {
 }
 
 
-async function getFilesFromContainer(containerId, dirpath) { // filename and their contents
+async function getFilesFromContainer(containerId, dirpath) { // filename and their contents inside a directory
     const container = docker.getContainer(containerId);
     const extract = tar.extract();
     const files = [];
@@ -305,7 +252,7 @@ async function getFilesFromContainer(containerId, dirpath) { // filename and the
 }
 
 
-async function getFileNamesFromContainer(containerId, dirpath) {
+async function getFileNamesFromContainer(containerId, dirpath) {// only file names insde a directory
     const container = docker.getContainer(containerId);
     const extract = tar.extract();
     const fileNames = [];
@@ -339,4 +286,4 @@ async function getFileNamesFromContainer(containerId, dirpath) {
 }
 
 
-module.exports = { saveFileToContainer,saveFileStreamToContainer, getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive,getFileNamesFromContainer};
+module.exports = { saveFileToContainer, getFileFromContainer,getFileFolderFromContainer, deleteFileFromContainer, getFilesFromContainer ,createArchive,getFileNamesFromContainer};

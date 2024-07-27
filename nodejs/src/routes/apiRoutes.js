@@ -11,8 +11,10 @@ const { verifyToken } = require('../middlewares/verifyToken')
 const { loginWithContainer } = require('../controllers/user/loginWithContainer');
 const { registerWithContainer } = require('../controllers/user/registerWithContainer');
 const {githubAuth} = require('../controllers/externalAuth/githubAuth')
-const {githubRepo} = require('../controllers/projects/githubRepos')
 const {googleAuth} = require('../controllers/externalAuth/googleAuth')
+
+const {githubRepo} = require('../controllers/projects/githubRepos')
+const {getProjects} = require('../controllers/projects/getProjects')
 
 const {getWorkspaceInfo} = require('../controllers/containers/getContainerInfo')
 const {getWorkspaceFiles, downloadVolumeData} = require('../controllers/containers/manageVolumeFiles')
@@ -35,6 +37,8 @@ const { containerModule } = require('../controllers/containers/containerModules'
 const { containerCommand } = require('../controllers/containers/containerCommand');
 const {scheduleNotebook} = require('../controllers/notebooks/schduleNotebook');
 const { containerTerminal } = require('../controllers/containers/containerTerminal');
+const { checkLogs } = require('../controllers/projects/projectStatus');
+const { deleteProject } = require('../controllers/projects/deleteProject');
 
 
 
@@ -51,6 +55,9 @@ router.get('/validate-token', verifyToken, (req, res) => { return res.status(200
 router.post('/google-auth', googleAuth);
 router.post('/github-auth', githubAuth);
 router.post('/github-repo',verifyToken, githubRepo);
+router.post('/projects', verifyToken, getProjects)
+router.post('/delete-project', verifyToken, deleteProject)
+router.post('/logs', verifyToken, checkLogs)
 
 
 

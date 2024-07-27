@@ -29,37 +29,48 @@ const  containerDetails = async (containerId) => {
     }
 }
 
-const execInContainer = async (containerId, cmd) => {
+const execCommandInContainer = async (containerId, command) => {
     const container = docker.getContainer(containerId);
 
     try {
+        // Start the command execution inside the container
         let exec = await container.exec({
-            Cmd: cmd,
+            Cmd: ['sh', '-c', command],
             AttachStdout: true,
             AttachStderr: true,
             Tty: true,
         });
 
-        let response = await exec.start({ hijack: true });
+        let stream = await exec.start({ hijack: true });
 
-        let output = '';
-        response.on('data', (data) => {
-            output += data.toString();
+        // Return a promise that resolves or rejects based on the stream's events
+        return new Promise((resolve, reject) => {
+            let stdout = '';
+            let stderr = '';
+
+            stream.on('data', (data) => {
+                console.log(data.toString())
+                stdout += data.toString(); // Collect stdout data
+            });
+
+            stream.on('error', (error) => {
+                stderr += error.toString(); // Collect stderr data
+                reject(new Error(`Error executing command '${command}': ${stderr}`));
+            });
+
+            stream.on('end', () => {
+                if (stderr) {
+                    reject(new Error(`Error executing command '${command}': ${stderr}`));
+                } else {
+                    resolve(stdout); // Resolve with stdout data
+                }
+            });
         });
-
-        response.on('error', (error) => {
-            console.error('Exec error:', error.toString());
-        });
-
-        await new Promise((resolve) => {
-            response.on('end', resolve);
-        });
-
-        return output;
     } catch (error) {
-        console.error(`Failed to execute command '${cmd.join(' ')}' in container '${containerId}': ${error}`);
-        throw error;
+        console.error(`Failed to execute command '${command}' in container '${containerId}': ${error}`);
+        throw new Error(`Failed to execute command '${command}' in container '${containerId}': ${error.message}`);
     }
 };
 
-module.exports = { containerDetails , execInContainer}
+
+module.exports = { containerDetails , execCommandInContainer}

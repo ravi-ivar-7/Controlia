@@ -75,33 +75,28 @@ const loginWithContainer = async (req, res) => {
             if (containerId) {
                 try {
                     const oldContainer = docker.getContainer(containerId);
-                    await oldContainer.stop().catch(err => {
-                        if (err.statusCode !== 304) { // Ignore error if container is already stopped
-                            console.log(`Some other error occured apart from already stopped container: ${err}`)
-                            return res.status(209).json({ warn:`Error occured: ${err}` });
-
-
-                        }
-                    });
-                    await oldContainer.remove();
-                    console.log(`Old container ${containerId} removed successfully.`);
+                    const containerData = await oldContainer.inspect();
+                    const containerState = containerData.State.Status;
+                    if (containerState === 'exited' || containerState === 'created') {
+                        await oldContainer.remove();
+                        console.log(`Old container ${containerId} removed successfully.`);
+                    } else {
+                        console.log(`Container ${containerId} is still running. Skipped removing it.`);
+                    }
                 } catch (err) {
-                    console.error(`Error removing old container ${containerId}:`, err.message);
-                    return res.status(209).json({ warn:`Error occured: ${err}` });
+                    console.error(`Error occured analyzing old container ${containerId}:`, err.message);
+                    return res.status(209).json({ warn: `Error occured: ${err}` });
                 }
             }
-
             const hostPortMappings = await Promise.all([
                 findAvailablePort(9001, 10000), // for port 80
                 findAvailablePort(10001, 11000), // for port 443
-                findAvailablePort(13001, 14000),  // for port 3000
-                findAvailablePort(11001, 12000), // for port 3001
-                findAvailablePort(12001, 13000), // for port 3002
-                findAvailablePort(8000, 9000), // for port 8888
-                
+                findAvailablePort(11001, 12000),  // for port 3000
+                findAvailablePort(12001, 13000), // for port 8888
+
             ]);
 
-            const [ hostPort80, hostPort443, hostPort3000,hostPort3001, hostPort3002,hostPort8888 ] = hostPortMappings;
+            const [hostPort80, hostPort443, hostPort3000, hostPort8888] = hostPortMappings;
 
             const containerCmd = `
             groupadd -g ${GID} ${USERNAME} \
@@ -129,8 +124,6 @@ const loginWithContainer = async (req, res) => {
                         "80/tcp": [{ "HostPort": `${hostPort80}` }],
                         "443/tcp": [{ "HostPort": `${hostPort443}` }],
                         "3000/tcp": [{ "HostPort": `${hostPort3000}` }],
-                        "3001/tcp": [{ "HostPort": `${hostPort3001}` }],
-                        "3002/tcp": [{ "HostPort": `${hostPort3002}` }],
                         "8888/tcp": [{ "HostPort": `${hostPort8888}` }],
                     }
                 },
@@ -138,10 +131,8 @@ const loginWithContainer = async (req, res) => {
                     "80/tcp": {},
                     "443/tcp": {},
                     "3000/tcp": {},
-                    "3001/tcp": {},
-                    "3002/tcp": {},
                     "8888/tcp": {},
-                    
+
                 },
                 Env: [
                     `USER_ID=${UID}`,
@@ -150,21 +141,18 @@ const loginWithContainer = async (req, res) => {
                     `USER_PASSWORD=${PASSWORD}`
                 ],
             });
-    
+
             if (!container) {
                 return { status: 209, json: { warn: "Failed to login due to container creation failure." } };
             }
 
             await container.start();
-            // Update the user record with the new container ID
             const updateFields = {
                 $set: {
                     containerId: container.id,
                     hostPort80,
                     hostPort443,
                     hostPort3000,
-                    hostPort3001,
-                    hostPort3002,
                     hostPort8888,
                     lastLogin: new Date(),
                 }

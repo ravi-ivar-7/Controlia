@@ -105,7 +105,7 @@ const jupyterServer = async (io, socket, data) => {
         });
 
 
-        // processKillResponse = await killJupyterProcess(container, ['sh', '-c', 'ps aux | grep "jupyter"']);
+        processKillResponse = await killJupyterProcess(container, ['sh', '-c', 'ps aux | grep "jupyter"']);
         io.to(socket.decodedToken.userId).emit('data', { output: processKillResponse });
 
     } catch (error) {
@@ -113,9 +113,9 @@ const jupyterServer = async (io, socket, data) => {
         return io.to(socket.decodedToken.userId).emit('error', { message: 'An error occurred during server startup', details: error.toString() });
     } finally {
         await client.close();
-        // let processKillResponse = await killJupyterProcess(container, ['sh', '-c', 'ps aux | grep "jupyter"']);
-        // io.to(socket.decodedToken.userId).emit('data', { output: processKillResponse });
-        // io.to(socket.decodedToken.userId).emit('error', { error: 'Click "Start Notebook Server" again' });
+        let processKillResponse = await killJupyterProcess(container, ['sh', '-c', 'ps aux | grep "jupyter"']);
+        io.to(socket.decodedToken.userId).emit('data', { output: processKillResponse });
+        io.to(socket.decodedToken.userId).emit('error', { error: 'Click "Start Notebook Server" again' });
     }
 };
 

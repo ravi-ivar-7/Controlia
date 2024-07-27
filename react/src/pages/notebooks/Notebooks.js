@@ -9,7 +9,12 @@ import Navbar from "../../components/bars/Navbar";
 import ScheduleNotebookModal from './scheduleModal';
 import ShareNotebookModal from './shareModal';
 import socketIOClient from 'socket.io-client';
-import { CodeiumEditor } from "@codeium/react-code-editor";
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/themes/prism.css';
+
 import { Form } from 'react-bootstrap';
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
 import './notebooks.css'
@@ -192,129 +197,121 @@ const Notebooks = () => {
         }
     }
     return (
-        <div className="d-flex">
+        <div className="notebook d-flex" >
             <div>
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={'Notebooks'} />
+                <Navbar pageTitle={'Notebook'} />
                 <div style={{ height: "100%" }}>
-                    <div style={{ padding: "10px", height: "calc(100% - 64px)", overflowY: "scroll" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(1, minmax(200px, 100%))" }}>
+                    <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
-                            {loading ? (<div>
-                                <SkeletonTheme baseColor="#202020" highlightColor="#444">
-                                    <h1>{<Skeleton />}</h1>
-                                    <p>
-                                        <Skeleton count={5} />
-                                    </p>
-                                </SkeletonTheme>
-                            </div>) : (
+                        {loading ? (<div>
+                            <SkeletonTheme baseColor="#202020" highlightColor="#444">
+                                <h1>{<Skeleton />}</h1>
+                                <p>
+                                    <Skeleton count={5} />
+                                </p>
+                            </SkeletonTheme>
+                        </div>) : (<div>
+                            {(jupyterToken || jupyterUrl) ? (
+                                <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        position: 'relative'
+                                    }}>
+                                        {jupyterUrl && (
+                                            <div style={{ position: 'relative' }}>
+                                                <CDBBtn
+                                                    type='primary'
+                                                    flat
+                                                    className="border-0 px-3"
+                                                    onClick={() => window.open(jupyterUrl, '_blank')}
+                                                >
+                                                    Open Notebook Server
+                                                </CDBBtn>
 
-                                <div>
-                                    {(jupyterToken || jupyterUrl) ? (
-                                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                gap: '10px',
-                                                position: 'relative'
-                                            }}>
-                                                {jupyterUrl && (
-                                                    <div style={{ position: 'relative' }}>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 px-3"
-                                                            onClick={() => window.open(jupyterUrl, '_blank')}
-                                                        >
-                                                            Open Notebook Server
-                                                        </CDBBtn>
-
-                                                    </div>
-                                                )}
-
-                                                {jupyterToken && (
-                                                    <div style={{ position: 'relative' }}>
-                                                        <CDBBtn
-                                                            type='primary'
-                                                            flat
-                                                            className="border-0 px-3"
-                                                            onClick={() => copyToClipboard(jupyterToken)}
-                                                        >
-                                                            Copy Token
-                                                        </CDBBtn>
-
-                                                    </div>
-                                                )}
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-                                            <CDBBtn
-                                                disabled={jupyterServerStarted}
-                                                type='primary'
-                                                flat
-                                                className="border-0 px-3"
-                                                onClick={() => handleStartJupyterServer()}
-                                            >
-                                                Start Notebook Server
-                                            </CDBBtn>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    <div>
+                                        {jupyterToken && (
+                                            <div style={{ position: 'relative' }}>
+                                                <CDBBtn
+                                                    type='primary'
+                                                    flat
+                                                    className="border-0 px-3"
+                                                    onClick={() => copyToClipboard(jupyterToken)}
+                                                >
+                                                    Copy Token
+                                                </CDBBtn>
 
-                                        {socketOutput.length > 0 ? (
-
-                                            <div style={{ margin: '10px' }}>
-                                                <h4> Jupyter Server console output</h4>
-                                                <CodeiumEditor
-                                                    theme="vs-dark"
-                                                    value={socketOutput.join('\n')}
-                                                />
                                             </div>
-                                        ) : (
-                                            <div></div>
                                         )}
                                     </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+                                    <CDBBtn
+                                        disabled={jupyterServerStarted}
+                                        type='primary'
+                                        flat
+                                        className="border-0 px-3"
+                                        onClick={() => handleStartJupyterServer()}
+                                    >
+                                        Start Notebook Server
+                                    </CDBBtn>
+                                </div>
+                            )}
 
+                            <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
+                                <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" style={{ height: '400px', overflow: 'auto' }}>
+                                    <div className="d-flex flex-column p-0 h-100">
+                                        <div className="mt-3" style={{ flex: 1 }}>
+                                            <Editor
+                                                value={socketOutput.join('\n')}
 
-
-                                    <div className="mt-5">
-                                        <div className="d-flex justify-content-between align-items-center">
-                                            <h4 className="font-weight-bold mb-3" style={{ color: 'white' }}>All Python Notebooks</h4>
-
+                                                readOnly
+                                                highlight={code => highlight(code, languages.text)}
+                                                padding={10}
+                                                style={{
+                                                    fontFamily: '"Fira code", "Fira Mono", monospace',
+                                                    color: 'white',
+                                                    height: '100%',
+                                                    overflow: 'auto'
+                                                }}
+                                            />
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                        <CDBTable className="dark-table" responsive>
-                                            <CDBTableHeader>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Name</th>
-                                                    <th>Scheduled</th>
-                                                    <th>Shared</th>
-                                                </tr>
-                                            </CDBTableHeader>
-                                            <CDBTableBody>
-                                                {notebooks.map((notebook, index) => (
-                                                    <tr key={index}>
-                                                        <td>{index + 1}</td>
-                                                        <td>{notebook}</td>
-                                                        <td>
+
+                            <div>
+                                <div className="d-flex card-section">
+                                    <div className="cards-container">
+
+                                        {notebooks.map((notebook, index) => (
+                                            <div>
+                                                <div className="card-bg w-100 d-flex flex-column border" style={{ gridRow: "span 2", backgroundColor: "black", color: "white" }}>
+                                                    <div className="p-4 d-flex flex-column h-100">
+
+                                                        <div className="d-flex align-items-center justify-content-between">
+                                                            <h4 className="m-0 h5 font-weight-bold text-white">Workspace {notebook}</h4>
+                                                        </div>
+                                                        <div className="mt-3">
                                                             {notebook.scheduleName ? notebook.scheduleName : (
                                                                 <CDBBtn
                                                                     type="primary"
                                                                     flat
                                                                     className="border-0 ml-auto px-2 my-2"
-                                                                    onClick={() => { setScheduleNotebook({notebookName: notebook}); setShowScheduleModal(true); }}
+                                                                    onClick={() => { setScheduleNotebook({ notebookName: notebook }); setShowScheduleModal(true); }}
                                                                 >
                                                                     <span className="msg-rem">Schedule</span>
                                                                 </CDBBtn>
                                                             )}
-                                                        </td>
-                                                        <td>
                                                             {notebook.shareUrl ? notebook.shareUrl : (
                                                                 <CDBBtn
                                                                     type="primary"
@@ -325,37 +322,41 @@ const Notebooks = () => {
                                                                     <span className="msg-rem">Share</span>
                                                                 </CDBBtn>
                                                             )}
-                                                        </td>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                        )}
 
-
-                                                    </tr>
-                                                ))}
-                                            </CDBTableBody>
-                                        </CDBTable>
                                     </div>
                                 </div>
-                            )}
 
-                            <ScheduleNotebookModal
-                                show={showScheduleModal}
-                                handleClose={() => setShowScheduleModal(false)}
-                                onSubmit={handleSchedule}
-                                notebookData={scheduleNotebook ? scheduleNotebook : ''}
-                            />
 
-                            <ShareNotebookModal
-                                show={showShareModal}
-                                handleClose={() => setShowShareModal(false)}
-                                onSubmit={handleShare}
-                                notebookData={shareNotebook ? shareNotebook : ''}
-                            />
 
-                        </div>
-                    </div >
-                </div >
+                                <ScheduleNotebookModal
+                                    show={showScheduleModal}
+                                    handleClose={() => setShowScheduleModal(false)}
+                                    onSubmit={handleSchedule}
+                                    notebookData={scheduleNotebook ? scheduleNotebook : ''}
+                                />
+
+                                <ShareNotebookModal
+                                    show={showShareModal}
+                                    handleClose={() => setShowShareModal(false)}
+                                    onSubmit={handleShare}
+                                    notebookData={shareNotebook ? shareNotebook : ''}
+                                />
+
+                            </div>
+                        </div >
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
-    );
+
+    )
 }
 
 export default Notebooks;

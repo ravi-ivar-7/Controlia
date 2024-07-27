@@ -121,32 +121,9 @@ const Sidebar = () => {
                   )}
                 </div>
 
-                <div>
-                  <div
-                    onClick={handleProjectSubMenuToggle}
-                    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
-                  >
-                    <CDBSidebarMenuItem icon="project-diagram">
-                      <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                        Projects
-                        <i className={`fa fa-chevron-${projectSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
-                      </div>
-                    </CDBSidebarMenuItem>
-                  </div>
-                  {projectSubMenuOpen && (
-                    <div style={{ paddingLeft: "20px" }}>
-                      
-                      <NavLink exact to="/projects" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="plus-circle">Add Projects</CDBSidebarMenuItem>
-                      </NavLink>
-
-                     
-                      <NavLink exact to="/deploy-projects" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="share-alt">Deployed</CDBSidebarMenuItem>
-                      </NavLink>
-                    </div>
-                  )}
-                </div>
+                <NavLink exact to="/projects" activeClassName="activeClicked">
+                  <CDBSidebarMenuItem icon="project-diagram">Projects</CDBSidebarMenuItem>
+                </NavLink>
 
 
 

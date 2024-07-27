@@ -1,4 +1,87 @@
 
+.notebook .cards-container {
+	margin:25px auto;
+	display:grid;
+	width:100%;
+	grid-template-columns:repeat(3, minmax(300px, 1fr));
+	grid-gap:25px;
+	grid-template-rows:1fr;
+}
+
+.notebook .card-bg {
+	border:1px solid #f2f2f2;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.notebook .wide {
+	grid-column:span 2;
+}
+
+.notebook .c-p {
+	cursor:pointer;
+}
+
+.notebook .pane-image {
+	min-width:3rem;
+	height:3rem;
+	margin-right:1rem;
+}
+
+.notebook .card-section {
+	padding:0 1.5rem;
+	box-sizing: border-box;
+}
+
+
+
+@media (max-width:1320px) {
+	.notebook .cards-container {
+		grid-gap: 15px;
+		grid-template-columns: repeat(2, minmax(270px, 1fr));
+	}
+	.notebook .wide {
+		grid-column:span 1;
+	}
+	.notebook .card-section {
+		padding:0 0.5rem;
+	}
+	.notebook .table-rem {
+		display:none !important;
+	}
+
+}
+
+@media (max-width:920px) {
+	.notebook .cards-container {
+		max-width:500px;
+		width:90%;
+		font-size: 0.85rem;
+		grid-template-columns: repeat(1, minmax(220px, 100%));
+	}
+	.notebook .msg-rem {
+		display:none !important;
+	}
+	.notebook .p-4 {
+		padding:1rem !important;
+	}
+
+	.notebook .pane-image {
+		min-width:2rem;
+		height:2rem;
+		margin-right:0.5rem;
+	}
+}
+@media (max-width:375px) {
+	.notebook .h5 {
+		font-size:1rem;
+	}
+	.notebook .cards-container {
+		margin:10px 0;
+	}
+}
+
+
+
 
 
 /* Add this to your CSS file */

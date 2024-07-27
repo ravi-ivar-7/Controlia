@@ -12,7 +12,7 @@ import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
-import 'prismjs/themes/prism.css'; //Example style, you can use another
+import 'prismjs/themes/prism.css';
 
 const GithubRepos = () => {
 
@@ -26,10 +26,9 @@ const GithubRepos = () => {
     const [installCommand, setInstallCommand] = useState('');
     const [startServerCommand, setStartServerCommand] = useState('');
     const [logFilePath, setLogFilePath] = useState('');
+    const [projectUrl, setProjectUrl] = useState();
     const [socketOutput, setSocketOutput] = useState([]);
 
-
-    const [loading, setLoading] = useState(false);
     const [reposLoading, setReposLoading] = useState(false);
     const [repoDownloadLoading, setRepoDownloadLoading] = useState(false)
 
@@ -61,20 +60,20 @@ const GithubRepos = () => {
 
 
     const frameworks = [
-        { id: 1, name: 'React' },
-        { id: 2, name: 'Flask' },
-        { id: 3, name: 'FastApi' },
-        { id: 4, name: 'Django' },
-        { id: 5, name: 'Nodejs' },
+        { id: 1, name: 'Flask' },
+        { id: 2, name: 'FastApi' },
+        { id: 3, name: 'Django' },
+        // { id: 4, name: 'Nodejs' },
+        // { id: 5, name: 'React' },
     ];
 
     // Default commands mapping
     const defaultCommands = {
-        1: { install: 'npm i', start: 'npm start' },
-        2: { install: 'pip install --break-system-packages -r requirements.txt', start: 'python3 app.py' },
-        3: { install: 'pip install fastapi uvicorn', start: 'uvicorn main:app --reload' },
-        4: { install: 'pip install django', start: 'python manage.py runserver' },
-        5: { install: 'npm install', start: 'node app.js' },
+        1: { install: 'pip install --break-system-packages -r requirements.txt', start: 'python3 app.py' },
+        2: { install: 'pip install fastapi uvicorn', start: 'uvicorn main:app --reload' },
+        3: { install: 'pip install django', start: 'python manage.py runserver' },
+        // 4: { install: 'npm install', start: 'node app.js' },
+        // 5: { install: 'npm i', start: 'npm start' },
     };
 
     const handleSelectFramework = (framework) => {
@@ -104,8 +103,6 @@ const GithubRepos = () => {
                         setCode(response.data.code)
                         setAccessToken(response.data.accessToken)
                         showSuccessToast('Successfully authenticated with GitHub!');
-
-                        console.log('User repositories:', response.data);
                     }
                     else {
                         console.error('Internal Server Error:', response.data.warn);
@@ -169,25 +166,26 @@ const GithubRepos = () => {
                 }
             });
 
-            socket.on('data', (data) => {
+            socket.on('projectOutput', (data) => {
                 const { output } = data;
                 setSocketOutput((prevMessages) => [...prevMessages, output]);
             });
-            socket.on('logFilePath', (data) => {
-                
-                const { logFilePath } = data;
-                showErrorToast(logFilePath)
-                setLogFilePath(logFilePath)
+            socket.on('projectInfo', (data) => {
+
+                const { logFilePath, projectUrl } = data;
+                setLogFilePath(logFilePath);
+                setProjectUrl(projectUrl);
+                showSuccessToast('Project deployed.')
             });
 
-            socket.on('error', (data) => {
+            socket.on('projectError', (data) => {
                 const { error, details } = data;
                 console.log(details)
                 showErrorToast(error)
                 setSocketOutput((prevMessages) => [...prevMessages, error]);
             });
 
-            socket.emit('deployProject', { installCommand, startServerCommand, projectName });
+            socket.emit('deployProject', { code, selectedRepo, accessToken, installCommand, startServerCommand });
 
             return () => {
                 showErrorToast('disconnected...');
@@ -197,6 +195,8 @@ const GithubRepos = () => {
         }
     };
 
+
+
     return (
 
         <div className="profile d-flex">
@@ -204,7 +204,7 @@ const GithubRepos = () => {
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={'Profile'} />
+                <Navbar pageTitle={'Projects'} />
                 <div style={{ height: "100%" }}>
                     <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
@@ -218,10 +218,23 @@ const GithubRepos = () => {
                                         {!repoDownloadLoading ? (
                                             <div>
 
+
+
+
                                                 {projectName ? (
                                                     <div>
                                                         <h3>{projectName}</h3>
+
+                                                        {projectUrl ? (
+                                                            <a href={projectUrl} target="_blank" rel="noopener noreferrer" style={{marginBottom:'5px'}}>{projectUrl} </a>
+
+                                                           
+                                                        ) : (
+                                                            <></>
+                                                        )}
+
                                                     </div>
+
                                                 ) : (
                                                     <div><div className="d-flex align-items-center justify-content-between">
                                                         <h4 className="m-0 h5 font-weight-bold text-white">1. Select Repository</h4>
@@ -353,23 +366,12 @@ const GithubRepos = () => {
                             </button>
                         </div>
 
-                        {logFilePath ? (
-                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'black', color: 'white', }}>
-                                <button
-                                    onClick={() => window.open(logFilePath, '_blank')}
-                                    style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', backgroundColor: '#007bff', color: 'white', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', }} >
-                                    See Logs here
-                                </button>
-                            </div>
-                        ) : (
-                            <></>
-                        )}
-
                         <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
                             <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" style={{ height: '400px', overflow: 'auto' }}>
                                 <div className="d-flex flex-column p-0 h-100">
                                     <div className="mt-3" style={{ flex: 1 }}>
                                         <Editor
+                                            readOnly
                                             value={socketOutput.join('\n')}
                                             onValueChange={code => setSocketOutput(code)}
                                             highlight={code => highlight(code, languages.text)}

@@ -83,14 +83,12 @@ const registerWithContainer = async (req, res) => {
         const hostPortMappings = await Promise.all([
             findAvailablePort(9001, 10000), // for port 80
             findAvailablePort(10001, 11000), // for port 443
-            findAvailablePort(13001, 14000),  // for port 3000
-            findAvailablePort(11001, 12000), // for port 3001
-            findAvailablePort(12001, 13000), // for port 3002
-            findAvailablePort(8000, 9000), // for port 8888
+            findAvailablePort(11001, 12000),  // for port 3000
+            findAvailablePort(12001, 13000), // for port 8888
 
         ]);
 
-        const [hostPort80, hostPort443, hostPort3000, hostPort3001, hostPort3002, hostPort8888] = hostPortMappings;
+        const [hostPort80, hostPort443, hostPort3000, hostPort8888] = hostPortMappings;
 
         const containerCmd = `
             groupadd -g ${GID} ${USERNAME} \
@@ -118,8 +116,6 @@ const registerWithContainer = async (req, res) => {
                         "80/tcp": [{ "HostPort": `${hostPort80}` }],
                         "443/tcp": [{ "HostPort": `${hostPort443}` }],
                         "3000/tcp": [{ "HostPort": `${hostPort3000}` }],
-                        "3001/tcp": [{ "HostPort": `${hostPort3001}` }],
-                        "3002/tcp": [{ "HostPort": `${hostPort3002}` }],
                         "8888/tcp": [{ "HostPort": `${hostPort8888}` }],
                     }
                 },
@@ -127,8 +123,6 @@ const registerWithContainer = async (req, res) => {
                     "80/tcp": {},
                     "443/tcp": {},
                     "3000/tcp": {},
-                    "3001/tcp": {},
-                    "3002/tcp": {},
                     "8888/tcp": {},
                     
                 },
@@ -151,17 +145,22 @@ const registerWithContainer = async (req, res) => {
             email: email,
             name: name,
             password: hashedPassword,
+            accountCreated:new Date(),
+            lastLogin: new Date(),
+            source: 'application',
+            verified:false,
             UID: UID,
             GID: GID,
             hostPort80,
             hostPort443,
             hostPort3000,
-            hostPort3001,
-            hostPort3002,
             hostPort8888,
             containerId: container.id,
             containerName: containerName,
             volumeName: volumeName,
+            projectContainerId:'',
+            projectContainerName:'',
+            projectVolumeName:''
         };
 
         await usersCollection.insertOne(newUser);

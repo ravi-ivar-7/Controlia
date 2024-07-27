@@ -1,36 +1,132 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from "react-router-dom";
 import './Projects.css';
+import axiosInstance from '../../services/axiosInstance';
+import useToast from '../../hooks/useToast';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useUser } from '../../context/UserContext';
-import Footer from '../../components/bars/Footer';
-import {
-    CDBBtn,
-    CDBProgress,
-    CDBTable,
-    CDBTableHeader,
-    CDBTableBody,
-    CDBContainer,
-    CDBLink
-} from "cdbreact";
+
 import Sidebar from "../../components/bars/Sidebar";
 import Navbar from "../../components/bars/Navbar";
-import { Container, Row, Col, Card } from 'react-bootstrap';
 
 const Projects = () => {
     const { user } = useUser();
     const [loading, setLoading] = useState(false)
     const [projectDropDown, setProjectDropDown] = useState(false);
+    const [projects, setProjects] = useState([])
+    const [logFetchLoading, setLogFetchLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading]= useState(false)
+
+
+    const { showErrorToast, showSuccessToast } = useToast();
+
+
+    const fetchProjects = useCallback(async (token) => {
+        setLoading(true);
+        try {
+            const response = await axiosInstance.post('/projects', {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    showSuccessToast(response.data.info);
+                }
+                setProjects(response.data.projects || []);
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                showErrorToast(response.data.warn || 'Internal Server Error');
+            }
+        } catch (error) {
+            console.error('Failed to fetch projects.', error);
+            showErrorToast('Failed to fetch projects.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    let token = localStorage.getItem('token');
+    useEffect(() => {
+
+        if (!token) {
+            console.error('No token found in local storage');
+            showErrorToast('No token found. Failed to fetch projects.');
+            return;
+        }
+        fetchProjects(token);
+    }, []);
+
+    const handleConsoleLogs = async(project)=>{
+        setLogFetchLoading(true)
+        try {
+            const response = await axiosInstance.post('/logs', {project, logType:'console'}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    showSuccessToast(response.data.info);
+                }
+                const logs = encodeURIComponent(response.data.logs);
+                window.open(`/logs?data=${logs}`, '_blank');
+                
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                showErrorToast(response.data.warn || 'Internal Server Error');
+            }
+        } catch (error) {
+            console.error('Failed to fetch logs.', error);
+            showErrorToast('Failed to fetch logs.');
+        }
+        finally{
+            setLogFetchLoading(false)
+        }
+    }
+
+    const handleProjectDelete = async (project) => {
+        setDeleteLoading(true)
+        try {
+            const response = await axiosInstance.post('/delete-project', { project }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+    
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    showSuccessToast(response.data.info);
+                }
+                setProjects(prevs => prevs.filter(prev => prev.projectid !== project.projectid));
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                showErrorToast(response.data.warn || 'Internal Server Error');
+            }
+        } catch (error) {
+            console.error('Failed to delete.', error);
+            showErrorToast('Failed to delete.');
+        }
+        finally{
+            setDeleteLoading(false)
+        }
+    }
+    
+    const handleProjectUpdate = async(project)=>{
+
+    }
+
 
     return (
 
-        <div className="profile d-flex">
+        <div className="project d-flex">
             <div>
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={'Profile'} />
+                <Navbar pageTitle={'Projects'} />
                 <div style={{ height: "100%" }}>
                     <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
                         {loading ? (<div>
@@ -87,25 +183,23 @@ const Projects = () => {
                                 <div className="info">
                                     <div className="d-flex card-section">
                                         <div className="cards-container">
-                                            <div className="card-bg w-100 border d-flex flex-column">
-                                                <div className="p-4 d-flex flex-column h-100">
-                                                    <div className="d-flex align-items-center justify-content-between">
-                                                        <h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
-                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+
+                                            {projects.map((project, index) => (
+                                                <div key={index} className="card-bg w-100 border d-flex flex-column">
+                                                    <div className="p-4 d-flex flex-column h-100">
+                                                        
+                                                        <h4 className="my-4 text-right text-white h2 font-weight-bold">{project.projectName}</h4>
+                                                        <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" style={{marginBottom:'5px'}}>   {project.projectUrl} </a>
+
+                                                  
+                                                        <div className="d-flex justify-content-between mt-auto">
+                                                            <button className="btn btn-primary" disabled={logFetchLoading} onClick={()=> handleConsoleLogs(project)}>Check Logs</button>
+                                                            <button className="btn btn-secondary" onClick={()=>handleProjectUpdate(project)}>Update</button>
+                                                            <button className="btn btn-danger" disabled={deleteLoading} onClick={()=>handleProjectDelete(project) }>Delete</button>
+                                                        </div>
                                                     </div>
-                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{user.name}</h4>
-
-                                                    <p >
-                                                        User-Id:	{user.userId}
-                                                    </p>
-                                                    <p >
-                                                        Email: {user.email}
-                                                    </p>
-
                                                 </div>
-                                            </div>
-
-
+                                            ))}
 
                                         </div>
                                     </div>

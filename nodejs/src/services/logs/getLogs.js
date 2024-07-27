@@ -16,7 +16,8 @@ const getLogs = async (req, res) => {
             return res.send(data);
         });
     } catch (err) {
-        returnres.status(209).json({warn:`Error retrieving logs: ${err}`});
+        console.log(err)
+        return res.status(209).json({warn:`Error retrieving logs: ${err}`});
     }
 };
 

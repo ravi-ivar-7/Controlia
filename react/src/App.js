@@ -24,6 +24,7 @@ import GrapesEditor from './pages/graphjs/editor';
 import DragDropContainer from './pages/frontend/DragDropContainer';
 import Projects from './pages/projects/Projects';
 import GithubRepos from './pages/projects/GithubRepos';
+import LogsPage from './pages/projects/logs';
 
 
 function App() {
@@ -52,6 +53,8 @@ function App() {
 
                 <Route path="/"element={ user? <Dashboard /> :<Home/>}/>
                 <Route path="/home" element={<Home />} />
+                <Route path="/logs" element={<LogsPage />} />
+                
                 <Route path="/login" element={<LoginModal isOpen={true} />} />
                 <Route path="/register" element={<RegisterModal isOpen={true} />} />
          

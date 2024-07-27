@@ -1,50 +1,75 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
-const axios = require('axios');
-const path = require('path');
-const fs = require('fs');
-const stream = require('stream');
-const util = require('util');
-const pipeline = util.promisify(stream.pipeline);
-const { saveFileStreamToContainer } = require('../../services/docker/manageVolumeFiles')
-const { execInContainer } = require('../../services/docker/manageContainer')
+const { execCommandInContainer } = require('../../services/docker/manageContainer')
+const { createProjectContainer } = require('./projectContainer');
+const Docker = require('dockerode');
+const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
 
 const githubRepo = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     try {
         const { accessToken, selectedRepo, decodedToken } = req.body;
         if (!accessToken || !selectedRepo) {
-            return res.status(209).json({ warn: 'Missing accessToken or repo' });
+            return res.status(209).json({ warn: 'Missing repository name or required information.' });
         }
         await client.connect();
         const db = client.db("controlia");
         const usersCollection = db.collection('users');
         const user = await usersCollection.findOne({ userId: decodedToken.userId })
 
+        const projectsCollection = db.collection('projects')
+        const alreadyDeployed = await projectsCollection.findOne({userId:decodedToken.userId, projectName: selectedRepo.name})
+        if(alreadyDeployed){
+            return res.status(209).json({warn: `${selectedRepo.name}  is already deployed. Delete or update from projects dashboard.`})
+        }
+
+
+        let projectContainer;
+        let projectContainerId = user.projectContainerId;
+
+        if (!projectContainerId) {
+            projectContainer = await createProjectContainer(decodedToken);
+            projectContainerId = projectContainer.id;
+            console.log(`New project container created. ${projectContainer.id}`);
+        }
+
+        container = docker.getContainer(projectContainerId);
+
+        const containerData = await container.inspect();
+        const containerState = containerData.State.Status;
+
+        if (containerState === 'exited' || containerState === 'created') {
+            await container.remove();
+            console.log(`Old project container ${projectContainerId} removed successfully.`);
+            projectContainer = await createProjectContainer(decodedToken);
+            projectContainerId = projectContainer.id;
+            console.log(`Removed and created new project container. ${projectContainer.id}`);
+        } else {
+            console.log(`Project Container ${projectContainerId} is still running. Skipped removing it.`);
+        }
+
         const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;
 
-        const response = await axios({
-            url: zipUrl,
-            method: 'GET',
-            responseType: 'stream',
-            headers: {
-                'Authorization': `token ${accessToken}`,
-                'Accept': 'application/vnd.github.v3.raw'
-            }
-        });
+        const PROJECTS_DIR = `${user.userId}`;
+        const zipFilePath = `${PROJECTS_DIR}/${selectedRepo.name}.zip`;
+        const targetDirName = `${PROJECTS_DIR}/${selectedRepo.name}`;
 
-        const PROJECTS_DIR = `/${user.userId}/projects`;
-        await saveFileStreamToContainer(user.containerId, PROJECTS_DIR, `${selectedRepo.name}.zip`, response.data);
+        await execCommandInContainer(projectContainerId, `mkdir -p ${PROJECTS_DIR}`);
+        // Fetch the repository directly inside the container
+        const fetchCommand = `curl -L -H "Authorization: token ${accessToken}" -H "Accept: application/vnd.github.v3.raw" ${zipUrl} -o ${zipFilePath}`;
+        await execCommandInContainer(projectContainerId, fetchCommand);
+        console.log(`${selectedRepo.name}.zip saved to container ${projectContainerId} at ${zipFilePath}`);
+        // Remove target directory if it exists, unzip, move, and clean up
+        const cleanupCommand = `
+            rm -rf ${targetDirName} && \
+            unzip -o ${zipFilePath} -d ${PROJECTS_DIR} && \
+            mv ${PROJECTS_DIR}/${selectedRepo.name}-${selectedRepo.default_branch} ${targetDirName} && \
+            rm ${zipFilePath}
+        `;
+        await execCommandInContainer(projectContainerId, cleanupCommand);
 
-        const unzipResult = await execInContainer(user.containerId, ['unzip', '-o', `${PROJECTS_DIR}/${selectedRepo.name}`, '-d', PROJECTS_DIR]);
-        
-        const extractedDirName = `${selectedRepo.name}-${selectedRepo.default_branch}`;
-        const originalDirName = selectedRepo.name;
 
-        const renameResult = await execInContainer(user.containerId, ['mv', `${PROJECTS_DIR}/${extractedDirName}`, `${PROJECTS_DIR}/${originalDirName}`]);
-        const removeResult = await execInContainer(user.containerId, ['rm', `${PROJECTS_DIR}/${selectedRepo.name}.zip`]);
-
-        return res.status(200).json({ info: 'Repositories downloaded, unzipped, and saved successfully.', projectName: `${originalDirName}` });
+        return res.status(200).json({ info: 'Repositories downloaded, unzipped, and saved successfully.', projectName: selectedRepo.name });
 
     } catch (error) {
         console.error('Error during repo downloading:', error.message);

@@ -86,9 +86,11 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
 
     try {
         ({ accessToken, selectedRepo, decodedToken, CpuShares, Memory, containerName } = req.body);
-        if (!accessToken || !selectedRepo) {
-            throw new Error(`Missing: selectedRepo: ${selectedRepo}, accessToken: ${accessToken}, CpuShares: ${CpuShares}, Memory: ${Memory}`);
+       
+        if (!accessToken || !selectedRepo || !containerName) {
+            throw new Error(`Missing: selectedRepo: ${selectedRepo}, accessToken: ${accessToken}, CpuShares: ${CpuShares}, Memory: ${Memory}, Workspace Name: ${workspaceName}`);
         }
+        
         await client.connect();
         const db = client.db("controlia");
         const usersCollection = db.collection('users');

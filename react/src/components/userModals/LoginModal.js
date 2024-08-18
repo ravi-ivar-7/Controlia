@@ -3,7 +3,10 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
-import useToast from '../../hooks/useToast';
+import { Store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+
 import { useUser } from '../../context/UserContext';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
@@ -11,11 +14,10 @@ const clientId = '1020802754930-t0s2jcpvq5qvltpahol8l5pjvfnga3d6.apps.googleuser
 
 const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
   const [isOpen, setIsOpen] = useState(initialIsOpen);
-  const [credentials, setCredentials] = useState({ userId: '', password: '' });
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { showErrorToast, showSuccessToast } = useToast();
   const { setUser } = useUser();
 
   const navigate = useNavigate();
@@ -23,6 +25,22 @@ const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
+  };
+
+  const showNotification = (title, message, type) => {
+    Store.addNotification({
+      title: title,
+      message: message,
+      type: type,
+      insert: "top",
+      container: "top-right",
+      animationIn: ["animate__animated", "animate__fadeIn"],
+      animationOut: ["animate__animated", "animate__fadeOut"],
+      dismiss: {
+        duration: 5000,
+        onScreen: true
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -34,17 +52,17 @@ const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
         const { token, user } = response.data;
         localStorage.setItem('token', token);
         setUser(user);
-        showSuccessToast(response.data.info || 'Login successful');
+        showNotification('Info', response.data.info || 'Login successful', 'success');
 
         const params = new URLSearchParams(location.search);
         const redirectPath = params.get('redirect') || '/';
         navigate(redirectPath);
         setIsOpen(false);
       } else {
-        showErrorToast(response.data.warn);
+        showNotification('Error', response.data.warn , 'danger');
       }
     } catch (err) {
-      showErrorToast(`Login error: ${err}`);
+      showNotification('Error', `Login error: ${err}`, 'danger');
     } finally {
       setLoading(false);
     }
@@ -64,17 +82,17 @@ const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
         withCredentials: true
       });
       console.log(result.data.payload);
-      showSuccessToast(result.data.info)
+      showNotification( 'Info', result.data.info, 'success')
 
     } catch (error) {
       console.error('Login failed:', error);
-      showErrorToast('Google Login failed.')
+      showNotification('Error', 'Google Login failed.', 'danger')
     }
   };
 
   const onFailure = (response) => {
     console.error('Login failed:', response);
-    showErrorToast('Failed goolge login response.')
+    showNotification(  'Error',' Failed goolge login response.', 'danger')
   };
 
 
@@ -88,13 +106,13 @@ const LoginModal = ({ isOpen: initialIsOpen, onClose }) => {
       <Modal.Body>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label htmlFor="userId" className="form-label">Your Email/Username</label>
+            <label htmlFor="username" className="form-label">Your Email/Username</label>
             <input
               type="text"
-              name="userId"
-              id="userId"
+              name="username"
+              id="username"
               placeholder="User ID or Email"
-              value={credentials.userId}
+              value={credentials.username}
               onChange={handleChange}
               required
               className="form-control"

@@ -78,3 +78,18 @@
 		margin:10px 0;
 	}
 }
+
+
+
+.card-bg a {
+    color: #61dafb;
+    text-decoration: none;
+}
+
+.card-bg a:hover {
+    text-decoration: underline;
+}
+
+.card-bg .btn {
+    margin-top: 10px;
+}

@@ -1,9 +1,8 @@
 import './App.css';
 import React,{useState, useEffect} from 'react';
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Notifications } from 'react-push-notification';
+import {ReactNotifications} from 'react-notifications-component';
 
-import { Toaster } from 'react-hot-toast';
 import { useUser } from './context/UserContext';
 import MatomoTracker from './services/matomo/matomoTracker';
 import Home from './pages/home/Home'
@@ -33,16 +32,17 @@ function App() {
 return (
 
   <div className="App">
-    <Notifications />
+   
     <BrowserRouter>
       <MatomoTracker />
-      <Toaster />
 
+        <ReactNotifications />
 
 
       <div className="main-content">
 
         <div className="main">
+      
           <Routes>
             <Route path="/" element={user ? <Dashboard /> : <Home />} />
             <Route path="/home" element={<Home />} />

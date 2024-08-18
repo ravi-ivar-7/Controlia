@@ -3,7 +3,12 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import useToast from '../../hooks/useToast';
+
+import { Store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+
+
 import axiosInstance from '../../services/axiosInstance';
 import { useUser } from '../../context/UserContext';
 
@@ -13,7 +18,7 @@ const clientId = '1020802754930-t0s2jcpvq5qvltpahol8l5pjvfnga3d6.apps.googleuser
 
 const RegisterModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
-        userId: '',
+        username: '',
         email: '',
         name: '',
         password: '',
@@ -23,7 +28,6 @@ const RegisterModal = ({ isOpen, onClose }) => {
         passwordMatchError: ''
     });
     const [loading, setLoading] = useState(false);
-    const { showErrorToast, showSuccessToast } = useToast();
     const { setUser } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
@@ -37,6 +41,21 @@ const RegisterModal = ({ isOpen, onClose }) => {
         });
     };
 
+    const showNotification = (title, message, type) => {
+        Store.addNotification({
+          title: title,
+          message: message,
+          type: type,
+          insert: "top",
+          container: "top-right",
+          animationIn: ["animate__animated", "animate__fadeIn"],
+          animationOut: ["animate__animated", "animate__fadeOut"],
+          dismiss: {
+            duration: 5000,
+            onScreen: true
+          }
+        });
+      };
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.repeatPassword) {
@@ -51,16 +70,17 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(user));
                 setUser(user);
-                showSuccessToast(response.data.info || 'Registration successful');
+                
+                showNotification( 'Info', response.data.info || 'Registration successful', 'success');
 
                 const params = new URLSearchParams(location.search);
                 const redirectPath = params.get('redirect') || '/';
                 navigate(redirectPath);
             } else {
-                showErrorToast(response.data.warn);
+                showNotification('Error', response.data.warn, 'danger');
             }
         } catch (err) {
-            showErrorToast(`Registration error: ${err}`);
+            showNotification( 'Error' ` Registration error: ${err}`, 'danger');
         } finally {
             setLoading(false);
         }
@@ -76,17 +96,17 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 withCredentials: true
             });
             console.log(result.data.payload);
-            showSuccessToast(result.data.info)
+            showNotification( 'Info', result.data.info , 'success' )
 
         } catch (error) {
             console.error('Login failed:', error);
-            showErrorToast('Google Login failed.')
+            showNotification('Error', 'Google Login failed.', 'danger')
         }
     };
 
     const onFailure = (response) => {
         console.error('Login failed:', response);
-        showErrorToast('Failed goolge login response.')
+        showNotification('Error', 'Failed goolge login response.', 'danger')
     };
 
 
@@ -112,13 +132,13 @@ const RegisterModal = ({ isOpen, onClose }) => {
                         />
                     </Form.Group>
 
-                    <Form.Group controlId="userId">
+                    <Form.Group controlId="username">
                         <Form.Label>User ID</Form.Label>
                         <Form.Control
                             type="text"
-                            name="userId"
+                            name="username"
                             placeholder="Enter User ID"
-                            value={formData.userId}
+                            value={formData.username}
                             onChange={handleChange}
                             required
                         />

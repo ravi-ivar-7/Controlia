@@ -28,7 +28,7 @@ const loginWithContainer = async (req, res) => {
     try {
         ({ username, password } = req.body);
         if (!(username && password)) {
-            throw new Error(`Username/email and/or password are missing!`);
+            return res.status(209).json({warn: `Username/email and/or password are missing!` });
         }
 
         await client.connect();
@@ -38,20 +38,22 @@ const loginWithContainer = async (req, res) => {
 
         user = await usersCollection.findOne({ $or: [{ email: username }, { username: username }] });
         if (!user) {
-            throw new Error(`${username} not found.`);
+            return res.status(209).json({warn: `${username} not found.` });
         }
         if (!user.isVerified) {
-            throw new Error(`${user.email} not verified.`);
+            return res.status(209).json({warn: `${user.email} not verified.`});
+          
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            throw new Error(`Invalid credentials.`);
+            return res.status(209).json({warn: `Invalid credentials.`});
         }
 
         const containerData = await containersCollection.findOne({ userId: user.userId });
         if (!containerData) {
-            throw new Error(`Container for ${username} not found.`);
+            return res.status(209).json({warn:`Container for ${username} not found.`});
+          
         }
 
         const containerName = containerData.containerName;

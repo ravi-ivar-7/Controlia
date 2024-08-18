@@ -53,12 +53,13 @@ const registerWithContainer = async (req, res) => {
         ({ username, email, name, password, CpuShares, Memory } = req.body);
 
         if (!(email && name && username && password)) {
-            throw new Error(`Something missing! name: ${name}, username: ${username}, email: ${email}, password: ${password}, Memory: ${Memory}, CpuShares: ${CpuShares}`);
+            return res.status(209).json({warn:`Something missing! name: ${name}, username: ${username}, email: ${email}, password: ${password}, Memory: ${Memory}, CpuShares: ${CpuShares}` });
         }
 
         const existingUser = await usersCollection.findOne({ $or: [{ email: email }, { username: username }] });
         if (existingUser) {
-            throw new Error(`${username} already exists.`);
+            return res.status(209).json({warn:`${username} already exists.` });
+           
         }
 
         const volumeName = `${username}_main_volume`;

@@ -2,7 +2,10 @@ import React, { useState, useCallback, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ProjectDashboard.css';
 import axiosInstance from '../../services/axiosInstance';
-import useNotification from '../../hooks/pushNotification';
+
+import { Store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
 
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 
@@ -15,12 +18,19 @@ const Projects = () => {
     const [projects, setProjects] = useState([])
     const [deleteLoading, setDeleteLoading] = useState(false)
 
-    const { showNotification } = useNotification();
-    const handleNotification = (title, message) => {
-        showNotification({
+    const handleNotification = (title, message, type) => {
+        Store.addNotification({
           title: title,
           message: message,
-          position: 'top-right',
+          type: type,
+          insert: "top",
+          container: "top-right",
+          animationIn: ["animate__animated", "animate__fadeIn"],
+          animationOut: ["animate__animated", "animate__fadeOut"],
+          dismiss: {
+            duration: 5000,
+            onScreen: true
+          }
         });
       };
 
@@ -35,16 +45,16 @@ const fetchProjects = useCallback(async (token) => {
 
         if (response.status === 200) {
             if (response.data && response.data.info) {
-                handleNotification( 'Info' ,response.data.info);
+                handleNotification( 'Info' ,response.data.info, 'info');
             }
             setProjects(response.data.projects || []);
         } else {
             console.error('Internal Server Error:', response.data.warn);
-            handleNotification('Error', response.data.warn || 'Internal Server Error');
+            handleNotification('Error', response.data.warn || 'Internal Server Error', 'danger');
         }
     } catch (error) {
         console.error('Failed to fetch projects.', error);
-        handleNotification( 'Error'  , 'Failed to fetch projects.');
+        handleNotification( 'Error'  , 'Failed to fetch projects.', 'danger');
     } finally {
         setLoading(false);
     }
@@ -55,7 +65,7 @@ useEffect(() => {
 
     if (!token) {
         console.error('No token found in local storage');
-        handleNotification( 'Error'  , 'Failed to fetch projects.');
+        handleNotification( 'Error'  , 'Failed to fetch projects.', 'danger');
         return;
     }
     fetchProjects(token);
@@ -73,16 +83,16 @@ const handleProjectDelete = async (project) => {
 
         if (response.status === 200) {
             if (response.data && response.data.info) {
-                handleNotification( 'Info' ,response.data.info);
+                handleNotification( 'Info' ,response.data.info, 'info');
             }
             setProjects(prevs => prevs.filter(prev => prev.projectid !== project.projectid));
         } else {
             console.error('Internal Server Error:', response.data.warn);
-            handleNotification( 'Error'  , response.data.warn || 'Internal Server Error');
+            handleNotification( 'Error'  , response.data.warn || 'Internal Server Error', 'danger');
         }
     } catch (error) {
         console.error('Failed to delete.', error);
-        handleNotification( 'Error'  , 'Failed to fetch projects.');
+        handleNotification( 'Error'  , 'Failed to fetch projects.', 'danger');
     }
     finally {
         setDeleteLoading(false)
@@ -156,28 +166,49 @@ return (
                             </div>
 
                             <div className="info">
-                                <div className="d-flex card-section">
-                                    <div className="cards-container">
+            <div className="d-flex card-section">
+                <div className="cards-container">
+                    {projects.map((project, index) => (
+                        <div key={index} className="card-bg w-100 border d-flex flex-column">
+                            <div className="p-4 d-flex flex-column h-100">
+                                <h4 className="my-4 text-right text-white h2 font-weight-bold">{project.containerName}</h4>
 
-                                        {projects.map((project, index) => (
-                                            <div key={index} className="card-bg w-100 border d-flex flex-column">
-                                                <div className="p-4 d-flex flex-column h-100">
+                                <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" style={{ marginBottom: '5px' }}>
+                                    {project.projectUrl}
+                                </a>
 
-                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{project.projectName}</h4>
-                                                    <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" style={{ marginBottom: '5px' }}>   {project.projectUrl} </a>
-
-
-                                                    <div className="d-flex justify-content-between mt-auto">
-                                                        <button className="btn btn-danger" disabled={deleteLoading} onClick={() => handleProjectDelete(project)}>Delete</button>
-                                                        <button className="btn btn-secondary" onClick={() => handleProjectUpdate(project)}>Config Project</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-
-                                    </div>
+                                <div className="mt-3 mb-2">
+                                    <strong>Memory:</strong> {project.resourceAllocated.Memory} MB
+                                </div>
+                                <div className="mb-2">
+                                    <strong>CPU Shares:</strong> {project.resourceAllocated.CpuShares}
+                                </div>
+                                <div className="mb-2">
+                                    <strong>Container Server:</strong>
+                                    <div>Port: {project.containerServer.port}</div>
+                                    <div>Subdomain: {project.containerServer.subdomain}</div>
+                                </div>
+                                <div className="mb-2">
+                                    <strong>Code Server:</strong>
+                                    <div>Port: {project.codeServer.port}</div>
+                                    <div>Subdomain: {project.codeServer.subdomain}</div>
+                                </div>
+                                <div className="mb-2">
+                                    <strong>Volume Name:</strong> {project.volumeName}
+                                </div>
+                                <div className="mb-2">
+                                    <strong>Status:</strong> {project.status}
+                                </div>
+                                <div className="d-flex justify-content-between mt-auto">
+                                    <button className="btn btn-danger" disabled={deleteLoading} onClick={() => handleProjectDelete(project)}>Delete</button>
+                                    <button className="btn btn-secondary" onClick={() => handleProjectUpdate(project)}>Config Project</button>
                                 </div>
                             </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
                         </div>)}
                 </div>
             </div>

@@ -43,7 +43,7 @@ const Profile = () => {
 											<h4 className="my-4 text-right text-white h2 font-weight-bold">{user.name}</h4>
 
 											<p >
-												User-Id:	{user.userId}
+												User-Id:	{user.username}
 											</p>
 											<p >
 												Email: {user.email}

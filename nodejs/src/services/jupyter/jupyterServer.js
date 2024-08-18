@@ -1,8 +1,8 @@
-
+require('dotenv').config({ path: '../../.env' });
 const path = require('path');
 const fs = require('fs');
 const Docker = require('dockerode');
-const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
+const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock'||  '//./pipe/docker_engine'});
 
 const startJupyterServer = async (containerId, notebookDirectory) => {
   const container = docker.getContainer(containerId);

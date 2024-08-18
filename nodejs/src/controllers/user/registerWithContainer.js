@@ -1,179 +1,195 @@
+require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const { generateToken } = require('../../middlewares/generateToken');
+const { addToErrorMailQueue } = require('../../services/mail/manageMail');
 const bcrypt = require('bcryptjs');
 const logger = require('../../services/logs/winstonLogger');
-const tar = require('tar-stream');
-const fs = require('fs');
-const path = require('path');
 const Docker = require('dockerode');
 const { v4: uuidv4 } = require('uuid');
-const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
-
-function generateUniqueUid() {
-    const uuid = uuidv4(); // Generate a UUID
-    const compressedId = parseInt(uuid.replace(/-/g, '').slice(0, 12), 16) % 60000;
-    return compressedId;
-}
-
-async function findAvailablePort(start, end) {
-    for (let port = start; port <= end; port++) {
-        const isAvailable = await checkPortAvailability(port);
-        if (isAvailable) {
-            return port;
-        }
-    }
-    throw new Error('No available ports found in the specified range');
-}
-
-function checkPortAvailability(port) {
-    return new Promise((resolve, reject) => {
-        const server = require('net').createServer();
-
-        server.once('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                resolve(false);
-            } else {
-                reject(err);
-            }
-        });
-
-        server.once('listening', () => {
-            server.close();
-            resolve(true);
-        });
-
-        server.listen(port);
-    });
-}
-
+const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock' || '//./pipe/docker_engine' });
 
 const registerWithContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
+    let volume, container, userId;
+    let username, email, name, password, CpuShares = process.env.DEFAULT_CONTAINER_CPUSHARES, Memory = process.env.DEFAULT_CONTAINER_MEMORY;
+    let openPort = process.env.MAIN_OPEN_PORT || 3000;
+
+    const cleanup = async () => {
+        if (container) {
+            try {
+                await container.stop();
+                await container.remove();
+            } catch (err) {
+                logger.error(`ERROR CLEANING UP CONTAINER: ${err.message}`);
+            }
+        }
+
+        if (volume) {
+            try {
+                await docker.getVolume(volume.name).remove();
+            } catch (err) {
+                logger.error(`ERROR CLEANING UP VOLUME: ${err.message}`);
+            }
+        }
+
+        if (client.isConnected()) {
+            const db = client.db("controlia");
+            await db.collection('users').deleteOne({ userId });
+            await db.collection('accounts').deleteOne({ userId });
+            await db.collection('containers').deleteOne({ userId });
+            await db.collection('resources').deleteOne({ userId });
+        }
+    };
 
     try {
         await client.connect();
         const db = client.db("controlia");
+
         const usersCollection = db.collection('users');
+        const accountsCollection = db.collection('accounts');
+        const containersCollection = db.collection('containers');
+        const resourcesCollection = db.collection('resources');
 
-        const { userId, email, name, password } = req.body;
+        ({ username, email, name, password, CpuShares, Memory } = req.body);
 
-        if (!(email && name && userId && password)) {
-            return res.status(209).json({ warn: "All fields are required!" });
+        if (!(email && name && username && password)) {
+            throw new Error(`Something missing! name: ${name}, username: ${username}, email: ${email}, password: ${password}, Memory: ${Memory}, CpuShares: ${CpuShares}`);
         }
 
-        const existingUser = await usersCollection.findOne({ $or: [{ email: email }, { userId: userId }] });
+        const existingUser = await usersCollection.findOne({ $or: [{ email: email }, { username: username }] });
         if (existingUser) {
-            return res.status(209).json({ warn: "User already exists" });
+            throw new Error(`${username} already exists.`);
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const volumeName = `v_${userId}`;
-        const volume = await docker.createVolume({ Name: volumeName });
 
+        const volumeName = `${username}_main_volume`;
+        const containerName = `${username}_main_container`;
+        const mainSubdomain = `${username}_main_server`;
+
+        volume = await docker.createVolume({ Name: volumeName });
         if (!volume) {
-            throw new Error('Failed to create volume for user.');
+            throw new Error(`Failed to create volume for ${username}`);
         }
 
-        const containerName = `c_${userId}`;
+        // Create container
+        container = await docker.createContainer({
+            Image: `controlia:${process.env.BASE_IMAGE_VERSION}`,
+            name: containerName,
+            Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
+            HostConfig: {
+                CpuShares: CpuShares,
+                Memory: Memory,
+                Binds: [`${volumeName}:/root`],
+                NetworkMode: 'web'
+            },
+            ExposedPorts: {
+                "80/tcp": {},
+                "443/tcp": {},
+                [`${openPort}/tcp`]: {},
+            },
+            Env: [
+                `USERNAME=${username}`,
+                `USERPASSWORD=${password}`
+            ],
+            Labels: {
+                "traefik.enable": "true",
+                [`traefik.http.routers.${mainSubdomain}.entrypoints`]: "http",
+                [`traefik.http.routers.${mainSubdomain}.rule`]: `Host(\`${mainSubdomain}.bycontrolia.com\`)`,
+                [`traefik.http.middlewares.${mainSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
+                [`traefik.http.routers.${mainSubdomain}-secure.entrypoints`]: "https",
+                [`traefik.http.routers.${mainSubdomain}-secure.rule`]: `Host(\`${mainSubdomain}.bycontrolia.com\`)`,
+                [`traefik.http.routers.${mainSubdomain}-secure.tls`]: "true",
+                [`traefik.http.routers.${mainSubdomain}-secure.tls.certresolver`]: "cloudflare",
+                [`traefik.http.routers.${mainSubdomain}.service`]: `${mainSubdomain}`,
+                [`traefik.http.services.${mainSubdomain}.loadbalancer.server.port`]: `${openPort}`,
+            },
+        });
 
-        const USERNAME = userId;
-        const UID = generateUniqueUid(userId);
-        const PASSWORD = password
-        const GID = 1001;
+        if (!container) {
+            throw new Error(`Failed to create container for ${username}`);
+        }
 
-        const hostPortMappings = await Promise.all([
-            findAvailablePort(9001, 10000), // for port 80
-            findAvailablePort(10001, 11000), // for port 443
-            findAvailablePort(11001, 12000),  // for port 3000
-            findAvailablePort(12001, 13000), // for port 8888
+        await container.start();
 
-        ]);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        const [hostPort80, hostPort443, hostPort3000, hostPort8888] = hostPortMappings;
-
-        const containerCmd = `
-            groupadd -g ${GID} ${USERNAME} \
-            && useradd -u ${UID} -g ${GID} -m ${USERNAME} \
-            && echo "${USERNAME}:${PASSWORD}" | chpasswd \
-            && usermod -aG sudo ${USERNAME} \
-            && mkdir -p /${USERNAME} \
-            && mkdir -p /${USERNAME}/temp \
-            && mkdir -p /${USERNAME}/scripts \
-            && mkdir -p /${USERNAME}/notebooks \
-            && mkdir -p /${USERNAME}/projects \
-            && chown -R ${USERNAME}:${USERNAME} /${USERNAME} \
-            && su - ${USERNAME} -c "while :; do sleep 604800 ; done"
-            `;
-
-            const container = await docker.createContainer({
-                Image: 'controlia:latest',
-                name: containerName,
-                Cmd: ['sh', '-c', containerCmd],
-                HostConfig: {
-                    CpuShares: 100,
-                    Memory: 100 * 1024 * 1024,
-                    Binds: [`${volumeName}:/${USERNAME}`],
-                    PortBindings: {
-                        "80/tcp": [{ "HostPort": `${hostPort80}` }],
-                        "443/tcp": [{ "HostPort": `${hostPort443}` }],
-                        "3000/tcp": [{ "HostPort": `${hostPort3000}` }],
-                        "8888/tcp": [{ "HostPort": `${hostPort8888}` }],
-                    }
-                },
-                ExposedPorts: {
-                    "80/tcp": {},
-                    "443/tcp": {},
-                    "3000/tcp": {},
-                    "8888/tcp": {},
-                    
-                },
-                Env: [
-                    `USER_ID=${UID}`,
-                    `GROUP_ID=${GID}`,
-                    `USER_NAME=${USERNAME}`,
-                    `USER_PASSWORD=${PASSWORD}`
-                ],
-            });
-    
-            if (!container) {
-                return { status: 209, json: { warn: "Failed to register. Try Again" } };
-            }
-
-            await container.start();
-
+        userId = uuidv4();
         const newUser = {
-            userId: userId,
-            email: email,
-            name: name,
+            userId,
+            username,
+            email,
+            name,
             password: hashedPassword,
-            accountCreated:new Date(),
-            lastLogin: new Date(),
-            source: 'application',
-            verified:false,
-            UID: UID,
-            GID: GID,
-            hostPort80,
-            hostPort443,
-            hostPort3000,
-            hostPort8888,
-            containerId: container.id,
-            containerName: containerName,
-            volumeName: volumeName,
-            projectContainerId:'',
-            projectContainerName:'',
-            projectVolumeName:''
+            isVerified: false,
         };
-
         await usersCollection.insertOne(newUser);
 
-        const tokenData = { email, userId, name };
+        const newAccount = {
+            userId,
+            registrationDate: new Date(),
+            address: null,
+            city: null,
+            state: null,
+            postalCode: null,
+            phoneNumber: null,
+            subscription: 'free',
+            subscriptionStart: null,
+            subscriptionEnd: null,
+            accountProvider: 'email',
+            role: 'user'
+        };
+        await accountsCollection.insertOne(newAccount);
+
+        const newContainer = {
+            userId,
+            containerId: container.id,
+            containerName,
+            type: 'main',
+            volumeName,
+            resourceAllocated: { Memory: Memory, CpuShares: CpuShares },
+            createdAt: new Date(),
+            status: 'running',
+            containerDomains: {
+                [openPort]: mainSubdomain,
+                // [anotherPort]: anotherSubdomain,
+            },
+            anySchedule: false,
+            containerConfig: {}
+        };
+        await containersCollection.insertOne(newContainer);
+
+        const newResources = {
+            userId,
+            totalResources: { Memory: process.env.TOTAL_FREE_MEMORY, CpuShares: process.env.TOTAL_FREE_CPUSHARES },
+            usedResources: { ...newContainer.resourceAllocated },
+        };
+        await resourcesCollection.insertOne(newResources);
+
+        const tokenData = { email, username, userId, name, isVerified: newUser.isVerified };
         const token = generateToken(tokenData);
 
         return res.status(200).json({ info: "Account created successfully", token, user: tokenData });
 
     } catch (error) {
         logger.error(`ERROR DURING REGISTRATION: ${error}`);
-        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error: error.message });
 
+        let mailOptions = {
+            from: process.env.FROM_ERROR_MAIL,
+            subject: `An error occurred during registration.`,
+            to: process.env.TO_ERROR_MAIL,
+            text: `Function : registerWithContainer \nname: ${name}, username: ${username}, email: ${email}, password: ${password}, CpuShares: ${CpuShares}, Memory: ${Memory}, openPort: ${openPort} \n Error: ${error}`,
+        };
+
+        addToErrorMailQueue(mailOptions)
+            .then(() => {
+                logger.info('Error mail added.');
+            })
+            .catch((error) => {
+                logger.error(`Failed to add error mail alert. ${error}`);
+            });
+
+        await cleanup();
+
+        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error: error.message });
     } finally {
         if (client) {
             await client.close();

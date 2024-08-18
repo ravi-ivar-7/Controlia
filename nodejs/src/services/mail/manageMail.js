@@ -3,20 +3,8 @@ const nodemailer = require('nodemailer');
 const logger = require('../logs/winstonLogger');
 const { Queue } = require('bullmq');
 
-
-let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.NODEJS_FROM_EMAIL,  
-        pass: process.env.NODEJS_FROM_EMAIL_PASSWORD,   
-    }
-});
-
-
 const REDIS_URL = process.env.REDIS_URL
-
 const IORedis = require('ioredis');
-
 const redisOptions = {
     port: 6379, 
     host: 'singapore-redis.render.com',
@@ -25,31 +13,54 @@ const redisOptions = {
     tls: {}, 
     maxRetriesPerRequest: null
 };
-
 const connection = new IORedis(redisOptions);
 
-const mailQueue = new Queue('mailQueue', { connection });
+let scheduleMailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.FROM_SCHEDULE_MAIL,  
+        pass: process.env.SCHEDULE_MAIL_PASSWORD,   
+    }
+});
 
-const addToMailQueue = async (mailOptions) => {
+let errorMailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.FROM_ERROR_MAIL,  
+        pass: process.env.ERROR_MAIL_PASSWORD,   
+    }
+});
+
+let directMailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.FROM_DIRECT_MAIL,  
+        pass: process.env.DIRECT_MAIL_PASSWORD,   
+    }
+});
+
+
+
+const scheduleMailQueue = new Queue('mailQueue', { connection });
+const addToScheduleMailQueue = async (mailOptions) => {
     try {
         const jobPayload = { mailOptions };
 
-        const newMailJob = await mailQueue.add('sendMail', jobPayload);
+        const newMailJob = await scheduleMailQueue.add('sendScheduleMail', jobPayload);
 
         if (!newMailJob) {
-            logger.error('Error occurred during adding mail to mailQueue');
-            throw new Error('Error occurred during adding mail to mailQueue');
+            logger.error('Error occurred during adding mail to scheduleMailQueue');
+            throw new Error('Error occurred during adding mail to scheduleMailQueue');
         }
     } catch (error) {
-        logger.error(`Error occurred during adding mail to mailQueue: ${error}`);
+        logger.error(`Error occurred during adding mail to scheduleMailQueue: ${error}`);
         throw error;
     }
 };
-
-const sendMail = async (job) => {
+const sendScheduleMail = async (job) => {
     const {mailOptions} = job.data;
     try {
-        let info = await transporter.sendMail(mailOptions);
+        let info = await scheduleMailTransporter.sendMail(mailOptions);
         logger.info(`Mail sent with id: ${info.messageId}`)
         return info;
     } catch (error) {
@@ -58,18 +69,45 @@ const sendMail = async (job) => {
     }
 };
 
-module.exports = { sendMail , addToMailQueue, mailQueue};
+const errorMailQueue = new Queue('errorMailQueue', {connection});
+const addToErrorMailQueue = async (mailOptions) => {
+    try {
+        const jobPayload = { mailOptions };
 
-// let mailOptions = {
-//     from: 'your_email@gmail.com',
-//     to: 'recipient@example.com',
-//     subject: 'Sending Email with Attachments',
-//     html: '<h1>Hello from Node.js!</h1><p>This is a test email with HTML content.</p>',
-//     text: 'Hello from Node.js!',  // Plain text body,
-//     attachments: [
-//         {
-//             filename: 'report.pdf',
-//             path: '/path/to/report.pdf'  // Replace with the path to your file
-//         }
-//     ]
-// };
+        const newMailJob = await errorMailQueue.add('sendErrorMail', jobPayload);
+
+        if (!newMailJob) {
+            logger.error('Error occurred during adding mail to errorMailQueue');
+            throw new Error('Error occurred during adding mail to errorMailQueue');
+        }
+    } catch (error) {
+        logger.error(`Error occurred during adding mail to errorMailQueue: ${error}`);
+        throw error;
+    }
+};
+
+const sendErrorMail = async (job) => {
+    const {mailOptions} = job.data;
+    try {
+        let info = await errorMailTransporter.sendMail(mailOptions);
+        logger.info(`Error Mail sent with id: ${info.messageId}`)
+        return info;
+    } catch (error) {
+        logger.error(`Error occured during sending error mail: ${error}`);
+        throw error;
+    }
+};
+
+
+const sendDirectMail = async(mailOptions)=>{
+    try {
+        let info = await directMailTransporter.sendMail(mailOptions);
+        logger.info(`Mail sent with id: ${info.messageId}`)
+        return info;
+    } catch (error) {
+        logger.error(`Error occured during sending mail: ${error}`);
+        throw error;
+    }
+}
+
+module.exports = { sendDirectMail, sendScheduleMail , addToScheduleMailQueue, sendErrorMail, addToErrorMailQueue, errorMailQueue , scheduleMailQueue};

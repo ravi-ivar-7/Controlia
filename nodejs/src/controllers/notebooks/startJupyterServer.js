@@ -2,7 +2,7 @@ require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const logger = require('../../services/logs/winstonLogger');
 const Docker = require('dockerode');
-const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
+const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock'||  '//./pipe/docker_engine'});
 
 const jupyterServer = async (io, socket, data) => {
     const client = new MongoClient(process.env.MONGODB_URL);

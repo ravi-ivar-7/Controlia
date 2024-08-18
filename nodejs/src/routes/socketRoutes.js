@@ -1,18 +1,5 @@
-const controller1 = require('../controllers/socket/controller1');
-const controller2 = require('../controllers/socket/controller2');
-
-const {runCppFile} = require('../controllers/scripts/runCppFile')
-const {runJavaScriptFile} = require('../controllers/scripts/runJavaScriptFile')
-const {runPythonFile} = require('../controllers/scripts/runPythonFile')
-const {runShellFile} = require('../controllers/scripts/runShellFile')
 
 const { jupyterServer } = require('../controllers/notebooks/startJupyterServer');
-
-const {containerTerminal} = require('../controllers/containers/containerTerminal')
-const {containerModule} = require('../controllers/containers/containerModules')
-const {containerCommand} = require('../controllers/containers/containerCommand');
-
-const {deployProject} = require('../controllers/projects/deployProject')
 
 
 module.exports = (io) => {
@@ -53,18 +40,6 @@ module.exports = (io) => {
     socket.on('deployProject', (data) =>{
       deployProject(io, socket, data)
     })
-
-
-    
-    // Handle event1
-    socket.on('event1', (data) => {
-      controller1.handleEvent(io, socket, data);
-    });
-
-    // Handle event2
-    socket.on('event2', (data) => {
-      controller2.handleEvent(io, socket, data);
-    });
 
     socket.on('disconnect', () => {
       console.log(`${socket.decodedToken.userId} disconnected.`);

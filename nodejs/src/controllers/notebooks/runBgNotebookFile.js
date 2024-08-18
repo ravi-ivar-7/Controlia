@@ -1,7 +1,7 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const Docker = require('dockerode');
-const docker = new Docker({ socketPath: '//./pipe/docker_engine' });
+const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock'||  '//./pipe/docker_engine'});
 const logger = require('../../services/logs/winstonLogger');
 const { resetNotebookSchedule } = require('./resetNotebookSchedule')
 const { saveFileToContainer } = require('../../services/docker/manageVolumeFiles')

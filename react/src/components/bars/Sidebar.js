@@ -11,23 +11,8 @@ import { NavLink } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 
 const Sidebar = () => {
-  const [scriptSubMenuOpen, setScripteSubMenuOpen] = useState(false);
-  const [notebookSubMenuOpen, setNotebookSubMenuOpen] = useState(false);
-  const [projectSubMenuOpen, setProjectSubMenuOpen] = useState(false);
   const [supportSubMenuOpen, setSupportSubMenuOpen] = useState(false);
   const { sidebarState } = useSidebar();
-
-  const handleScriptSubMenuToggle = () => {
-    setScripteSubMenuOpen(!scriptSubMenuOpen);
-  };
-
-  const handleNotebookSubMenuToggle = () => {
-    setNotebookSubMenuOpen(!notebookSubMenuOpen);
-  };
-
-  const handleProjectSubMenuToggle = () => {
-    setProjectSubMenuOpen(!projectSubMenuOpen);
-  };
 
   const handleSupportSubMenuOpen = () => {
     setSupportSubMenuOpen(!supportSubMenuOpen);
@@ -63,41 +48,14 @@ const Sidebar = () => {
                   <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
                 </NavLink>
 
-                <div>
-                  <div
-                    onClick={handleScriptSubMenuToggle}
-                    style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
-                  >
-                    <CDBSidebarMenuItem icon="file-code">
-                      <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                        Scripts
-                        <i className={`fa fa-chevron-${scriptSubMenuOpen ? "down" : "right"}`} style={{ marginLeft: "7px" }}></i>
-                      </div>
-                    </CDBSidebarMenuItem>
-                  </div>
-                  {scriptSubMenuOpen && (
-                    <div style={{ paddingLeft: "20px" }}>
-                      
-                      <NavLink exact to="/scripts" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
-                      </NavLink>
-
-                      <NavLink exact to="/schedule-scripts" activeClassName="activeClicked">
-                        <CDBSidebarMenuItem icon="calendar-alt">Schedule</CDBSidebarMenuItem>
-                      </NavLink>
-                      <NavLink exact to="/share-scripts" activeClassName="activeClicked">
-                      <CDBSidebarMenuItem icon="share-alt">Shared</CDBSidebarMenuItem>
-                      </NavLink>
-                    </div>
-                  )}
-                </div>
-
+                <NavLink exact to="/projects" activeClassName="activeClicked">
+                  <CDBSidebarMenuItem icon="book">Projects</CDBSidebarMenuItem>
+                </NavLink>
                 <NavLink exact to="/notebooks" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="book">Notebooks</CDBSidebarMenuItem>
                 </NavLink>
-
-                <NavLink exact to="/projects" activeClassName="activeClicked">
-                  <CDBSidebarMenuItem icon="project-diagram">Projects</CDBSidebarMenuItem>
+                <NavLink exact to="/deployments" activeClassName="activeClicked">
+                  <CDBSidebarMenuItem icon="project-diagram">Deployments</CDBSidebarMenuItem>
                 </NavLink>
 
 
@@ -106,9 +64,6 @@ const Sidebar = () => {
                   <CDBSidebarMenuItem icon="lightbulb">Resources</CDBSidebarMenuItem>
                 </NavLink>
 
-                <NavLink exact to="/analytics" activeClassName="activeClicked">
-                  <CDBSidebarMenuItem icon="chart-pie">Analytics</CDBSidebarMenuItem>
-                </NavLink>
                 <NavLink exact to="/settings" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="cogs">Settings</CDBSidebarMenuItem>
                 </NavLink>

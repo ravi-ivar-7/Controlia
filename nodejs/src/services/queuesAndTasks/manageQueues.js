@@ -1,8 +1,8 @@
-const { scheduleScriptQueue } = require('../../controllers/scripts/scheduleScript');
+// const { scheduleScriptQueue } = require('../../controllers/scripts/scheduleScript');
 const {mailQueue} = require('../mail/manageMail')
 
 const queueMap = {
-    scheduleScriptQueue,
+    // scheduleScriptQueue,
     mailQueue
 };
 

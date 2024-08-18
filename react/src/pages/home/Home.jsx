@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
+import useNotification from '../../hooks/pushNotification';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Home.css';
 import { Modal, Button } from 'react-bootstrap';
@@ -9,11 +11,21 @@ import "./Home.css";
 import { Card } from 'react-bootstrap';
 import { Link } from "react-router-dom";
 import { useUser } from '../../context/UserContext';
+
 const Home = () => {
   const { user } = useUser();
   const [showAboutUs, setShowAboutUs] = useState(false);
   const [showPrivacyPolicies, setShowPrivacyPolicies] = useState(false);
   const [showTermsConditions, setShowTermsConditions] = useState(false);
+
+  const { showNotification } = useNotification();
+  useEffect(() => {
+    showNotification({
+      title: 'Info',
+      message: user ? `Signed-in as ${user.userId}` : 'Guest',
+      position: 'top-right',
+    });
+  }, []);
 
   return (
 
@@ -26,7 +38,7 @@ const Home = () => {
         <div style={{ height: "100%" }}>
           <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
-            <div className="d-flex card-section" style={{backgroundImage: 'url("img/pages/simplebg.webp")', padding: '10px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
+            <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/simplebg.webp")', padding: '10px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
               <div className="cards-container">
                 <div className="d-flex flex-column h-100 justify-content-center align-items-center">
                   <div className="mx-4 mt-3 d-flex justify-content-center align-items-center" style={{ marginBottom: '20px' }}>
@@ -41,7 +53,9 @@ const Home = () => {
                     <p style={{ fontSize: '1rem', lineHeight: '1.5' }}>
                       Build, Schedule, Automate, Deploy
                     </p>
-
+                    <div className="page">
+                     
+                    </div>
                     {user ? (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
                         <CDBBtn color="primary" style={{ margin: '0 10px', padding: '8px 16px' }}>

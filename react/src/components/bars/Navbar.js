@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
 import { Header, ThreeStateButton } from './Navbar.style.js'
 import { Modal, Button } from 'react-bootstrap';
-import TerminalModal from "../../pages/dashboard/TerminalModal.js";
 
 import { CDBBtn } from "cdbreact";
 const Navbar = ({ pageTitle }) => {
@@ -14,7 +13,6 @@ const Navbar = ({ pageTitle }) => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [betaModal, setBetaModal] = useState(false);
   const { sidebarState, setSidebarContext } = useSidebar();
-  const [terminalModal, setTerminalModal] = useState(false)
 
   const togglePopup = () => {
     setPopupVisible(!popupVisible);
@@ -63,11 +61,6 @@ const Navbar = ({ pageTitle }) => {
           </button>
         </div>
       </ThreeStateButton>
-
-      <CDBBtn onClick={() => { setTerminalModal(true) }}>
-        <i className="fas fa-terminal"></i>
-      </CDBBtn>
-
 
       <h1 style={{ fontSize: '1rem', marginTop: '10px' }}>{pageTitle}</h1>
 
@@ -144,10 +137,6 @@ const Navbar = ({ pageTitle }) => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <TerminalModal show={terminalModal}
-        handleClose={() => setTerminalModal(false)}
-      />
 
     </Header>
 

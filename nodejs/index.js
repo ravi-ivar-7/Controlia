@@ -38,9 +38,9 @@ const redisOptions = {port: 6379, host: 'singapore-redis.render.com',username: '
 const connection = new IORedis(redisOptions);
 
 // FOR UI
-const {scheduleScriptQueue} = require('./src/controllers/scripts/scheduleScript')
+// const {scheduleScriptQueue} = require('./src/controllers/scripts/scheduleScript')
 const {scheduleNotebookQueue} = require('./src/controllers/notebooks/schduleNotebook')
-const {mailQueue} = require('./src/services/mail/manageMail')
+const {errorMailQueue, scheduleMailQueue} = require('./src/services/mail/manageMail')
 const { createBullBoard } = require('@bull-board/api');
 const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
 const { ExpressAdapter } = require('@bull-board/express');
@@ -49,7 +49,7 @@ const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
 
 const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
-  queues: [new BullMQAdapter(scheduleScriptQueue),new BullMQAdapter(mailQueue),new BullMQAdapter(scheduleNotebookQueue)],
+  queues: [new BullMQAdapter(scheduleMailQueue),new BullMQAdapter(errorMailQueue),  new BullMQAdapter(scheduleNotebookQueue)],
   serverAdapter: serverAdapter,
 });
 app.use('/admin/queues', serverAdapter.getRouter());
@@ -57,16 +57,11 @@ app.use('/admin/queues', serverAdapter.getRouter());
 // FOR WORKER
 const { sendMail } = require('./src/services/mail/manageMail');
 
-const {runBgCppFile} = require('./src/controllers/bgScripts/runBgCppFile')
-const {runBgJavaScriptFile} = require('./src/controllers/bgScripts/runBgJavaScriptFile')
-const {runBgPythonFile} = require('./src/controllers/bgScripts/runBgPythonFile')
-const {runBgShellFile} = require('./src/controllers/bgScripts/runBgShellFile');
 
 const {runBgNotebookFile} = require('./src/controllers/notebooks/runBgNotebookFile');
 
 const jobHandlers = {
   sendMail,
-  runBgCppFile, runBgJavaScriptFile, runBgPythonFile, runBgShellFile,
   runBgNotebookFile,
 };
 

@@ -1,40 +1,45 @@
 require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
-
+const { addToErrorMailQueue } = require('../../services/mail/manageMail');
 const logger = require('../../services/logs/winstonLogger');
-const { getFileNamesFromContainer } = require('../../services/docker/manageVolumeFiles');
 
-const getAllNotebooks = async (req, res) => {
+const getNotebooks = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
+    let decodedToken;
+    
     try {
-        const { decodedToken } = req.body;
-
+        ({ decodedToken } = req.body);
         await client.connect();
         const db = client.db("controlia");
-        const usersCollection = db.collection('users');
-        const user = await usersCollection.findOne({ userId: decodedToken.userId })
 
-        const files = await getFileNamesFromContainer(user.containerId, `/${user.userId}/notebooks/`)
-        const ipynbFiles = files
-            .filter(filePath => {
-                const relativePath = filePath.substring('notebooks/'.length);
-                const slashCount = (relativePath.match(/\//g) || []).length;
-                return slashCount === 0 && filePath.endsWith('.ipynb');
-            })
-            .map(filePath => filePath.substring('notebooks/'.length));  // Remove 'notebooks/' prefix
+        const containersCollection = db.collection('containers');
 
-        return res.status(200).json({ info: 'Fetched notebooks successfully...', notebooks: ipynbFiles || [] });
+        const notebooks = await containersCollection.find({ userId: decodedToken.userId, type: 'notebooks' }).toArray();
+
+        return res.status(200).json({ info: 'Fetched notebooks successfully.', notebooks });
 
     } catch (error) {
-        logger.error(`ERROR IN GETING notebooks: ${error}`);
-        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error });
+        logger.error(`ERROR IN GETTING NOTEBOOKS: ${error.message}`);
+
+        let mailOptions = {
+            from: process.env.FROM_ERROR_MAIL,
+            subject: `An error occurred during fetching notebooks for user ${decodedToken?.username || 'unknown'}.`,
+            to: process.env.TO_ERROR_MAIL,
+            text: `Function: getNotebooks\nDecodedToken: ${JSON.stringify(decodedToken)}\nError: ${error.message}`,
+        };
+
+        addToErrorMailQueue(mailOptions)
+            .then(() => {
+                logger.info('Error mail added.');
+            })
+            .catch((mailError) => {
+                logger.error(`Failed to add error mail alert. ${mailError.message}`);
+            });
+
+        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error: error.message });
     } finally {
-        if (client) {
-            await client.close();
-        }
+        await client.close();
     }
 };
 
-
-
-module.exports = { getAllNotebooks };
+module.exports = { getNotebooks };

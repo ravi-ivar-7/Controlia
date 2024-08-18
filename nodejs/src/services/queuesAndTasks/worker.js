@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../../.env' });
 const { Worker } = require('bullmq');
-const { runScheduleScript } = require("../controllers/scheduleScripts/runScheduleScript");
+// const { runScheduleScript } = require("../controllers/scheduleScripts/runScheduleScript");
 const { sendMail } = require('./manageMail');
 const logger = require('./winstonLogger');
 const IORedis = require('ioredis');
@@ -17,7 +17,7 @@ const redisOptions = {
 const connection = new IORedis(redisOptions);
 
 const jobHandlers = {
-    runScheduleScript,
+    // runScheduleScript,
     sendMail,
 };
 

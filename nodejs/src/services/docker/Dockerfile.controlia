@@ -1,36 +1,39 @@
 FROM ubuntu:latest
 
+# Ensure the system time is synchronized before running apt-get update
+RUN apt-get update --allow-releaseinfo-change -y && apt-get install -y \
+    tzdata
+
 RUN apt-get update \
     && apt-get install -y \
-    nodejs \
-    npm \
     python3 \
     python3-pip \
-    g++ \
-    sudo \
-    ttyd \
     wget \
     nano \
     pipx \
     unzip \
-    nohup \
     supervisor \
     curl \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /root/.cache/pip
+
+# Ensure pipx installed packages are globally accessible
+RUN /root/.local/bin/pipx ensurepath
+
+# Reload the PATH to ensure the new path is used
+ENV PATH="/root/.local/bin:${PATH}"
 
 WORKDIR /
 
-# Install Jupyter, notebook, and nbconvert system-wide
-RUN pip3 install --break-system-packages jupyter notebook nbconvert \
-    && rm -rf /root/.cache/pip
+# Install code-server
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
+# Install Jupyter, notebook, and nbconvert system-wide using pip
+RUN pip3 install --break-system-packages jupyter notebook nbconvert
 
 # Expose the ports
-EXPOSE  80 443 3000 3001 3002 8881
+EXPOSE 80 443
 
 
-#  docker build -t controlia:latest -f Dockerfile.controlia .
-
-# dccdc626bb02695a6451f76a5c8b69225250767a   Iv23ctSvHPR6bnN27qhA
-
-# google key=AIzaSyBW150jN6ELdtZQrJ_7Wui3_Jjnx1-FdVs
+# Docker build command
+# docker build -t controlia:latest -f Dockerfile.controlia .

@@ -17,7 +17,7 @@ async function generateBasicAuth(user, password) {
     }
 }
 
-const createProjectContainer = async (user, memory, nanoCpus, containerName, volumeName) => {
+const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,volumeName, workspaceName) => {
     try {
         const codeServerPort = process.env.CODESERVER_PORT || 8080;
         const mainServerPort = process.env.MAINSERVER_PORT || 7777;
@@ -30,10 +30,10 @@ const createProjectContainer = async (user, memory, nanoCpus, containerName, vol
 
         let volume, container;
 
-        const codeServerSubdomain = `${user.username}_${containerName}_codeserver`;
-        const mainServerSubdomain = `${user.username}_${containerName}_mainserver`;
-        const dev3000ServerSubdomain = `${user.username}_${containerName}_dev3000server`;
-        const dev5000ServerSubdomain = `${user.username}_${containerName}_dev5000server`;
+        const codeServerSubdomain = `${user.username}_${workspaceName}_codeserver`;
+        const mainServerSubdomain = `${user.username}_${workspaceName}_mainserver`;
+        const dev3000ServerSubdomain = `${user.username}_${workspaceName}_dev3000server`;
+        const dev5000ServerSubdomain = `${user.username}_${workspaceName}_dev5000server`;
 
         const mainserverAuthString = await generateBasicAuth(`${user.username}_mainserver`, `${user.username}_password`);
         const codeserverAuthString = await generateBasicAuth(`${user.username}_codeserver`, `${user.username}_password`);
@@ -117,7 +117,7 @@ const createProjectContainer = async (user, memory, nanoCpus, containerName, vol
         });
 
         if (!container) {
-            throw new Error(`Failed to create new project container for ${user.username}`);
+            throw new Error(`Failed to create new workspace container for ${user.username}`);
         }
 
         await container.start();
@@ -147,10 +147,10 @@ const createProjectContainer = async (user, memory, nanoCpus, containerName, vol
         };
         
     } catch (err) {
-        console.log(`Error occured duing project container creation: ${err}`)
-        throw new Error(`Project container creation error: ${err}`)
+        console.log(`Error occured duing workspace container creation: ${err}`)
+        throw new Error(`workspace container creation error: ${err}`)
     }
 
 };
 
-module.exports = { createProjectContainer };
+module.exports = { createWorkspaceContainer };

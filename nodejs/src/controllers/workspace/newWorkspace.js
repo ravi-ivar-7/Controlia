@@ -2,7 +2,7 @@ require('dotenv').config({ path: '../../../.env' });
 const { MongoClient } = require('mongodb');
 const { addToErrorMailQueue } = require('../../services/mail/manageMail');
 const Docker = require('dockerode');
-const { createProjectContainer } = require('./projectContainer');
+const { createWorkspaceContainer } = require('./workspaceContainer');
 const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock' });
 
 const execCommandInContainer = async (containerId, command) => {
@@ -43,9 +43,9 @@ const execCommandInContainer = async (containerId, command) => {
     }
 };
 
-const downloadGithubRepoToNewContainer = async (req, res) => {
+const newWorkspaceContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
-    let accessToken, selectedRepo, decodedToken, containerName, volumeName;
+    let accessToken, selectedRepo, decodedToken, containerName, volumeName, workspaceName,workspaceVolume;
     let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory;
 
     const cleanUp = async () => {
@@ -91,16 +91,16 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
     };
 
     try {
-        ({ accessToken, selectedRepo, decodedToken, cpus, memory, projectSource, projectVolume, workspaceName } = req.body);
+        ({ accessToken, selectedRepo, decodedToken, cpus, memory, projectSource, workspaceVolume, workspaceName } = req.body);
 
-        if (!projectSource || !workspaceName) {
+        if (!workspaceName) {
             return res.status(209).json({ warn: `Missing: projectSource: ${projectSource} or workspaceName: ${workspaceName}` });
         }
         if (projectSource === 'github' && (!selectedRepo || !accessToken)) {
             return res.status(209).json({ warn: `Missing: selectedRepo: ${selectedRepo} or accessToken: ${accessToken}` });
         }
-        if (projectVolume && !projectVolume.match(/^[a-zA-Z0-9]+_project_volume$/)) {
-            return res.status(209).json({ warn: 'Invalid volumeName format. It must be alphanumeric and end with _project_volume.' });
+        if (workspaceVolume && !workspaceVolume.match(/^[a-zA-Z0-9]+_workspace_volume$/)) {
+            return res.status(209).json({ warn: 'Invalid volumeName format. It must be alphanumeric and end with _workspace_volume.' });
         }
 
         NanoCpus = cpus * 1e9; // 1 core = 1 billion nanoseconds
@@ -116,26 +116,26 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
         const user = await usersCollection.findOne({ userId: decodedToken.userId });
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
 
-        if (projectVolume) {
-            const existingVolume = volumesCollection.findOne({ userId: user.userId, volumeName: projectVolume })
+        if (workspaceVolume) {
+            const existingVolume = volumesCollection.findOne({ userId: user.userId, volumeName: workspaceVolume })
             if (existingVolume.containerName != '') {
-                return res.status(209).json({ warn: `${projectVolume} is linked with ${existingVolume.containerName}. To use this volume, first free by deleting only container.` })
+                return res.status(209).json({ warn: `${workspaceVolume} is linked with ${existingVolume.containerName}. To use this volume, first free by deleting only container.` })
             }
         }
 
-        volumeName = projectVolume || `${user.username}_${workspaceName}_project_volume`;
-        containerName = `${user.username}_${workspaceName}_project_container`;
+        volumeName = workspaceVolume || `${user.username}_${workspaceName}_workspace_volume`;
+        containerName = `${user.username}_${workspaceName}_workspace_container`;
 
-        [{ container, volume, subdomains, ports, authStrings }] = await createProjectContainer(user, Memory, NanoCpus, containerName, volumeName);
+        [{ container, volume, subdomains, ports, authStrings }] = await createworkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName);
 
         if (container.status !== 'running') {
-            throw new Error(`Failed to start new project container for ${user.username}`);
+            throw new Error(`Failed to start new workspace container for ${user.username}`);
         }
 
         if (projectSource === 'github') {
             const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;
 
-            const PROJECTS_DIR = `root`;
+            const WORKSPACE_DIR = `root`;
             const zipFilePath = `root/${selectedRepo.name}.zip`;
             const targetDirName = `root/${selectedRepo.name}`;
 
@@ -143,8 +143,8 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
             await execCommandInContainer(container.id, fetchCommand);
             const cleanupCommand = `
             rm -rf ${targetDirName} && \
-            unzip -o ${zipFilePath} -d ${PROJECTS_DIR} && \
-            mv ${PROJECTS_DIR}/${selectedRepo.name}-${selectedRepo.default_branch} ${targetDirName} && \
+            unzip -o ${zipFilePath} -d ${WORKSPACE_DIR} && \
+            mv ${WORKSPACE_DIR}/${selectedRepo.name}-${selectedRepo.default_branch} ${targetDirName} && \
             rm ${zipFilePath}
         `;
             await execCommandInContainer(container.id, cleanupCommand);
@@ -155,7 +155,7 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
             containerId: container.id,
             containerName,
             workspaceName,
-            type: 'projects',
+            type: 'workspace',
             volumeName,
             resourceAllocated: { Memory: Memory, NanoCpus: NanoCpus },
             createdAt: new Date(),
@@ -191,13 +191,13 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
         return res.status(200).json({ info: 'Your code server is ready.' });
 
     } catch (error) {
-        console.error('Error during creating new project container:', error);
+        console.error('Error during creating new workspace container:', error);
 
         await cleanUp();
 
         let mailOptions = {
             from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during creating new project container.`,
+            subject: `An error occurred during creating new workspace container.`,
             to: process.env.TO_ERROR_MAIL,
             text: `Function: downloadGithubRepoToNewContainer\nUsername: ${user.username}, NanoCpus: ${NanoCpus}, Memory: ${Memory}, Error: ${error.message}`,
         };
@@ -217,4 +217,4 @@ const downloadGithubRepoToNewContainer = async (req, res) => {
 };
 
 
-module.exports = { downloadGithubRepoToNewContainer };
+module.exports = { newWorkspaceContainer };

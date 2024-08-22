@@ -19,7 +19,7 @@ const deleteVolume = async (volumeName) => {
     }
 };
 
-const deleteProjectContainer = async (req, res) => {
+const deleteWorkspaceContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
     let user;
     try {
@@ -33,13 +33,13 @@ const deleteProjectContainer = async (req, res) => {
         const volumesCollection = db.collection('volumes');
 
         user = await usersCollection.findOne({ userId: decodedToken.userId });
-        const projectContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
+        const workspaceContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
 
-        if (!projectContainer) {
+        if (!workspaceContainer) {
             throw new Error(`Container ${container.containerName} for ${user.username} not found in the database.`);
         }
 
-        const containerToDelete = docker.getContainer(projectContainer.containerId);
+        const containerToDelete = docker.getContainer(workspaceContainer.containerId);
         const containerInspect = await containerToDelete.inspect();
 
         if (!containerInspect) {
@@ -54,8 +54,8 @@ const deleteProjectContainer = async (req, res) => {
         const updatedResources = {
             userId: user.userId,
             usedResources: {
-                Memory: -projectContainer.resourceAllocated.Memory,
-                NanoCpus: -projectContainer.resourceAllocated.NanoCpus
+                Memory: -workspaceContainer.resourceAllocated.Memory,
+                NanoCpus: -workspaceContainer.resourceAllocated.NanoCpus
             }
         };
 
@@ -74,15 +74,15 @@ const deleteProjectContainer = async (req, res) => {
             await volumesCollection.findOneAndDelete({ userId: user.userId, volumeName: container.volumeName });
         }
 
-        return res.status(200).json({ info: 'Project container deleted successfully.' });
+        return res.status(200).json({ info: 'workspace container deleted successfully.' });
 
     } catch (error) {
-        logger.error(`ERROR IN DELETING PROJECT CONTAINER: ${error.message}`);
+        logger.error(`ERROR IN DELETING workspace CONTAINER: ${error.message}`);
         let mailOptions = {
             from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during deleting project container.`,
+            subject: `An error occurred during deleting workspace container.`,
             to: process.env.TO_ERROR_MAIL,
-            text: `Function: deleteProjectContainer\nUsername: ${user?.username || 'unknown'}\nError: ${error.message}`,
+            text: `Function: deleteWorkspaceContainer\nUsername: ${user?.username || 'unknown'}\nError: ${error.message}`,
         };
 
         try {
@@ -101,4 +101,4 @@ const deleteProjectContainer = async (req, res) => {
         }
     }
 };
-module.exports = { deleteProjectContainer };
+module.exports = { deleteWorkspaceContainer };

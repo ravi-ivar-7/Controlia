@@ -41,8 +41,8 @@ const getContainerInfo = async (req, res) => {
             throw new Error(`User with ID ${decodedToken.userId} not found.`);
         }
 
-        const projectContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
-        if (!projectContainer) {
+        const workspaceContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
+        if (!workspaceContainer) {
             throw new Error(`Container with ID ${container.containerId} for user ${user.username} not found in the database.`);
         }
 
@@ -66,7 +66,7 @@ const getContainerInfo = async (req, res) => {
 
         let mailOptions = {
             from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during fetching project container info.`,
+            subject: `An error occurred during fetching workspace container info.`,
             to: process.env.TO_ERROR_MAIL,
             text: `Function: getContainerInfo\nUsername: ${user?.username || 'unknown'}\nError: ${error.message}`
         };
@@ -347,4 +347,4 @@ const changeContainerResource = async (req, res) => {
     }
 };
 
-module.exports = { getContainerInfo , changeContainerResource};
+module.exports = { getContainerInfo , changeContainerResource, startCodeServer, stopCodeServer};

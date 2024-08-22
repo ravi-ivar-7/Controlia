@@ -3,7 +3,7 @@ const { MongoClient } = require('mongodb');
 const { addToErrorMailQueue } = require('../../services/mail/manageMail');
 const logger = require('../../services/logs/winstonLogger');
 
-const getProjects = async (req, res) => {
+const getWorkspace = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     let decodedToken;
 
@@ -15,19 +15,19 @@ const getProjects = async (req, res) => {
         const containersCollection = db.collection('containers');
         const volumesCollection = db.collection('volumes')
 
-        const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'projects' }).toArray();
+        const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'workspace' }).toArray();
         const volumes = await volumesCollection.find({userId: decodedToken.userId}).toArray();
 
-        return res.status(200).json({ info: 'Fetched project workspace successfully.', containers, volumes });
+        return res.status(200).json({ info: 'Fetched workspace workspace successfully.', containers, volumes });
 
     } catch (error) {
         logger.error(`ERROR IN GETTING WORKSPACE: ${error.message}`);
 
         let mailOptions = {
             from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during fetching projects container for user ${decodedToken?.username || 'unknown'}.`,
+            subject: `An error occurred during fetching workspaces container for user ${decodedToken?.username || 'unknown'}.`,
             to: process.env.TO_ERROR_MAIL,
-            text: `Function : getProjects\nDecodedToken: ${JSON.stringify(decodedToken)}\nError: ${error.message}`,
+            text: `Function : getWorkspace\nDecodedToken: ${JSON.stringify(decodedToken)}\nError: ${error.message}`,
         };
 
         addToErrorMailQueue(mailOptions)
@@ -46,4 +46,4 @@ const getProjects = async (req, res) => {
 
 
 
-module.exports = { getProjects };
+module.exports = { getWorkspace };

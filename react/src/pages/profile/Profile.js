@@ -2,7 +2,6 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Profile.css';
 import { useUser } from '../../context/UserContext';
-import Footer from '../../components/bars/Footer';
 import {
 	CDBBtn,
 	CDBProgress,

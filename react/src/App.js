@@ -12,12 +12,8 @@ import LoginWarningModal from './components/userModals/LoginWarningModal';
 import LoginModal from './components/userModals/LoginModal';
 import RegisterModal from './components/userModals/RegisterModal';
 
-import ScheduleScripts from './pages/scripts/scheduleScripts';
-import Analytics from './pages/analytics/Analytics';
 import Profile from './pages/profile/Profile';
 
-import Script from './pages/scripts/Script';
-import Scripts from './pages/scripts/Scripts';
 import Notebooks from './pages/notebooks/Notebooks';
 import Notebook from './pages/notebooks/Notebook';
 
@@ -57,8 +53,6 @@ return (
 
             <Route path="/profile" element={user ? <Profile /> : <LoginWarningModal isOpen={true} redirectPath="profile" />} />
 
-            <Route path="/script" element={user ? <Script /> : <LoginWarningModal isOpen={true} redirectPath="script" />} />
-            <Route path="/scripts" element={user ? <Scripts /> : <LoginWarningModal isOpen={true} redirectPath="scripts" />} />
             <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
             <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} />
 
@@ -71,7 +65,6 @@ return (
             <Route path="/deploy-projects" element={user ? <Notebooks /> : <LoginWarningModal isOpen={true} redirectPath="deploy-projects" />} />
 
             <Route path="/dashboard" element={user ? <Dashboard /> : <LoginWarningModal isOpen={true} redirectPath="/dashboard" />} />
-            <Route path="/analytics" element={user ? <Analytics /> : <LoginWarningModal isOpen={true} redirectPath="/analytics" />} />
 
 
           </Routes>

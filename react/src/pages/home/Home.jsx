@@ -3,7 +3,7 @@ import { Store } from 'react-notifications-component';
 import 'react-notifications-component/dist/theme.css';
 import 'animate.css';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import './Home.css';
 import { Modal, Button } from 'react-bootstrap';
 import { CDBBtn } from "cdbreact";

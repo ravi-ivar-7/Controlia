@@ -13,17 +13,19 @@ const getProjects = async (req, res) => {
         await client.connect();
         const db = client.db("controlia");
         const containersCollection = db.collection('containers');
+        const volumesCollection = db.collection('volumes')
 
-        const projects = await containersCollection.find({ userId: decodedToken.userId, type: 'projects' }).toArray();
+        const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'projects' }).toArray();
+        const volumes = await volumesCollection.find({userId: decodedToken.userId}).toArray();
 
-        return res.status(200).json({ info: 'Fetched projects successfully.', projects });
+        return res.status(200).json({ info: 'Fetched project workspace successfully.', containers, volumes });
 
     } catch (error) {
-        logger.error(`ERROR IN GETTING PROJECTS: ${error.message}`);
+        logger.error(`ERROR IN GETTING WORKSPACE: ${error.message}`);
 
         let mailOptions = {
             from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during fetching projects for user ${decodedToken?.username || 'unknown'}.`,
+            subject: `An error occurred during fetching projects container for user ${decodedToken?.username || 'unknown'}.`,
             to: process.env.TO_ERROR_MAIL,
             text: `Function : getProjects\nDecodedToken: ${JSON.stringify(decodedToken)}\nError: ${error.message}`,
         };
@@ -41,5 +43,7 @@ const getProjects = async (req, res) => {
         await client.close();
     }
 };
+
+
 
 module.exports = { getProjects };

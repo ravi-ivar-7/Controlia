@@ -13,14 +13,12 @@ import { CodeiumEditor } from "@codeium/react-code-editor";
 import { Form } from 'react-bootstrap';
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
 import './notebooks.css'
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
+
 
 
 
 const Notebook = () => {
     const [loading, setLoading] = useState(false);
-
 
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);

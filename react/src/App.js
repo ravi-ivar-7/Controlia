@@ -17,8 +17,8 @@ import Profile from './pages/profile/Profile';
 import Notebooks from './pages/notebooks/Notebooks';
 import Notebook from './pages/notebooks/Notebook';
 
-import Projects from './pages/projects/ProjectDashboard';
-import GithubRepoModal from './pages/projects/GithubRepoModal';
+import Workspaces from './pages/workspaces/Workspaces';
+import GithubRepoModal from './pages/workspaces/GithubWorkspaceModal';
 
 
 function App() {
@@ -53,16 +53,15 @@ return (
 
             <Route path="/profile" element={user ? <Profile /> : <LoginWarningModal isOpen={true} redirectPath="profile" />} />
 
-            <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
-            <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} />
+            {/* <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
+            <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} /> */}
 
-            <Route path="/notebooks" element={user ? <Notebooks /> : <LoginWarningModal isOpen={true} redirectPath="notebooks" />} />
+            {/* <Route path="/notebooks" element={user ? <Notebooks /> : <LoginWarningModal isOpen={true} redirectPath="notebooks" />} />
             <Route path="/notebook" element={user ? <Notebook /> : <LoginWarningModal isOpen={true} redirectPath="notebook" />} />
             <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
-            <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} />
+            <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} /> */}
 
-            <Route path="/projects" element={user ? <Projects /> : <LoginWarningModal isOpen={true} redirectPath="projects" />} />
-            <Route path="/deploy-projects" element={user ? <Notebooks /> : <LoginWarningModal isOpen={true} redirectPath="deploy-projects" />} />
+            <Route path="/workspaces" element={user ? <Workspaces /> : <LoginWarningModal isOpen={true} redirectPath="workspaces" />} />
 
             <Route path="/dashboard" element={user ? <Dashboard /> : <LoginWarningModal isOpen={true} redirectPath="/dashboard" />} />
 

@@ -9,7 +9,7 @@ import Navbar from "../../components/bars/Navbar";
 import ScheduleNotebookModal from './scheduleModal';
 import ShareNotebookModal from './shareModal';
 import socketIOClient from 'socket.io-client';
-import { highlight, languages } from 'prismjs/components/prism-core';
+// import { highlight, languages } from 'prismjs/components/prism-core';
 
 import { Form } from 'react-bootstrap';
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
@@ -282,7 +282,7 @@ const Notebooks = () => {
                                     </div>
                                 )}
 
-                                <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
+                                {/* <div className="d-flex card-section" style={{ marginTop: '10px', marginBottom: '30px' }}>
                                     <div className="card-bg w-100 d-flex flex-column wide border d-flex flex-column" style={{ height: '400px', overflow: 'auto' }}>
                                         <div className="d-flex flex-column p-0 h-100">
                                             <div className="mt-3" style={{ flex: 1 }}>
@@ -302,7 +302,7 @@ const Notebooks = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
 
                                 <div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useNotification from '../../hooks/useNotification';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
@@ -50,7 +50,7 @@ const FreshWorkspaceModal = ({ isOpen, onClose, existingVolumes }) => {
                 memory,
                 workspaceName,
                 selectedVolume,
-                workspaceSource:'freshWorkspace'
+                workspaceSource: 'self'
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -70,15 +70,19 @@ const FreshWorkspaceModal = ({ isOpen, onClose, existingVolumes }) => {
         }
     };
 
-    const handleBack = () => {
+    const handleBack = async () => {
         navigate(-1);
     };
 
     if (!isOpen) return null;
 
+    const handleClose = () => {
+        isOpen = false;
+    }
+
     return (
         <Modal show={isOpen} onHide={onClose}>
-            <Modal.Header closeButton onClick={handleBack}>
+            <Modal.Header closeButton onClick={handleClose}>
                 <Modal.Title>Configure New Workspace:</Modal.Title>
             </Modal.Header>
 
@@ -133,36 +137,37 @@ const FreshWorkspaceModal = ({ isOpen, onClose, existingVolumes }) => {
                                     }}
                                 />
                             </div>
+
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Volume For Workspace:</label>
+                            <ul style={{ listStyleType: 'none', padding: 0 }}>
+
+                                {volumes.map(volume => (
+                                    <li key={volume.id} style={{
+                                        display: 'flex', alignItems: 'center', marginBottom: '10px', padding: '10px',
+                                        border: `1px solid ${selectedVolume?.id === volume.id ? '#007bff' : '#ccc'}`,
+                                        borderRadius: '5px', backgroundColor: selectedVolume?.id === volume.id ? 'rgba(0, 123, 255, 0.1)' : 'white',
+                                    }}>
+                                        <input
+                                            disabled={volume.workspaceName !== ''}
+                                            type="radio"
+                                            name="volumes"
+                                            checked={selectedVolume?.id === volume.id}
+                                            onChange={() => handleSelectVolume(volume)}
+                                            style={{
+                                                marginRight: '10px', width: '20px', height: '20px',
+                                                WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none',
+                                                borderRadius: '5px', border: `2px solid ${selectedVolume?.id === volume.id ? '#007bff' : '#ccc'}`,
+                                                outline: 'none', cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
+                                                backgroundColor: selectedVolume?.id === volume.id ? '#007bff' : 'white',
+                                            }}
+                                        />
+                                        <label style={{ flex: 1, cursor: 'pointer', userSelect: 'none', color: volume.workspaceName !== '' ? 'gray' : 'black' }}>
+                                            {volume.volumeName} - {volume.workspaceName !== '' ? `Used by ${volume.workspaceName}` : `Unused`}
+                                        </label>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-
-                        <ul style={{ listStyleType: 'none', padding: 0 }}>
-                            {volumes.map(volume => (
-                                <li key={volume.id} style={{
-                                    display: 'flex', alignItems: 'center', marginBottom: '10px', padding: '10px',
-                                    border: `1px solid ${selectedVolume?.id === volume.id ? '#007bff' : '#ccc'}`,
-                                    borderRadius: '5px', backgroundColor: selectedVolume?.id === volume.id ? 'rgba(0, 123, 255, 0.1)' : 'white',
-                                }}>
-                                    <input
-                                        disabled={volume.workspaceName !== ''}
-                                        type="radio"
-                                        name="volumes"
-                                        checked={selectedVolume?.id === volume.id}
-                                        onChange={() => handleSelectVolume(volume)}
-                                        style={{
-                                            marginRight: '10px', width: '20px', height: '20px',
-                                            WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none',
-                                            borderRadius: '5px', border: `2px solid ${selectedVolume?.id === volume.id ? '#007bff' : '#ccc'}`,
-                                            outline: 'none', cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
-                                            backgroundColor: selectedVolume?.id === volume.id ? '#007bff' : 'white',
-                                        }}
-                                    />
-                                    <label style={{ flex: 1, cursor: 'pointer', userSelect: 'none', color: volume.workspaceName !== '' ? 'gray' : 'black' }}>
-                                        {volume.volumeName} - {volume.workspaceName !== '' ? `Used by ${volume.workspaceName}` : `Unused`}
-                                    </label>
-                                </li>
-                            ))}
-                        </ul>
-
                     </div>
                 ) : (
                     <p>Loading...</p>
@@ -170,11 +175,8 @@ const FreshWorkspaceModal = ({ isOpen, onClose, existingVolumes }) => {
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleBack}>
-                    Cancel
-                </Button>
                 <Button variant="primary" disabled={loading} onClick={handleNewWorkspace}>
-                    Create Workspace
+                    {loading ? 'Creating workspace...' : 'Create Workspace'}
                 </Button>
             </Modal.Footer>
         </Modal>

@@ -133,11 +133,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
                     </Form.Group>
 
                     <Form.Group controlId="username">
-                        <Form.Label>User ID</Form.Label>
+                        <Form.Label>User Name</Form.Label>
                         <Form.Control
                             type="text"
                             name="username"
-                            placeholder="Enter User ID"
+                            placeholder="Enter User Name"
                             value={formData.username}
                             onChange={handleChange}
                             required

@@ -48,8 +48,8 @@ const Sidebar = () => {
                   <CDBSidebarMenuItem icon="columns">Dashboard</CDBSidebarMenuItem>
                 </NavLink>
 
-                <NavLink exact to="/projects" activeClassName="activeClicked">
-                  <CDBSidebarMenuItem icon="project-diagram">Projects</CDBSidebarMenuItem>
+                <NavLink exact to="/workspaces" activeClassName="activeClicked">
+                  <CDBSidebarMenuItem icon="project-diagram">Workspaces</CDBSidebarMenuItem>
                 </NavLink>
                 <NavLink exact to="/notebooks" activeClassName="activeClicked">
                   <CDBSidebarMenuItem icon="book">Notebooks</CDBSidebarMenuItem>

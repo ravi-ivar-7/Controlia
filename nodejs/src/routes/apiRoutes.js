@@ -14,7 +14,7 @@ const { githubAuth } = require('../controllers/user/githubAuth')
 const { googleAuth } = require('../controllers/user/googleAuth')
 
 const { newWorkspaceContainer } = require('../controllers/workspace/newWorkspace')
-const { getContainerInfo, changeContainerResource, startCodeServer, stopCodeServer } = require('../controllers/workspace/configWorkspace')
+const { getWorkspaceInfo, changeWorkspaceResource, startCodeServer, stopCodeServer } = require('../controllers/workspace/configWorkspace')
 const { getWorkspaces } = require('../controllers/workspace/getWorkspaces')
 const { deleteWorkspaceContainer } = require('../controllers/workspace/deleteWorkspace')
 
@@ -37,10 +37,10 @@ router.post('/github-auth', githubAuth);
 
 // workspace related
 router.post('/new-workspace', verifyToken, newWorkspaceContainer);
-router.post('/get-workspace', verifyToken, getWorkspace)
+router.post('/workspaces', verifyToken, getWorkspaces)
 router.post('/delete-workspace', verifyToken, deleteWorkspaceContainer)
-router.post('/get-workspace-info', verifyToken, getContainerInfo)
-router.post('/delete-workspace', verifyToken, changeContainerResource)
+router.post('/get-workspace-info', verifyToken, getWorkspaceInfo)
+router.post('/delete-workspace', verifyToken, changeWorkspaceResource)
 router.post('/start-codeserver', verifyToken, startCodeServer)
 router.post('/stop-codeserver', verifyToken, stopCodeServer)
 

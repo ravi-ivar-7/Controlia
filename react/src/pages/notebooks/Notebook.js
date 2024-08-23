@@ -9,7 +9,7 @@ import Navbar from "../../components/bars/Navbar";
 import ScheduleNotebookModal from './scheduleModal';
 import ShareNotebookModal from './shareModal';
 import socketIOClient from 'socket.io-client';
-import { CodeiumEditor } from "@codeium/react-code-editor";
+// import { CodeiumEditor } from "@codeium/react-code-editor";
 import { Form } from 'react-bootstrap';
 import { CDBTable, CDBTableHeader, CDBTableBody, CDBBtn } from "cdbreact";
 import './notebooks.css'

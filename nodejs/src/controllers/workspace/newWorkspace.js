@@ -45,8 +45,8 @@ const execCommandInContainer = async (containerId, command) => {
 
 const newWorkspaceContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
-    let accessToken, selectedRepo, decodedToken, containerName, volumeName, workspaceName,workspaceVolume;
-    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory;
+    let accessToken, selectedRepo, decodedToken, containerName, volumeName, workspaceName, workspaceVolume, user;
+    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory, workspaceSource
 
     const cleanUp = async () => {
         if (volume) {
@@ -96,10 +96,10 @@ const newWorkspaceContainer = async (req, res) => {
         if (!workspaceName) {
             return res.status(209).json({ warn: `Missing: workspaceSource: ${workspaceSource} or workspaceName: ${workspaceName}` });
         }
-        if (projectSource === 'github' && (!selectedRepo || !accessToken)) {
+        if (workspaceSource === 'github' && (!selectedRepo || !accessToken)) {
             return res.status(209).json({ warn: `Missing: selectedRepo: ${selectedRepo} or accessToken: ${accessToken}` });
         }
-      
+        // console.log(accessToken, selectedRepo, decodedToken, cpus, memory, workspaceSource, selectedVolume, workspaceName)
 
         NanoCpus = cpus * 1e9; // 1 core = 1 billion nanoseconds
         // Convert memory from MB to bytes
@@ -111,29 +111,26 @@ const newWorkspaceContainer = async (req, res) => {
         const containersCollection = db.collection('containers');
         const volumesCollection = db.collection('volumes');
         const resourcesCollection = db.collection('resources');
-        const user = await usersCollection.findOne({ userId: decodedToken.userId });
+        user = await usersCollection.findOne({ userId: decodedToken.userId });
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
 
-        if (selectedVolume) {
-            const existingVolume = volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })
-            if (existingVolume.containerName != '') {
+        if (selectedVolume.volumeName == 'New Volume') {
+            volumeName = `${user.username}_${workspaceName}_workspace_volume`;
+        }
+        else {
+            const existingVolume = await volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })
+            if (existingVolume.containerName) {
                 return res.status(209).json({ warn: `${workspaceVolume} is linked with ${existingVolume.containerName}. To use this volume, first free by deleting only container.` })
             }
-        }
-        if(selectedVolume.volumeName == 'New Volume'){
-            volumeName =`${user.username}_${workspaceName}_workspace_volume`;
-        }
-        else{
             volumeName = selectedVolume.volumeName
         }
         containerName = `${user.username}_${workspaceName}_workspace_container`;
 
-        [{ container, volume, subdomains, ports, authStrings }] = await createworkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName);
+        [{ container, volume, subdomains, ports, authStrings }] = await createWorkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName);
 
         if (container.status !== 'running') {
             throw new Error(`Failed to start new workspace container for ${user.username}`);
         }
-
         if (workspaceSource === 'github') {
             const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;
 
@@ -183,7 +180,7 @@ const newWorkspaceContainer = async (req, res) => {
 
         newVolumeEntry = {
             userId: user.userId,
-            containerId: container.id,
+            containerName: container.containerName,
             volumeName,
             workspaceName,
             createdAt: new Date(),
@@ -202,7 +199,7 @@ const newWorkspaceContainer = async (req, res) => {
             from: process.env.FROM_ERROR_MAIL,
             subject: `An error occurred during creating new workspace container.`,
             to: process.env.TO_ERROR_MAIL,
-            text: `Function: downloadGithubRepoToNewContainer\nUsername: ${user.username}, NanoCpus: ${NanoCpus}, Memory: ${Memory}, Error: ${error.message}`,
+            text: `Function: newWorkspaceContainer\nUsername: ${user.username}, NanoCpus: ${NanoCpus}, Memory: ${Memory}, Error: ${error.message}`,
         };
 
         addToErrorMailQueue(mailOptions)
@@ -213,7 +210,7 @@ const newWorkspaceContainer = async (req, res) => {
                 console.error(`Failed to add error mail alert. ${error}`);
             });
 
-        return res.status(500).json({ warn: 'Error during repo downloading', error: error.message });
+        return res.status(500).json({ warn: 'Error during creating workspace', error: error.message });
     } finally {
         await client.close();
     }

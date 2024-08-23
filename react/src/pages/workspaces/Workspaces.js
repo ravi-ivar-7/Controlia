@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Workspaces.css';
 import axiosInstance from '../../services/axiosInstance';
 import useNotification from '../../hooks/useNotification';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import FreshWorkspaceModal from './FreshWorkspaceModal';
 
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
@@ -19,6 +19,7 @@ const Workspaces = () => {
     const [workspaceDropDown, setWorkspaceDropDown] = useState(false);
     const [workspaces, setWorkspaces] = useState([])
     const [volumes, setVolumes] = useState([])
+    const [isModalOpen , setIsModalOpen] = useState(false)
 
 
     const navigate = useNavigate();
@@ -111,13 +112,13 @@ const Workspaces = () => {
                                                 <div className="popup-menu" style={{ top: '50px', right: '0', background: 'black', position: 'absolute', border: '1px solid #ccc', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', zIndex: '1000', padding: '10px', borderRadius: '4px', minWidth: '150px' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', padding: '10px' }}>
 
-                                                        <button onClick={handleFreshWorkspace} style={{ textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' }}>
-                                                            <i className="fas fa-upload" style={{ marginRight: '8px' }}></i> Start Fresh
+                                                        <button onClick={handleFreshWorkspace} style={{ textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' , backgroundColor:'black'}}>
+                                                            <i className="fas fa-folder-plus" style={{ marginRight: '8px' }}></i> New Workspace
                                                         </button>
-                                                        <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes} />
+                                                   
 
-                                                        <a href={GITHUB_AUTHORIZED_URL} style={{ textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' }}>
-                                                            <i className="fab fa-github" style={{ marginRight: '8px' }}></i> Use GitHub Repository
+                                                        <a href={GITHUB_AUTHORIZED_URL}       style={{ textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' }}>
+                                                            <i className="fab fa-github" style={{ marginRight: '8px' }}></i> New Workspace With GitHub Repository
                                                         </a>
 
                                                     </div>
@@ -148,7 +149,7 @@ const Workspaces = () => {
                     </div>
                 </div>
             </div>
-
+            <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes} />
         </div>
     );
 }

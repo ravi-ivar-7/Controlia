@@ -15,7 +15,7 @@ const { googleAuth } = require('../controllers/user/googleAuth')
 
 const { newWorkspaceContainer } = require('../controllers/workspace/newWorkspace')
 const { getContainerInfo, changeContainerResource, startCodeServer, stopCodeServer } = require('../controllers/workspace/configWorkspace')
-const { getWorkspace } = require('../controllers/workspace/getWorkspace')
+const { getWorkspaces } = require('../controllers/workspace/getWorkspaces')
 const { deleteWorkspaceContainer } = require('../controllers/workspace/deleteWorkspace')
 
 

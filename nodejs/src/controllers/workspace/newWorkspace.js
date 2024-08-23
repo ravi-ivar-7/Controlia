@@ -91,17 +91,15 @@ const newWorkspaceContainer = async (req, res) => {
     };
 
     try {
-        ({ accessToken, selectedRepo, decodedToken, cpus, memory, projectSource, workspaceVolume, workspaceName } = req.body);
+        ({ accessToken, selectedRepo, decodedToken, cpus, memory, workspaceSource, selectedVolume, workspaceName } = req.body);
 
         if (!workspaceName) {
-            return res.status(209).json({ warn: `Missing: projectSource: ${projectSource} or workspaceName: ${workspaceName}` });
+            return res.status(209).json({ warn: `Missing: workspaceSource: ${workspaceSource} or workspaceName: ${workspaceName}` });
         }
         if (projectSource === 'github' && (!selectedRepo || !accessToken)) {
             return res.status(209).json({ warn: `Missing: selectedRepo: ${selectedRepo} or accessToken: ${accessToken}` });
         }
-        if (workspaceVolume && !workspaceVolume.match(/^[a-zA-Z0-9]+_workspace_volume$/)) {
-            return res.status(209).json({ warn: 'Invalid volumeName format. It must be alphanumeric and end with _workspace_volume.' });
-        }
+      
 
         NanoCpus = cpus * 1e9; // 1 core = 1 billion nanoseconds
         // Convert memory from MB to bytes
@@ -116,14 +114,18 @@ const newWorkspaceContainer = async (req, res) => {
         const user = await usersCollection.findOne({ userId: decodedToken.userId });
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
 
-        if (workspaceVolume) {
-            const existingVolume = volumesCollection.findOne({ userId: user.userId, volumeName: workspaceVolume })
+        if (selectedVolume) {
+            const existingVolume = volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })
             if (existingVolume.containerName != '') {
                 return res.status(209).json({ warn: `${workspaceVolume} is linked with ${existingVolume.containerName}. To use this volume, first free by deleting only container.` })
             }
         }
-
-        volumeName = workspaceVolume || `${user.username}_${workspaceName}_workspace_volume`;
+        if(selectedVolume.volumeName == 'New Volume'){
+            volumeName =`${user.username}_${workspaceName}_workspace_volume`;
+        }
+        else{
+            volumeName = selectedVolume.volumeName
+        }
         containerName = `${user.username}_${workspaceName}_workspace_container`;
 
         [{ container, volume, subdomains, ports, authStrings }] = await createworkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName);
@@ -132,7 +134,7 @@ const newWorkspaceContainer = async (req, res) => {
             throw new Error(`Failed to start new workspace container for ${user.username}`);
         }
 
-        if (projectSource === 'github') {
+        if (workspaceSource === 'github') {
             const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;
 
             const WORKSPACE_DIR = `root`;
@@ -183,6 +185,7 @@ const newWorkspaceContainer = async (req, res) => {
             userId: user.userId,
             containerId: container.id,
             volumeName,
+            workspaceName,
             createdAt: new Date(),
             storage: null
         };

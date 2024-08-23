@@ -19,7 +19,7 @@ async function generateBasicAuth(user, password) {
 }
 
 
-const getContainerInfo = async (req, res) => {
+const getWorkspaceInfo = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
     let user;
     try {
@@ -41,8 +41,8 @@ const getContainerInfo = async (req, res) => {
             throw new Error(`User with ID ${decodedToken.userId} not found.`);
         }
 
-        const workspaceContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
-        if (!workspaceContainer) {
+        const workspaceInfo = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
+        if (!workspaceInfo) {
             throw new Error(`Container with ID ${container.containerId} for user ${user.username} not found in the database.`);
         }
 
@@ -58,7 +58,9 @@ const getContainerInfo = async (req, res) => {
             info: 'Fetched workspace details.',
             containerData,
             volumeData,
-            userResources
+            userResources,
+            workspaceInfo,
+            user
         });
 
     } catch (error) {
@@ -259,7 +261,7 @@ const stopCodeServer = async (req, res) => {
 };
 
 
-const changeContainerResource = async (req, res) => {
+const changeWorkspaceResource = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     try {
         const { decodedToken, container, newCpus, newMemoryLimit } = req.body;
@@ -347,4 +349,4 @@ const changeContainerResource = async (req, res) => {
     }
 };
 
-module.exports = { getContainerInfo , changeContainerResource, startCodeServer, stopCodeServer};
+module.exports = { getWorkspaceInfo , changeWorkspaceResource, startCodeServer, stopCodeServer};

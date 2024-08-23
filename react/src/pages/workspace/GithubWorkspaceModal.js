@@ -1,52 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Store } from 'react-notifications-component';
-import 'react-notifications-component/dist/theme.css';
-import 'animate.css';
-
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
+import useNotification from '../../hooks/useNotification';
 
 const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
     const [repos, setRepos] = useState([]);
     const [selectedRepo, setSelectedRepo] = useState(null);
     const [code, setCode] = useState('');
     const [accessToken, setAccessToken] = useState('');
-    const [projectName, setProjectName] = useState('');
-
-    const [cpuShares, setCpuShares] = useState('');
+    const [cpus, setCpus] = useState('');
     const [memory, setMemory] = useState('');
     const [workspaceName, setWorkspaceName] = useState('');
-
+    const [selectedVolume, setSelectedVolume] = useState(null);
+    const [volumes, setVolumes] = useState([]);
     const [reposLoading, setReposLoading] = useState(false);
     const [repoDownloadLoading, setRepoDownloadLoading] = useState(false);
 
     const location = useLocation();
     const navigate = useNavigate();
-
-    const handleNotification = (title, message, type) => {
-        Store.addNotification({
-            title: title,
-            message: message,
-            type: type,
-            insert: "top",
-            container: "top-right",
-            animationIn: ["animate__animated", "animate__fadeIn"],
-            animationOut: ["animate__animated", "animate__fadeOut"],
-            dismiss: {
-                duration: 5000,
-                onScreen: true
-            }
-        });
-    };
+    const notify = useNotification();
 
     const handleSelectRepo = (repo) => {
         setSelectedRepo(repo);
     };
 
-    const handleCpuSharesChange = (e) => {
-        setCpuShares(e.target.value);
+    const handleSelectVolume = (volume) => {
+        setSelectedVolume(volume);
+    };
+
+    const handleCpusChange = (e) => {
+        setCpus(e.target.value);
     };
 
     const handleMemoryChange = (e) => {
@@ -57,7 +42,6 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
         const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
         setWorkspaceName(value);
     };
-    
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
@@ -67,35 +51,43 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
             const authenticateAndRedirect = async () => {
                 setReposLoading(true);
                 try {
-                    const response = await axiosInstance.post('/github-auth', { code });
+                    const token = localStorage.getItem('token');
+                    const response = await axiosInstance.post('/github-auth', { code }, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        }
+                    });
                     if (response.status === 200) {
                         setRepos(response.data.repos);
                         setCode(response.data.code);
                         setAccessToken(response.data.accessToken);
+                        setVolumes(response.data.volumes);
                     } else {
-                        handleNotification('Error', response.data.warn || 'Internal Server Error', 'danger');
+                        notify('Error', response.data.warn || 'Internal Server Error', 'danger');
                     }
                 } catch (error) {
-                    handleNotification('Error', 'Failed to authenticate with GitHub.', 'danger');
+                    notify('Error', 'Failed to authenticate with GitHub.', 'danger');
                 } finally {
                     setReposLoading(false);
                 }
             };
             authenticateAndRedirect();
         }
-    }, [location.search]);
+    }, [location.search, notify]);
 
     const handleGetRepo = async () => {
         setRepoDownloadLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await axiosInstance.post('/download-github-repo', {
+            const response = await axiosInstance.post('/new-workspace', {
                 code,
                 selectedRepo,
                 accessToken,
-                CpuShares : cpuShares,
-                Memory:memory,
-                containerName :workspaceName
+                cpus,
+                memory,
+                workspaceName,
+                selectedVolume,
+                workspaceSource: 'github'
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -103,14 +95,13 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
             });
 
             if (response.status === 200) {
-                handleNotification('Info', response.data.info, 'info');
-                setProjectName(response.data.projectName);
-                navigate('/projects');
+                notify('Info', response.data.info, 'info');
+                navigate('/workspaces');
             } else {
-                handleNotification('Error', response.data.warn || 'Internal Server Error', 'danger');
+                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
             }
         } catch (error) {
-            handleNotification('Error', 'Failed to process repositories.', 'danger');
+            notify('Error', 'Failed to process repositories.', 'danger');
         } finally {
             setRepoDownloadLoading(false);
         }
@@ -124,8 +115,8 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
 
     return (
         <Modal show={isOpen} onHide={onClose}>
-            <Modal.Header closeButton onClick={handleBack}>
-                <Modal.Title>Select Repository:</Modal.Title>
+            <Modal.Header closeButton>
+                <Modal.Title>Configure Workspace:</Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
@@ -178,12 +169,12 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
                                             />
                                         </div>
                                         <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px' }}>CPU Shares:</label>
+                                            <label style={{ display: 'block', marginBottom: '5px' }}>CPU (in cores):</label>
                                             <input
                                                 type="number"
-                                                value={cpuShares}
-                                                onChange={handleCpuSharesChange}
-                                                placeholder="Enter CPU shares for this project"
+                                                value={cpus}
+                                                onChange={handleCpusChange}
+                                                placeholder="Enter CPU cores for this project"
                                                 style={{
                                                     width: '100%',
                                                     padding: '8px',
@@ -193,7 +184,7 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
                                                 }}
                                             />
                                         </div>
-                                        <div>
+                                        <div style={{ marginBottom: '15px' }}>
                                             <label style={{ display: 'block', marginBottom: '5px' }}>Memory (MB):</label>
                                             <input
                                                 type="number"
@@ -209,24 +200,44 @@ const GithubRepoModal = ({ isOpen, onClose, redirectPath }) => {
                                                 }}
                                             />
                                         </div>
+                                        <div style={{ marginBottom: '15px' }}>
+                                            <label style={{ display: 'block', marginBottom: '5px' }}>Volume:</label>
+                                            <select
+                                                onChange={(e) => handleSelectVolume(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '8px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #ccc',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            >
+                                                <option value="">Select a volume</option>
+                                                {volumes.map(volume => (
+                                                    <option key={volume.id} value={volume.id}>{volume.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 )}
                             </>
                         ) : (
-                            <p>Loading...</p>
+                            <p>Loading repositories...</p>
                         )}
                     </div>
                 ) : (
-                    <p>Downloading...</p>
+                    <p>Processing...</p>
                 )}
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleBack}>
-                    Cancel
-                </Button>
-                <Button variant="primary" disabled={reposLoading || repoDownloadLoading} onClick={handleGetRepo}>
-                    Download
+                <Button variant="secondary" onClick={onClose}>Cancel</Button>
+                <Button
+                    variant="primary"
+                    onClick={handleGetRepo}
+                    disabled={!selectedRepo || repoDownloadLoading}
+                >
+                    {repoDownloadLoading ? 'Processing...' : 'Get Repo'}
                 </Button>
             </Modal.Footer>
         </Modal>

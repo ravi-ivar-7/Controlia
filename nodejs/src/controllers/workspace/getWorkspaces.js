@@ -3,7 +3,7 @@ const { MongoClient } = require('mongodb');
 const { addToErrorMailQueue } = require('../../services/mail/manageMail');
 const logger = require('../../services/logs/winstonLogger');
 
-const getWorkspace = async (req, res) => {
+const getWorkspaces = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     let decodedToken;
 
@@ -18,7 +18,7 @@ const getWorkspace = async (req, res) => {
         const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'workspace' }).toArray();
         const volumes = await volumesCollection.find({userId: decodedToken.userId}).toArray();
 
-        return res.status(200).json({ info: 'Fetched workspace workspace successfully.', containers, volumes });
+        return res.status(200).json({ info: 'Fetched workspace workspace successfully.', workspaces:  containers, volumes });
 
     } catch (error) {
         logger.error(`ERROR IN GETTING WORKSPACE: ${error.message}`);
@@ -46,4 +46,4 @@ const getWorkspace = async (req, res) => {
 
 
 
-module.exports = { getWorkspace };
+module.exports = { getWorkspaces };

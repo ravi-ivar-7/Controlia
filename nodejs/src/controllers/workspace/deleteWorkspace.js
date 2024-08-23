@@ -67,7 +67,7 @@ const deleteWorkspaceContainer = async (req, res) => {
         if (deleteType === 'deleteOnlyContainer') {
             await volumesCollection.updateOne(
                 { userId: user.userId, volumeName: container.volumeName },
-                { $unset: { containerId: "" } }
+                { $unset: { containerId: "" , workspaceName:''} }
             );
         } else if (deleteType === 'deleteContainerAndVolume') {
             await deleteVolume(container.volumeName);

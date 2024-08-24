@@ -20,7 +20,7 @@ const Dashboard = () => {
   const getWorkspaceInfo = async (token) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post('/get-workspace-details', {}, {
+      const response = await axiosInstance.post('/', {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -48,7 +48,7 @@ const Dashboard = () => {
   const getWorkspaceFile = async (token) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post('/get-workspace-files', {}, {
+      const response = await axiosInstance.post('/', {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -84,7 +84,7 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axiosInstance.post('/download-workspace-data', { path }, {
+      const response = await axiosInstance.post('/', { path }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -121,7 +121,7 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token')
-      const response = await axiosInstance.post('/delete-workspace-file', { path }, {
+      const response = await axiosInstance.post('/', { path }, {
         headers: {
           Authorization: `Bearer ${token}`,
         }

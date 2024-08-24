@@ -18,6 +18,7 @@ import Notebooks from './pages/notebooks/Notebooks';
 import Notebook from './pages/notebooks/Notebook';
 
 import Workspaces from './pages/workspaces/Workspaces';
+import Workspace from './pages/workspaces/Workspace';
 import GithubRepoModal from './pages/workspaces/GithubWorkspaceModal';
 
 
@@ -62,6 +63,7 @@ return (
             <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} /> */}
 
             <Route path="/workspaces" element={user ? <Workspaces /> : <LoginWarningModal isOpen={true} redirectPath="workspaces" />} />
+            <Route path="/workspace" element={user ? <Workspace /> : <LoginWarningModal isOpen={true} redirectPath="workspace" />} />
 
             <Route path="/dashboard" element={user ? <Dashboard /> : <LoginWarningModal isOpen={true} redirectPath="/dashboard" />} />
 

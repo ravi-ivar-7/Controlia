@@ -46,14 +46,14 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,vo
         }
 
         container = await docker.createContainer({
-            Image: `${process.env.BASE_IMAGE_NAME}:${process.env.BASE_IMAGE_VERSION}`,
+            Image: `${process.env.BASE_WORKSPACE_IMAGE_NAME}:${process.env.BASE_WORKSPACE_IMAGE_VERSION}`,
             name: containerName,
             Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
             HostConfig: {
                 NanoCpus: NanoCpus,
                 Memory: Memory,
                 Binds: [`${volumeName}:/root`],
-                NetworkMode: 'controlia_web',
+                NetworkMode: 'controlia_workspace',
             },
             ExposedPorts: {
                 "80/tcp": {},

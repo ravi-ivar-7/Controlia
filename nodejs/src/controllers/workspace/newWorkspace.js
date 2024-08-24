@@ -49,13 +49,6 @@ const newWorkspaceContainer = async (req, res) => {
     let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory, workspaceSource
 
     const cleanUp = async () => {
-        if (volume) {
-            try {
-                await volume.remove();
-            } catch (err) {
-                console.error(`Failed to remove volume:`, err.message);
-            }
-        }
         if (container) {
             try {
                 await container.stop();
@@ -64,6 +57,15 @@ const newWorkspaceContainer = async (req, res) => {
                 console.error(`Failed to remove container ${container.name}:`, err.message);
             }
         }
+
+        if (volume) {
+            try {
+                await volume.remove();
+            } catch (err) {
+                console.error(`Failed to remove volume:`, err.message);
+            }
+        }
+
         if (newContainerEntry) {
             try {
                 await containersCollection.deleteOne({ containerId: newContainerEntry.containerId });
@@ -88,6 +90,8 @@ const newWorkspaceContainer = async (req, res) => {
                 console.error(`Failed to update resource usage for ${updatedResources.userId}:`, err.message);
             }
         }
+
+
     };
 
     try {
@@ -126,11 +130,13 @@ const newWorkspaceContainer = async (req, res) => {
         }
         containerName = `${user.username}_${workspaceName}_workspace_container`;
 
-        [{ container, volume, subdomains, ports, authStrings }] = await createWorkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName);
-
-        if (container.status !== 'running') {
-            throw new Error(`Failed to start new workspace container for ${user.username}`);
+        const containers = await docker.listContainers({ all: true });// all stopped/ running
+        // Check if any container has the desired name
+        if(containers.some(container => container.Names.includes(`/${containerName}`))){
+            return res.status(209).json({warn: `${workspaceName} already exitst.`})
         }
+        ({ container, volume, subdomains, ports, authStrings } = await createWorkspaceContainer(user, Memory, NanoCpus, containerName, volumeName, workspaceName))
+
         if (workspaceSource === 'github') {
             const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;
 
@@ -168,9 +174,12 @@ const newWorkspaceContainer = async (req, res) => {
         };
         await containersCollection.insertOne(newContainerEntry);
 
-        updatedResources = {
+        const updatedResources = {
             userId: user.userId,
-            usedResources: { Memory: userResources.Memory + Memory, NanoCpus: userResources.NanoCpus + NanoCpus },
+            usedResources: {
+                Memory: parseInt(userResources.usedResources.Memory, 10) + Memory,
+                NanoCpus: parseInt(userResources.usedResources.NanoCpus, 10) + NanoCpus,
+            },
         };
 
         await resourcesCollection.updateOne(
@@ -188,7 +197,7 @@ const newWorkspaceContainer = async (req, res) => {
         };
         await volumesCollection.insertOne(newVolumeEntry);
 
-        return res.status(200).json({ info: 'Your code server is ready.' });
+        return res.status(200).json({ info: 'Your workspace is ready.' });
 
     } catch (error) {
         console.error('Error during creating new workspace container:', error);

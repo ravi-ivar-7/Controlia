@@ -14,11 +14,14 @@ const getWorkspaces = async (req, res) => {
         const db = client.db("controlia");
         const containersCollection = db.collection('containers');
         const volumesCollection = db.collection('volumes')
+        const resourcesCollection = db.collection('resources');
+        const userResources = await resourcesCollection.findOne({ userId: decodedToken.userId });
+
 
         const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'workspace' }).toArray();
         const volumes = await volumesCollection.find({userId: decodedToken.userId}).toArray();
 
-        return res.status(200).json({ info: 'Fetched workspace workspace successfully.', workspaces:  containers, volumes });
+        return res.status(200).json({ info: 'Fetched workspace workspace successfully.', workspaces:  containers, volumes , userResources});
 
     } catch (error) {
         logger.error(`ERROR IN GETTING WORKSPACE: ${error.message}`);

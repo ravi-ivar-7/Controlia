@@ -11,7 +11,7 @@ import Navbar from "../../components/bars/Navbar";
 
 let token = localStorage.getItem('token');
 
-const Workspaces = () => {
+const Workspace = () => {
     const [loading, setLoading] = useState(false);
     const [workpaceInfo, setWorkpaceInfo] = useState();
     const [containerData, setContainerData] = useState();
@@ -22,13 +22,20 @@ const Workspaces = () => {
     const [deleteType, setDeleteType] = useState('deleteOnlyContainer');
     const [user, setUser] = useState();
 
-    const [newCpus, setNewCpus] = useState();
+    const [newCpus, setNewCpus] = useState(0);
+    const [newMemoryLimit, setNewMemoryLimit] = useState(0)
 
     const [changeResourcesLoading, setChangeResourcesLoading] = useState(false);
 
     const notify = useNotification();
     const location = useLocation();
     const workspace = location.state?.workspace;
+    console.log(workspace)
+
+    if(!workspace){
+        notify('Error', 'This action is not allowed', 'danger')
+        navigator(-1)
+    }
 
     const fetchWorkspaceInfo = useCallback(async (token) => {
         setLoading(true);
@@ -338,4 +345,4 @@ const Workspaces = () => {
     );
 }
 
-export default Workspaces;
+export default Workspace;

@@ -4,7 +4,7 @@ import './Workspaces.css';
 import axiosInstance from '../../services/axiosInstance';
 import useNotification from '../../hooks/useNotification';
 import { useNavigate } from 'react-router-dom';
-import FreshWorkspaceModal from './FreshWorkspaceModal';
+import FreshWorkspaceModal from './NewWorkspaceModal';
 
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 
@@ -20,6 +20,7 @@ const Workspaces = () => {
     const [workspaces, setWorkspaces] = useState([])
     const [volumes, setVolumes] = useState([])
     const [isModalOpen , setIsModalOpen] = useState(false)
+    const [userResources , setUserResources] = useState(null);
 
 
     const navigate = useNavigate();
@@ -41,6 +42,7 @@ const Workspaces = () => {
                 }
                 setWorkspaces(response.data.workspaces || []);
                 setVolumes(response.data.volumes || []);
+                setUserResources(response.data.userResources);
             } else {
                 console.error('Internal Server Error:', response.data.warn);
                 notify('Error', response.data.warn || 'Internal Server Error', 'danger');
@@ -117,7 +119,7 @@ const Workspaces = () => {
                                                         </button>
                                                    
 
-                                                        <a href={GITHUB_AUTHORIZED_URL}       style={{ textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' }}>
+                                                        <a href={GITHUB_AUTHORIZED_URL}        style={{ pointerEvents: 'none', textDecoration: 'none', marginBottom: '10px', display: 'flex', alignItems: 'center', padding: '8px 16px', color: '#fff', borderRadius: '5px', border: '2px solid #007bff' }}>
                                                             <i className="fab fa-github" style={{ marginRight: '8px' }}></i> New Workspace With GitHub Repository
                                                         </a>
 
@@ -133,14 +135,31 @@ const Workspaces = () => {
                                         <div className="cards-container">
                                             {workspaces.map((workpace, index) => (
                                                 <div key={index} className="card-bg w-100 border d-flex flex-column">
-                                                    <div className="p-4 d-flex flex-column h-100">
-                                                        <h4 className="my-4 text-right text-white h2 font-weight-bold">{workpace.workpaceName}</h4>
+                                                <div className="p-4 d-flex flex-column h-100">
+                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">
+                                                        Workspace: {workpace.workspaceName}
+                                                    </h4>
+                                                    
+                                                    <div>
+                                                        <h5 className="text-white">Details</h5>
+                                                        <p className="text-white">Volume Name: {workpace.volumeName}</p>
+                                                        <p className="text-white">Created At: {new Date(workpace.createdAt).toLocaleString()}</p>
 
-                                                        <div className="d-flex justify-content-between mt-auto">
-                                                            <button className="btn btn-secondary" onClick={() => handleWorkspaceConfiguration(workpace)}>Configuration</button>
-                                                        </div>
+                                                        <h5 className="text-white mt-3">Resource Allocated</h5>
+                                                        <p className="text-white">Memory: {workpace.resourceAllocated.Memory / (1024 * 1024)} MB</p>
+                                                        <p className="text-white">CPUs: {workpace.resourceAllocated.NanoCpus / 1e9} cores</p>
+                                                        
+                                                       
+                                                    </div>
+                                                    
+                                                    <div className="d-flex justify-content-between mt-auto">
+                                                        <button className="btn btn-primary" onClick={() => handleWorkspaceConfiguration(workpace)}>
+                                                            Configuration
+                                                        </button>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            
                                             ))}
                                         </div>
                                     </div>
@@ -149,7 +168,7 @@ const Workspaces = () => {
                     </div>
                 </div>
             </div>
-            <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes} />
+            <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes}  userResources={userResources}/>
         </div>
     );
 }

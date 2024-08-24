@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 const logger = require('../../services/logs/winstonLogger');
 const { v4: uuidv4 } = require('uuid');
 
+// TODO: implement isVerified
+
 const register = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     let username, email, name, password, userId
@@ -49,7 +51,7 @@ const register = async (req, res) => {
             email,
             name,
             password: hashedPassword,
-            isVerified: false,
+            isVerified: true,
         };
         await usersCollection.insertOne(newUser);
 

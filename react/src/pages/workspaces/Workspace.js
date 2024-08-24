@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './Workspaces.css';
+import './Workspace.css';
 import axiosInstance from '../../services/axiosInstance';
 import useNotification from '../../hooks/useNotification';
 import { useLocation } from 'react-router-dom';
@@ -32,7 +32,7 @@ const Workspace = () => {
     const workspace = location.state?.workspace;
     console.log(workspace)
 
-    if(!workspace){
+    if (!workspace) {
         notify('Error', 'This action is not allowed', 'danger')
         navigator(-1)
     }
@@ -182,40 +182,48 @@ const Workspace = () => {
 
     return (
         <div className="workspace d-flex">
-            <Sidebar />
+            <div>
+                <Sidebar />
+            </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
                 <Navbar pageTitle={'Workspace'} />
                 <div style={{ height: "100%" }}>
                     <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
-                        {loading ? (
+
+
+                        {loading ? (<div>
+                            <SkeletonTheme baseColor="#202020" highlightColor="#444">
+                                <h1>{<Skeleton />}</h1>
+                                <p>
+                                    <Skeleton count={5} />
+                                </p>
+                            </SkeletonTheme>
+                        </div>) : (
                             <div>
-                                <SkeletonTheme baseColor="#202020" highlightColor="#444">
-                                    <h1><Skeleton /></h1>
-                                    <p><Skeleton count={5} /></p>
-                                </SkeletonTheme>
-                            </div>
-                        ) : (
-                            <div>
-                                <div className="info">
-                                    <div className="d-flex card-section">
-                                        <div className="cards-container">
-                                            <div className="card-bg w-100 border d-flex flex-column">
-                                                <div className="p-4 d-flex flex-column h-100">
-                                                    <div className="d-flex align-items-center justify-content-between">
-                                                        <h4 className="m-0 h5 font-weight-bold text-white">User Information</h4>
-                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
-                                                    </div>
-                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{user?.username}</h4>
-                                                    <p>Email: {user?.email}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 <div className="info">
                                     <div className="d-flex card-section">
                                         <div className="cards-container">
+
+                                            <div className="card-bg w-100 border d-flex flex-column">
+                                                <div className="p-4 d-flex flex-column h-100">
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        <h4 className="m-0 h5 font-weight-bold text-white">System Status</h4>
+                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+                                                    </div>
+                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+                                                    <p >
+                                                        User-Id:
+                                                    </p>
+                                                    <p >
+                                                        Email: sdfdsfdsfs
+                                                    </p>
+
+                                                </div>
+                                            </div>
+
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
                                                     <div className="d-flex align-items-center justify-content-between">
@@ -223,16 +231,35 @@ const Workspace = () => {
                                                         <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
                                                     </div>
                                                     <h4 className="my-4 text-right text-white h2 font-weight-bold">{workpaceInfo?.workspaceName}</h4>
-                                                    {/* Additional workspace info can be added here */}
+
+                                                    <p >
+
+                                                    </p>
+
+
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="info">
-                                    <div className="d-flex card-section">
-                                        <div className="cards-container">
+
+                                            <div className="card-bg w-100 border d-flex flex-column">
+                                                <div className="p-4 d-flex flex-column h-100">
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        <h4 className="m-0 h5 font-weight-bold text-white">Volume Information</h4>
+                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-cogs"></i></div>
+                                                    </div>
+                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{volumeData?.Name || 'N/A'}</h4>
+                                                    <p><strong>ID:</strong> {volumeData?.Id || 'N/A'}</p>
+                                                    <p><strong>Driver:</strong> {volumeData?.Driver || 'N/A'}</p>
+                                                    <p><strong>Mountpoint:</strong> {volumeData?.Mountpoint || 'N/A'}</p>
+                                                    <p><strong>Labels:</strong> {JSON.stringify(volumeData?.Labels) || 'N/A'}</p>
+                                                    <p><strong>Options:</strong> {JSON.stringify(volumeData?.Options) || 'N/A'}</p>
+                                                    {/* Additional volume info can be added here */}
+
+                                                </div>
+                                            </div>
+
+
+
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
                                                     <div className="d-flex align-items-center justify-content-between">
@@ -250,8 +277,12 @@ const Workspace = () => {
                                                     <p><strong>Mounts:</strong> {containerData?.Mounts?.map(mount => `${mount.Type}: ${mount.Source} -> ${mount.Destination}`).join(', ') || 'N/A'}</p>
                                                     <p><strong>Networks:</strong> {JSON.stringify(containerData?.NetworkSettings?.Networks) || 'N/A'}</p>
                                                     {/* Additional container info can be added here */}
+
                                                 </div>
                                             </div>
+
+
+
                                         </div>
                                     </div>
                                 </div>
@@ -259,29 +290,9 @@ const Workspace = () => {
                                 <div className="info">
                                     <div className="d-flex card-section">
                                         <div className="cards-container">
-                                            <div className="card-bg w-100 border d-flex flex-column">
-                                                <div className="p-4 d-flex flex-column h-100">
-                                                    <div className="d-flex align-items-center justify-content-between">
-                                                        <h4 className="m-0 h5 font-weight-bold text-white">Volume Information</h4>
-                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-cogs"></i></div>
-                                                    </div>
-                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{volumeData?.Name || 'N/A'}</h4>
-                                                    <p><strong>ID:</strong> {volumeData?.Id || 'N/A'}</p>
-                                                    <p><strong>Driver:</strong> {volumeData?.Driver || 'N/A'}</p>
-                                                    <p><strong>Mountpoint:</strong> {volumeData?.Mountpoint || 'N/A'}</p>
-                                                    <p><strong>Labels:</strong> {JSON.stringify(volumeData?.Labels) || 'N/A'}</p>
-                                                    <p><strong>Options:</strong> {JSON.stringify(volumeData?.Options) || 'N/A'}</p>
-                                                    {/* Additional volume info can be added here */}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
 
-                                <div className="info">
-                                    <div className="d-flex card-section">
-                                        <div className="cards-container">
+
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
                                                     <div className="d-flex align-items-center justify-content-between">
@@ -312,30 +323,65 @@ const Workspace = () => {
                                                             />
                                                         </div>
                                                     </div>
+
+                                                    <button className="btn btn-warning mx-2" onClick={handleChangeResource} disabled={changeResourcesLoading}>
+                                                        {changeResourcesLoading ? 'Updating Resources...' : 'Change Resources'}
+                                                    </button>
+
+
+
                                                 </div>
-                                                <button className="btn btn-warning mx-2" onClick={handleChangeResource} disabled={changeResourcesLoading}>
-                                                    {changeResourcesLoading ? 'Updating Resources...' : 'Change Resources'}
-                                                </button>
                                             </div>
+
+
+                                            <div className="card-bg w-100 border d-flex flex-column">
+                                                <div className="p-4 d-flex flex-column h-100">
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        <h4 className="m-0 h5 font-weight-bold text-white">Workspace Information</h4>
+                                                        <div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+                                                    </div>
+                                                    <h4 className="my-4 text-right text-white h2 font-weight-bold">{workpaceInfo?.workspaceName}</h4>
+
+                                                    <div className="d-flex">
+                                                        <button className="btn btn-primary mx-2" onClick={handleCodeServerStart} disabled={codeServerLoading}>
+                                                            {codeServerLoading ? 'Starting Code Server...' : 'Start Code Server'}
+                                                        </button>
+                                                        <button className="btn btn-secondary mx-2" onClick={handleCodeServerStop} disabled={codeServerLoading}>
+                                                            {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-danger mx-2"
+                                                            onClick={() => {
+                                                                setDeleteType('deleteOnlyContainer');
+                                                                handleWorkspaceDelete();
+                                                            }}
+                                                        >
+                                                            {deleteLoading ? 'Deleting Workspace...' : 'Delete Workspace only'}
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-danger mx-2"
+                                                            onClick={() => {
+                                                                setDeleteType('deleteWithVolume');
+                                                                handleWorkspaceDelete();
+                                                            }}
+                                                        >
+                                                            {deleteLoading ? 'Deleting Workspace and Volume...' : 'Delete Workspace with volume data'}
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+
+
                                         </div>
                                     </div>
                                 </div>
 
 
-                                <div className="d-flex">
-                                    <button className="btn btn-primary mx-2" onClick={handleCodeServerStart} disabled={codeServerLoading}>
-                                        {codeServerLoading ? 'Starting Code Server...' : 'Start Code Server'}
-                                    </button>
-                                    <button className="btn btn-secondary mx-2" onClick={handleCodeServerStop} disabled={codeServerLoading}>
-                                        {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
-                                    </button>
-                                    <button className="btn btn-danger mx-2" onClick={() => { setDeleteType('deleteOnlyContainer'), handleWorkspaceDelete }}>
-                                        {deleteLoading ? 'Deleting Workspace...' : 'Delete Workspace only'}
-                                    </button>
-                                    <button className="btn btn-danger mx-2" onClick={() => { setDeleteType('deleteWithVolume'), handleWorkspaceDelete }}>
-                                        {deleteLoading ? 'Deleting Workspace and Volume...' : 'Delete Workspace with volume data'}
-                                    </button>
-                                </div>
+
+
                             </div>
                         )}
                     </div>

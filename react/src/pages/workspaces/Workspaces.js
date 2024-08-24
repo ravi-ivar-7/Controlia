@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './Workspaces.css';
+import './Workspace.css';
 import axiosInstance from '../../services/axiosInstance';
 import useNotification from '../../hooks/useNotification';
 import { useNavigate } from 'react-router-dom';

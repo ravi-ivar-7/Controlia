@@ -33,19 +33,77 @@ const Profile = () => {
 						<div className="info">
 							<div className="d-flex card-section">
 								<div className="cards-container">
+									
 									<div className="card-bg w-100 border d-flex flex-column">
 										<div className="p-4 d-flex flex-column h-100">
 											<div className="d-flex align-items-center justify-content-between">
 												<h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
 												<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
 											</div>
-											<h4 className="my-4 text-right text-white h2 font-weight-bold">{user.name}</h4>
+											<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
 
 											<p >
-												User-Id:	{user.username}
+												User-Id:	
 											</p>
 											<p >
-												Email: {user.email}
+												Email: sdfdsfdsfs
+											</p>
+
+										</div>
+									</div>
+
+									<div className="card-bg w-100 border d-flex flex-column">
+										<div className="p-4 d-flex flex-column h-100">
+											<div className="d-flex align-items-center justify-content-between">
+												<h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
+												<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+											</div>
+											<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+											<p >
+												User-Id:	
+											</p>
+											<p >
+												Email: sdfdsfdsfs
+											</p>
+
+										</div>
+									</div>
+
+
+									<div className="card-bg w-100 border d-flex flex-column">
+										<div className="p-4 d-flex flex-column h-100">
+											<div className="d-flex align-items-center justify-content-between">
+												<h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
+												<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+											</div>
+											<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+											<p >
+												User-Id:	
+											</p>
+											<p >
+												Email: sdfdsfdsfs
+											</p>
+
+										</div>
+									</div>
+
+
+
+									<div className="card-bg w-100 border d-flex flex-column">
+										<div className="p-4 d-flex flex-column h-100">
+											<div className="d-flex align-items-center justify-content-between">
+												<h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
+												<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+											</div>
+											<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+											<p >
+												User-Id:	
+											</p>
+											<p >
+												Email: sdfdsfdsfs
 											</p>
 
 										</div>
@@ -56,6 +114,34 @@ const Profile = () => {
 								</div>
 							</div>
 						</div>
+
+						<div className="info">
+							<div className="d-flex card-section">
+								<div className="cards-container">
+									<div className="card-bg w-100 border d-flex flex-column">
+										<div className="p-4 d-flex flex-column h-100">
+											<div className="d-flex align-items-center justify-content-between">
+												<h4 className="m-0 h5 font-weight-bold text-white">Account Information</h4>
+												<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+											</div>
+											<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+											<p >
+												User-Id:	
+											</p>
+											<p >
+												Email: sdfdsfdsfs
+											</p>
+
+										</div>
+									</div>
+
+
+
+								</div>
+							</div>
+						</div>
+
 					</div>
 				</div>
 			</div>

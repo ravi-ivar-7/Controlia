@@ -20,7 +20,7 @@ async function generateBasicAuth(user, password) {
 
 
 const getWorkspaceInfo = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(process.env.MONGODB_URL, );
     let user;
     try {
         const { decodedToken, container } = req.body;
@@ -53,7 +53,6 @@ const getWorkspaceInfo = async (req, res) => {
         const volumeData = await volume.inspect();
 
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
-
         return res.status(200).json({
             info: 'Fetched workspace details.',
             containerData,
@@ -196,7 +195,7 @@ const startCodeServer = async (req, res) => {
 };
 
 const stopCodeServer = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(process.env.MONGODB_URL, );
     let user;
     try {
         const { decodedToken, container } = req.body;
@@ -348,5 +347,89 @@ const changeWorkspaceResource = async (req, res) => {
         await client.close();
     }
 };
+
+
+const changePort3000Credentials = async (req, res) => {
+    const { username, password } = req.body;
+    const containerId = req.params.containerId;
+
+    try {
+        const container = docker.getContainer(containerId);
+
+        // Generate the Basic Auth string
+        const authString = `${username}:${password}`; 
+        const hashedPassword = Buffer.from(authString).toString('base64');
+
+        // Update the container's labels with new credentials for port 3000
+        await container.update({
+            Labels: {
+                [`traefik.http.middlewares.dev3000server_auth.basicauth.users`]: `${username}:${hashedPassword}`
+            }
+        });
+
+        await container.update({
+            Labels: {
+                [`traefik.http.routers.dev3000server.middlewares`]: '',  // Remove middleware for dev3000server
+            }
+        });
+
+        res.status(200).json({ message: 'Credentials for Port 3000 updated successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const changePort5000Credentials = async (req, res) => {
+    const { username, password } = req.body;
+    const containerId = req.params.containerId;
+
+    try {
+        const container = docker.getContainer(containerId);
+
+        // Generate the Basic Auth string
+        const authString = `${username}:${password}`; 
+        const hashedPassword = Buffer.from(authString).toString('base64');
+
+        // Update the container's labels with new credentials for port 5000
+        await container.update({
+            Labels: {
+                [`traefik.http.middlewares.dev5000server_auth.basicauth.users`]: `${username}:${hashedPassword}`
+            }
+        });
+
+         // Update the container's labels by removing the basic-auth middleware for port 5000
+         await container.update({
+            Labels: {
+                [`traefik.http.routers.dev5000server.middlewares`]: '',  // Remove middleware for dev5000server
+            }
+        });
+        
+        res.status(200).json({ message: 'Credentials for Port 5000 updated successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+const updateWorkspaceResources = async (req, res) => {
+    const { containerId, cpuQuota, memoryLimit } = req.body;
+
+    try {
+        const container = docker.getContainer(containerId);
+
+        // Update the container's resources without stopping it
+        await container.update({
+            HostConfig: {
+                CpuQuota: cpuQuota || 0,  // Set CPU quota (in microseconds)
+                Memory: memoryLimit || 0  // Set memory limit (in bytes)
+            }
+        });
+
+        res.status(200).json({ message: 'Container resources updated successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 module.exports = { getWorkspaceInfo , changeWorkspaceResource, startCodeServer, stopCodeServer};

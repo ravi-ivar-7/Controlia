@@ -39,7 +39,7 @@ router.post('/github-auth', githubAuth);
 router.post('/new-workspace', verifyToken, newWorkspaceContainer);
 router.post('/workspaces', verifyToken, getWorkspaces)
 router.post('/delete-workspace', verifyToken, deleteWorkspaceContainer)
-router.post('/get-workspace-info', verifyToken, getWorkspaceInfo)
+router.post('/workspace-info', verifyToken, getWorkspaceInfo)
 router.post('/delete-workspace', verifyToken, changeWorkspaceResource)
 router.post('/start-codeserver', verifyToken, startCodeServer)
 router.post('/stop-codeserver', verifyToken, stopCodeServer)

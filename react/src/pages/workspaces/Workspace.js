@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Workspace.css';
 import axiosInstance from '../../services/axiosInstance';
 import useNotification from '../../hooks/useNotification';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 
 import Sidebar from "../../components/bars/Sidebar";
@@ -24,7 +24,7 @@ const Workspace = () => {
     const [codeServerNewPassword, setCodeServerNewPassword] = useState('')
 
     const [deleteLoading, setDeleteLoading] = useState(false);
-    const [deleteType, setDeleteType] = useState('deleteOnlyContainer');
+    const [deleteType, setDeleteType] = useState('');
     const [user, setUser] = useState();
     const [port3000NewUser, setPort3000NewUser] = useState('')
     const [port3000NewPassword, setPort3000NewPassword] = useState('')
@@ -53,15 +53,14 @@ const Workspace = () => {
 
     const notify = useNotification();
     const location = useLocation();
+    const navigate = useNavigate();
+
     const workspace = location.state?.workspace;
     const isWorkspaceActive = containerData && containerData.status === 'running';
 
-
-    console.log(workspace, containerData, volumeData, userResources, user)
-
     if (!workspace) {
         notify('Error', 'This action is not allowed', 'danger')
-        navigator(-1)
+        navigate(-1)
     }
 
     const fetchWorkspaceInfo = useCallback(async (token) => {
@@ -105,7 +104,7 @@ const Workspace = () => {
     }, [fetchWorkspaceInfo, token, notify]);
 
     // workspace related
-    const handleWorkspaceDelete = async () => {
+    const handleWorkspaceDelete = async (deleteType) => {
         const userConfirmed = window.confirm(
             "You are about to delete the workspace.\n\n" +
             "If you choose to delete only the workspace, the associated storage volume will remain intact and can be reused with any new workspace or project.\n\n" +
@@ -113,6 +112,12 @@ const Workspace = () => {
             "Please ensure you have backed up any important data before proceeding.\n\n" +
             "Do you wish to continue?"
         );
+
+
+        if (!deleteType) {
+            notify('Error', 'Invalid deletion type specified.', 'danger');
+            return;
+        }
 
         if (userConfirmed) {
             setDeleteLoading(true);
@@ -126,6 +131,8 @@ const Workspace = () => {
                 if (response.status === 200) {
                     if (response.data && response.data.info) {
                         notify('Info', response.data.info || 'Workspace deleted.', 'info');
+                        navigate('/workspaces')
+                        
                     }
 
                 } else {
@@ -170,7 +177,6 @@ const Workspace = () => {
     }
 
     const handleWorkspaceAction = async () => {
-
         setWorkspaceLoading(true);
         try {
             const response = await axiosInstance.post('/workspace-action', { container: workspace, workspaceAction }, {
@@ -340,7 +346,7 @@ const Workspace = () => {
         }
     }
 
-
+    console.log(volumeData, userResources)
     return (
 
 
@@ -713,8 +719,9 @@ const Workspace = () => {
                                                     <p><strong>Created At:</strong> {workspaceInfo?.createdAt || 'N/A'}</p>
                                                     <p><strong>Memory:</strong> {workspaceInfo?.resourceAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
                                                     <p><strong>CPUs:</strong> {(workspaceInfo?.resourceAllocated?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
-                                                    <p><strong>Volume Name:</strong> {volumeData?.VolumeName || 'N/A'}</p>
-                                                    <p><strong>Storage:</strong> {volumeData?.storage || 'N/A'}</p>
+                                                    <p><strong>Storage:</strong> {workspaceInfo?.resourceAllocated?.Storage || 'N/A'}</p>
+                                                    <p><strong>Volume Name:</strong> {volumeData?.volumeName || 'N/A'}</p>
+
                                                 </div>
                                             </div>
 
@@ -725,11 +732,13 @@ const Workspace = () => {
 
                                                     <h4 className="text-white">Update Workspace Resources</h4>
 
-                                                    <p><strong>Total Memory:</strong> {parseFloat(userResources?.totalResources?.Memory) / (1024 * 1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>Total Memory:</strong> {parseFloat(userResources?.totalResources?.Memory) / (1024 * 1024) || 'N/A'} MB</p>
                                                     <p><strong>Total CPUs:</strong> {parseFloat(userResources?.totalResources?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Total Storage:</strong> {parseFloat(userResources?.totalResources?.Storage) || 'N/A'} MB</p>
 
-                                                    <p><strong>Available Memory:</strong> {(parseFloat(userResources?.totalResources?.Memory) - parseFloat(userResources?.usedResources?.Memory)) / (1024 * 1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>Available Memory:</strong> {(parseFloat(userResources?.totalResources?.Memory) - parseFloat(userResources?.usedResources?.Memory)) / (1024 * 1024) || 'N/A'} MB</p>
                                                     <p><strong>Available CPUs:</strong> {(parseFloat(userResources?.totalResources?.NanoCpus) - parseFloat(userResources?.usedResources?.NanoCpus)) / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Available Storage:</strong> {(parseFloat(userResources?.totalResources?.Storage) - parseFloat(userResources?.usedResources?.Storage)) || 'N/A'} MB</p>
 
 
                                                     <div className="mt-4">
@@ -821,8 +830,7 @@ const Workspace = () => {
                                                     <button
                                                         className="btn btn-danger m-2"
                                                         onClick={() => {
-                                                            setDeleteType('deleteOnlyContainer');
-                                                            handleWorkspaceDelete();
+                                                            handleWorkspaceDelete('deleteOnlyContainer');
                                                         }}
                                                     >
                                                         {deleteLoading ? 'Deleting Workspace...' : 'Delete Workspace only'}
@@ -878,8 +886,7 @@ const Workspace = () => {
                                                     <button
                                                         className="btn btn-danger m-2"
                                                         onClick={() => {
-                                                            setDeleteType('deleteWithVolume');
-                                                            handleWorkspaceDelete();
+                                                            handleWorkspaceDelete('deleteContainerAndVolume');
                                                         }}
                                                     >
                                                         {deleteLoading ? 'Deleting Workspace and Volume...' : 'Delete Workspace with volume data'}

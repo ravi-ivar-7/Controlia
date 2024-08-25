@@ -22,6 +22,7 @@ const Workspaces = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [userResources, setUserResources] = useState(null);
     const [codeServerLoading, setCodeServerLoading] = useState(false)
+    const [codeServerUrl, setCodeServerUrl] = useState('')
 
 
     const navigate = useNavigate();
@@ -91,12 +92,8 @@ const Workspaces = () => {
             if (response.status === 200) {
                 if (response.data && response.data.info) {
                     notify('Info', response.data.info || 'Code Server restarted.', 'info');
-                    const codeServerUrl = response.data.codeServerUrl || 'https://ravi_test_codeserver.bycontrolia.com';
+                    setCodeServerUrl(response.data.codeServerUrl)
                     if (codeServerUrl) {
-                        const newTab = window.open(codeServerUrl, '_blank');
-                        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-                            alert('Pop-up blocked. Please allow pop-ups for this site.');
-                        }
                     }
                 }
             }
@@ -118,28 +115,28 @@ const Workspaces = () => {
 
     return (
 
-        <div className="workspace d-flex">
-            <div>
-                <Sidebar />
-            </div>
-            <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={'Profile'} />
-                <div style={{ height: "100%" }}>
-                    <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
+        <div className="profile d-flex">
+			<div>
+				<Sidebar />
+			</div>
+			<div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
+				<Navbar pageTitle={'Profile'} />
+				<div style={{ height: "100%" }}>
+					<div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
+
+						{loading ? (<div>
+							<SkeletonTheme baseColor="#202020" highlightColor="#444">
+								<h1>{<Skeleton />}</h1>
+								<p>
+									<Skeleton count={5} />
+								</p>
+							</SkeletonTheme>
+						</div>) : (
+
+							<div>
 
 
-
-                        {loading ? (<div>
-                            <SkeletonTheme baseColor="#202020" highlightColor="#444">
-                                <h1>{<Skeleton />}</h1>
-                                <p>
-                                    <Skeleton count={5} />
-                                </p>
-                            </SkeletonTheme>
-                        </div>) : (
-
-                            <div>
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <div className="icon-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                         <div className="popup" onClick={() => setWorkspaceDropDown(!workspaceDropDown)} style={{ cursor: 'pointer', marginLeft: '15px', marginTop: '15px' }}>
 
@@ -170,13 +167,14 @@ const Workspaces = () => {
                                     </div>
                                 </div>
 
-                                <div className="info">
-                                    <div className="d-flex card-section">
 
 
-                                        {workspaces.map((workpace, index) => (
 
-                                            <div className="cards-container">
+								<div className="info">
+									<div className="d-flex card-section">
+										<div className="cards-container">
+
+											{workspaces.map((workpace, index) => (
                                                 <div key={index} className="card-bg w-100 border d-flex flex-column">
                                                     <div className="p-4 d-flex flex-column h-100">
                                                         <h4 className="my-4 text-right text-white h2 font-weight-bold">
@@ -191,11 +189,11 @@ const Workspaces = () => {
                                                             <p style={{ color: 'red', fontWeight: 'bold' }}>
                                                                 ⚠️ Use your account username and password if Sign-in required. For security reasons, update your workspace credentials from the configuration below.
                                                                 <br />
-                                                                Do verify that <span style={{ color: 'blue', fontWeight: 'bold' }}>URL</span> ends with
+                                                                Do verify that  <span style={{ color: 'blue', fontWeight: 'bold' }}> ALL URL</span> ends with
                                                                 <span style={{ color: 'blue', fontWeight: 'bold' }}> .bycontrolia.com</span>
                                                             </p>
 
-
+                                                            <a href={`${codeServerUrl}`}> Code-Server URL: {codeServerUrl}</a>
 
                                                         </div>
 
@@ -205,31 +203,55 @@ const Workspaces = () => {
                                                             </button>
 
                                                             <button disabled={codeServerLoading} className="btn btn-success" onClick={() => handleCodeServer(workpace)}>
-                                                                {codeServerLoading ? 'Starting Code Server' : 'Code Server'}
+                                                                {codeServerLoading ? 'Starting Code Server' : 'Enter Into Code Server'}
                                                             </button>
 
 
                                                         </div>
                                                     </div>
-                                                </div>
+                                      
                                             </div>
 
 
 
                                         ))}
 
-                                    </div>
-                                </div>
+											
+										</div>
+									</div>
+								</div>
+
+								{/* <div className="info">
+									<div className="d-flex card-section">
+
+										<div className="cards-container">
+											<div className="card-bg w-100 border d-flex flex-column">
+												<div className="p-4 d-flex flex-column h-100">
+													<div className="d-flex align-items-center justify-content-between">
+														<h4 className="m-0 h5 font-weight-bold text-white">General Information</h4>
+														<div className="py-1 px-2 bg-grey rounded-circle"><i className="fas fa-user"></i></div>
+													</div>
+													<h4 className="my-4 text-right text-white h2 font-weight-bold">sdfdsfdsfs</h4>
+
+													<p>account setput info here</p>
+
+												</div>
+											</div>
 
 
 
+										</div>
+									</div>
+								</div> */}
+							</div>
 
-                            </div>)}
-                    </div>
-                </div>
-            </div>
+
+						)}
+					</div>
+				</div>
+			</div>
             <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes} userResources={userResources} />
-        </div>
+		</div>
     );
 }
 

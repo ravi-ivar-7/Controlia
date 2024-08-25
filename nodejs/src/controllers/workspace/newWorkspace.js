@@ -46,7 +46,7 @@ const execCommandInContainer = async (containerId, command) => {
 const newWorkspaceContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     let accessToken, selectedRepo, decodedToken, containerName, volumeName, workspaceName, workspaceVolume, user;
-    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory,storage, workspaceSource
+    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory, storage, workspaceSource
 
     const cleanUp = async () => {
         if (container) {
@@ -108,7 +108,7 @@ const newWorkspaceContainer = async (req, res) => {
         NanoCpus = cpus * 1e9; // 1 core = 1 billion nanoseconds
         // Convert memory from MB to bytes
         Memory = memory * 1024 * 1024; // 1 MB = 1 million bytes
-        
+
 
         await client.connect();
         const db = client.db("controlia");
@@ -120,7 +120,14 @@ const newWorkspaceContainer = async (req, res) => {
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
 
         if (selectedVolume.volumeName == 'New Volume') {
-            volumeName = `${user.username}_${workspaceName}_workspace_volume`;
+            const existingVolume = await volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })
+            if (existingVolume) {
+                return res.status(209).json({ 
+                    warn: `${volumeName} is already present. Choose another name.` 
+                });
+            } else {
+                volumeName = `${user.username}_${workspaceName}_workspace_volume`;
+            }
         }
         else {
             const existingVolume = await volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })
@@ -128,13 +135,18 @@ const newWorkspaceContainer = async (req, res) => {
                 return res.status(209).json({ warn: `${workspaceVolume} is linked with ${existingVolume.containerName}. To use this volume, first free by deleting only container.` })
             }
             volumeName = selectedVolume.volumeName
+            containerName = `${user.username}_${workspaceName}_workspace_container`;
+            await volumesCollection.findOneAndUpdate(
+                { userId: user.userId, volumeName: volumeName },
+                { $set: { containerName: containerName, workspaceName: workspaceName } },
+            );
+
         }
-        containerName = `${user.username}_${workspaceName}_workspace_container`;
 
         const containers = await docker.listContainers({ all: true });// all stopped/ running
         // Check if any container has the desired name
-        if(containers.some(container => container.Names.includes(`/${containerName}`))){
-            return res.status(209).json({warn: `${workspaceName} already exitst.`})
+        if (containers.some(container => container.Names.includes(`/${containerName}`))) {
+            return res.status(209).json({ warn: `${workspaceName} already exitst.` })
         }
         ({ container, volume, subdomains, ports, authStrings } = await createWorkspaceContainer(user, Memory, NanoCpus, storage, containerName, volumeName, workspaceName))
 
@@ -163,7 +175,7 @@ const newWorkspaceContainer = async (req, res) => {
             workspaceName,
             type: 'workspace',
             volumeName,
-            resourceAllocated: { Memory: Memory, NanoCpus: NanoCpus, Storage:storage },
+            resourceAllocated: { Memory: Memory, NanoCpus: NanoCpus, Storage: storage },
             createdAt: new Date(),
             subdomains,
             ports,
@@ -182,17 +194,17 @@ const newWorkspaceContainer = async (req, res) => {
                 Storage: Number(userResources.usedResources.Storage) + Number(storage)
             }
         };
-        
+
         await resourcesCollection.updateOne(
             { userId: user.userId },
             { $set: updatedResources }
         );
-        
+
 
         newVolumeEntry = {
             userId: user.userId,
             containerName: newContainerEntry.containerName,
-            volumeName:volumeName,
+            volumeName: volumeName,
             workspaceName,
             createdAt: new Date(),
         };

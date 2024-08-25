@@ -39,7 +39,7 @@ const restartCodeServer = async (req, res) => {
         }
 
         const containerInstance = docker.getContainer(container.containerId);
-        
+
         if (newUsername && newPassword) {
             const newCodeserverAuthString = await generateBasicAuth(`${newUsername}`, `${newPassword}`);
             console.log(newCodeserverAuthString)
@@ -48,10 +48,13 @@ const restartCodeServer = async (req, res) => {
                     [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: newCodeserverAuthString,
                 },
             });
+            
         }
 
 
         // Kill previous Code Server instance if it exists
+        console.log(`Killing ${codeServerContainer.codeServerPID} process`);
+
         if (codeServerContainer.codeServerPID) {
             const execKill = await containerInstance.exec({
                 Cmd: ['sh', '-c', `kill -9 ${codeServerContainer.codeServerPID}`],
@@ -63,30 +66,41 @@ const restartCodeServer = async (req, res) => {
         }
 
         const exec = await containerInstance.exec({
-            Cmd: ['sh', '-c', `nohup code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth none --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`],
+            Cmd: [
+                'sh',
+                '-c',
+                `PASSWORD='1234' code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+            ],
             AttachStdout: true,
             AttachStderr: true,
             Tty: false,
         });
 
 
+        // Start the exec command and get the stream
         const stream = await exec.start();
+
         let output = '';
 
+        // Pipe the output to process stdout and stderr
         stream.on('data', (data) => {
-            output += data.toString();
+            console.log(data.toString());
+            output += data.toString();  // Accumulate output to capture the new PID
         });
 
         await new Promise((resolve) => {
             stream.on('end', resolve);
         });
 
-        newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
+        // Clean the output to extract the new PID
+        const newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
+        console.log('New PID:', newPID);
 
         if (!newPID) {
             throw new Error('Failed to retrieve new PID for the Code Server.');
         }
 
+        // Update the container's document with the new PID in the database
         await containersCollection.findOneAndUpdate(
             { userId: decodedToken.userId, containerName: container.containerName },
             {
@@ -95,8 +109,8 @@ const restartCodeServer = async (req, res) => {
                 }
             }
         );
+        return res.status(200).json({ info: 'Code Server started successfully.', codeServerUrl: `${container.subdomains['codeServer']}` });
 
-        return res.status(200).json({ info: 'Code Server started successfully.' });
 
     } catch (error) {
         logger.error(`ERROR IN STARTING CODE SERVER: ${error.message}`);
@@ -191,3 +205,5 @@ const stopCodeServer = async (req, res) => {
 
 
 module.exports = { restartCodeServer, stopCodeServer }
+
+// docker exec  hello_3_workspace_container code-server --bind-addr localhost:8081 .

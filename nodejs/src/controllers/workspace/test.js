@@ -1,0 +1,12 @@
+Labels: {
+    "traefik.enable": "true",
+    [`traefik.http.routers.${codeServerSubDomain}.entrypoints`]: "http",
+    [`traefik.http.routers.${codeServerSubDomain}.rule`]: `Host(\`${codeServerSubDomain}.bycontrolia.com\`)`,
+    [`traefik.http.middlewares.${codeServerSubDomain}-https-redirect.redirectscheme.scheme`]: "https",
+    [`traefik.http.routers.${codeServerSubDomain}-secure.entrypoints`]: "https",
+    [`traefik.http.routers.${codeServerSubDomain}-secure.rule`]: `Host(\`${codeServerSubDomain}.bycontrolia.com\`)`,
+    [`traefik.http.routers.${codeServerSubDomain}-secure.tls`]: "true",
+    [`traefik.http.routers.${codeServerSubDomain}-secure.tls.certresolver`]: "cloudflare",
+    [`traefik.http.routers.${codeServerSubDomain}.service`]: `${codeServerSubDomain}`,
+    [`traefik.http.services.${codeServerSubDomain}.loadbalancer.server.port`]: `${codeServerPort}`,
+},

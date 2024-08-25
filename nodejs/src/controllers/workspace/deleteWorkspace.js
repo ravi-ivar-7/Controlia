@@ -20,7 +20,7 @@ const deleteVolume = async (volumeName) => {
 };
 
 const deleteWorkspaceContainer = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(process.env.MONGODB_URL,);
     let user;
     try {
         const { decodedToken, container, deleteType } = req.body;
@@ -39,7 +39,7 @@ const deleteWorkspaceContainer = async (req, res) => {
             throw new Error(`Container ${container.containerName} for ${user.username} not found in the database.`);
         }
 
-        const containerToDelete = docker.getContainer(workspaceContainer.containerId);
+        const containerToDelete = await docker.getContainer(workspaceContainer.containerId);
         const containerInspect = await containerToDelete.inspect();
 
         if (!containerInspect) {
@@ -69,15 +69,17 @@ const deleteWorkspaceContainer = async (req, res) => {
             }}
         );
         
-
         if (deleteType === 'deleteOnlyContainer') {
             await volumesCollection.updateOne(
                 { userId: user.userId, volumeName: container.volumeName },
-                { $unset: { containerId: "" , workspaceName:''} }
+                { $set: { containerName: '' , workspaceName:''} }
             );
         } else if (deleteType === 'deleteContainerAndVolume') {
             await deleteVolume(container.volumeName);
             await volumesCollection.findOneAndDelete({ userId: user.userId, volumeName: container.volumeName });
+        }
+        else{
+            return res.status(209).json({warn: `Unsupported delete operation: ${deleteType} `})
         }
 
         return res.status(200).json({ info: 'workspace container deleted successfully.' });

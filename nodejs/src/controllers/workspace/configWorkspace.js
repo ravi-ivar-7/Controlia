@@ -35,6 +35,7 @@ const getWorkspaceInfo = async (req, res) => {
         const usersCollection = db.collection('users');
         const containersCollection = db.collection('containers');
         const resourcesCollection = db.collection('resources');
+        const volumesCollection = db.collection('volumes');
 
         user = await usersCollection.findOne({ userId: decodedToken.userId });
         if (!user) {
@@ -49,8 +50,10 @@ const getWorkspaceInfo = async (req, res) => {
         const containerInstance = docker.getContainer(container.containerId);
         const containerData = await containerInstance.inspect();
 
-        const volume = docker.getVolume(container.volumeName);
-        const volumeData = await volume.inspect();
+        // const volume = docker.getVolume(container.volumeName);
+        // const volumeData = await volume.inspect();
+
+        const volumeData = await volumesCollection.findOne({ userId: decodedToken.userId, volumeName: container.volumeName })
 
         const userResources = await resourcesCollection.findOne({ userId: user.userId });
         return res.status(200).json({
@@ -91,9 +94,9 @@ const getWorkspaceInfo = async (req, res) => {
 
 const changeWorkspaceResource = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
+    let decodedToken, container, newCpus, newMemoryLimit
     try {
-        const { decodedToken, container, newCpus, newMemoryLimit } = req.body;
-
+        ({ decodedToken, container, newCpus, newMemoryLimit } = req.body)
         if (!decodedToken || !container || newCpus === undefined || newMemoryLimit === undefined) {
             return res.status(400).json({ warn: 'Missing required parameters.' });
         }
@@ -120,9 +123,12 @@ const changeWorkspaceResource = async (req, res) => {
 
         // Update container entry in MongoDB
         const newResourceAllocated = {
-            Memory: newMemoryLimit * 1024 * 1024,
-            NanoCpus: newCpus * 1e9
+            Memory: Number(newMemoryLimit * 1024 * 1024),
+            NanoCpus: Number(newCpus * 1e9),
+            Storage: Number(containerToChange.resourceAllocated.Storage)
         };
+
+        console.log(newResourceAllocated, '1')
 
         await containersCollection.updateOne(
             { userId: decodedToken.userId, containerName: container.containerName },
@@ -138,11 +144,13 @@ const changeWorkspaceResource = async (req, res) => {
         // Calculate the updated resource usage
         const updatedResources = {
             usedResources: {
-                Memory: userResources.usedResources.Memory + newResourceAllocated.Memory,
-                NanoCpus: userResources.usedResources.NanoCpus + newResourceAllocated.NanoCpus
+                Memory: Number(userResources.usedResources.Memory + newResourceAllocated.Memory - containerToChange.resourceAllocated.Memory),
+                NanoCpus: Number(userResources.usedResources.NanoCpus + newResourceAllocated.NanoCpus - containerToChange.resourceAllocated.NanoCpus),
+                Storage: Number(userResources.usedResources.Storage)
             }
         };
 
+        console.log(updatedResources)
         // Update the user's resource usage in MongoDB
         await resourcesCollection.updateOne(
             { userId: decodedToken.userId },
@@ -233,4 +241,4 @@ const workspaceAction = async (req, res) => {
 
 
 
-module.exports = { getWorkspaceInfo, changeWorkspaceResource , workspaceAction};
+module.exports = { getWorkspaceInfo, changeWorkspaceResource, workspaceAction };

@@ -17,7 +17,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
     const [loading, setLoading] = useState(false);
     const [volumes, setVolumes] = useState([]);
     const [availableResources, setAvailableResources] = useState({ Memory: 0, NanoCpus: 0, Storage: 0 });
-    const [totalResources, setTotalResources] = useState({ Memory: 0, NanoCpus: 0,Storage: 0 });
+    const [totalResources, setTotalResources] = useState({ Memory: 0, NanoCpus: 0, Storage: 0 });
     const [cpusError, setCpusError] = useState('');
     const [memoryError, setMemoryError] = useState('');
     const [storageError, setStorageError] = useState('')
@@ -42,8 +42,8 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
             const availableNanoCpus = totalNanoCpus - usedNanoCpus;
             const availableStorage = totalStorage - usedStorage;
 
-            setAvailableResources({ Memory: availableMemory, NanoCpus: availableNanoCpus , Storage : availableStorage});
-            setTotalResources({ Memory: totalMemory, NanoCpus: totalNanoCpus , Storage: totalStorage})
+            setAvailableResources({ Memory: availableMemory, NanoCpus: availableNanoCpus, Storage: availableStorage });
+            setTotalResources({ Memory: totalMemory, NanoCpus: totalNanoCpus, Storage: totalStorage })
         }
     }, [userResources]);
 
@@ -62,7 +62,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
             setMemoryError('');
         }
         // Validate Memory
-        if (storage && (storage < 500 || storage > availableResources.Storage )) {
+        if (storage && (storage < 500 || storage > availableResources.Storage)) {
             setStorageError(`Storage must be between 500 MB and ${availableResources.Storage} MB.`);
         } else {
             setStorageError('');
@@ -123,7 +123,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                     window.location.reload();
                 }, 500);
             }
-             else {
+            else {
                 notify('Error', response.data.warn || 'Internal Server Error', 'danger');
             }
         } catch (error) {
@@ -243,93 +243,104 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
 
 
                         <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>
-                    Volume For Workspace:
-                    <span
-                        style={{
-                            marginLeft: '8px',
-                            cursor: 'pointer',
-                            color: '#007bff',
-                            textDecoration: 'underline',
-                        }}
-                        onClick={() => setShowHelp(!showHelp)}
-                    >
-                        [?]
-                    </span>
-                </label>
-                {showHelp && (
-                    <div
-                        style={{
-                            backgroundColor: '#f8f9fa',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px',
-                            padding: '10px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,1)',
-                            zIndex: 1000,
-                        }}
-                    >
-                        <h5>What is a Volume?</h5>
-                        <p>
-                            A volume is a storage area that is used to persist data in a containerized environment. It allows you to save data that can be shared between different containers or retained even when a container is stopped or removed.
-                        </p>
-                        <h5>Use Case</h5>
-                        <p>
-                            Volumes are commonly used to store configuration files, logs, and other data that need to be preserved across container restarts. They ensure that important data is not lost when containers are updated or redeployed.
-                        </p>
-                        <h5>Consequences of Not Using</h5>
-                        <p>
-                            If you do not use volumes, any data stored inside a container will be lost when the container is removed or stopped. This could lead to loss of important information and affect the stability and consistency of your applications.
-                        </p>
-                    </div>
-                )}
-            </div>
-            <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {volumes.map(volume => (
-                    <li
-                        key={volume.id}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '10px',
-                            padding: '10px',
-                            border: `1px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
-                            borderRadius: '5px',
-                            backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? 'rgba(0, 123, 255, 0.1)' : 'white',
-                        }}
-                    >
-                        <input
-                            disabled={volume.workspaceName !== ''}
-                            type="radio"
-                            name="volumes"
-                            checked={selectedVolume?.id === volume.id && volume.workspaceName === ''}
-                            onChange={() => handleSelectVolume(volume)}
-                            style={{
-                                marginRight: '10px',
-                                width: '20px',
-                                height: '20px',
-                                WebkitAppearance: 'none',
-                                MozAppearance: 'none',
-                                appearance: 'none',
-                                borderRadius: '5px',
-                                border: `2px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
-                                outline: 'none',
-                                cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
-                                backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : 'white',
-                            }}
-                        />
-                        <label
-                            style={{
-                                flex: 1,
-                                cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
-                                userSelect: 'none',
-                                color: volume.workspaceName !== '' ? 'gray' : 'black',
-                            }}
-                        >
-                            {volume.volumeName} - {volume.workspaceName !== '' ? `Used by ${volume.workspaceName}` : `(${user.username}_${workspaceName}_workspace_volume)`}
-                        </label>
-                    </li>
-                ))}
-            </ul>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>
+                                Volume For Workspace:
+                                <span
+                                    style={{
+                                        marginLeft: '8px',
+                                        cursor: 'pointer',
+                                        color: '#007bff',
+                                        textDecoration: 'underline',
+                                    }}
+                                    onClick={() => setShowHelp(!showHelp)}
+                                >
+                                    <i
+                                        className="fas fa-info-circle"
+                                        style={{ fontSize: '20px', color: 'black' , marginTop:'5px' }}
+                                    ></i>
+                                </span>
+                            </label>
+                            {showHelp && (
+                                <div
+                                    style={{
+                                        backgroundColor: '#f8f9fa',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '4px',
+                                        padding: '10px',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,1)',
+                                        zIndex: 1000,
+                                    }}
+                                >
+                                    <h5>What is a Volume?</h5>
+                                    <p>
+                                        A volume is a storage area that is used to persist data in a containerized environment. It allows you to save data that can be shared between different containers or retained even when a container is stopped or removed.
+                                    </p>
+                                    <h5>Use Case</h5>
+                                    <p>
+                                        Volumes are commonly used to store configuration files, logs, and other data that need to be preserved across container restarts. They ensure that important data is not lost when containers are updated or redeployed.
+                                    </p>
+                                    <h5>Consequences of Not Using</h5>
+                                    <p>
+                                        If you do not use volumes, any data stored inside a container will be lost when the container is removed or stopped. This could lead to loss of important information and affect the stability and consistency of your applications.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        <ul style={{ listStyleType: 'none', padding: 0 }}>
+                            {volumes.map(volume => (
+                                <li
+                                    key={volume.id}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginBottom: '10px',
+                                        padding: '10px',
+                                        border: `1px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
+                                        borderRadius: '5px',
+                                        backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? 'rgba(0, 123, 255, 0.1)' : 'white',
+                                    }}
+                                >
+                                    <input
+                                        disabled={volume.workspaceName !== ''}
+                                        type="radio"
+                                        name="volumes"
+                                        checked={selectedVolume?.id === volume.id && volume.workspaceName === ''}
+                                        onChange={() => handleSelectVolume(volume)}
+                                        style={{
+                                            marginRight: '10px',
+                                            width: '20px',
+                                            height: '20px',
+                                            WebkitAppearance: 'none',
+                                            MozAppearance: 'none',
+                                            appearance: 'none',
+                                            borderRadius: '5px',
+                                            border: `2px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
+                                            outline: 'none',
+                                            cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
+                                            backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : 'white',
+                                        }}
+                                    />
+                                    <label
+                                        style={{
+                                            flex: 1,
+                                            cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
+                                            userSelect: 'none',
+                                            color: volume.workspaceName !== '' ? 'gray' : 'black',
+                                        }}
+                                    >
+                                        {volume.volumeName === 'New Volume'
+                                            ? 'Create New Volume :'
+                                            : volume.volumeName} -
+                                        {volume.volumeName === 'New Volume'
+                                            ? `${user.username}_${workspaceName}_workspace_volume`
+                                            : (volume.workspaceName !== ''
+                                                ? `Used by ${volume.workspaceName}`
+                                                : 'Freed volume'
+                                            )}
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
 
                     </div>
                     </div>

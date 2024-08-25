@@ -10,15 +10,17 @@ let token = localStorage.getItem('token');
 const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) => {
     const [cpus, setCpus] = useState('');
     const [memory, setMemory] = useState('');
+    const [storage, setStorage] = useState('')
     const [selectedVolume, setSelectedVolume] = useState(null);
     const notify = useNotification();
     const [workspaceName, setWorkspaceName] = useState('');
     const [loading, setLoading] = useState(false);
     const [volumes, setVolumes] = useState([]);
-    const [availableResources, setAvailableResources] = useState({ Memory: 0, NanoCpus: 0, });
-    const [totalResources, setTotalResources] = useState({ Memory: 0, NanoCpus: 0, });
+    const [availableResources, setAvailableResources] = useState({ Memory: 0, NanoCpus: 0, Storage: 0 });
+    const [totalResources, setTotalResources] = useState({ Memory: 0, NanoCpus: 0,Storage: 0 });
     const [cpusError, setCpusError] = useState('');
     const [memoryError, setMemoryError] = useState('');
+    const [storageError, setStorageError] = useState('')
     const [showHelp, setShowHelp] = useState(false);
 
     // Ensure userResources is properly initialized
@@ -27,15 +29,18 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
             // Convert string values to numbers
             const totalMemory = eval(userResources.totalResources.Memory); // Evaluates the mathematical expression
             const totalNanoCpus = parseFloat(userResources.totalResources.NanoCpus); // Converts scientific notation to number
+            const totalStorage = parseFloat(userResources.totalResources.Storage);
             const usedMemory = userResources.usedResources.Memory; // Assuming this is a number
             const usedNanoCpus = userResources.usedResources.NanoCpus; // Assuming this is a number
+            const usedStorage = userResources.usedResources.Storage;
 
             // Calculate available resources
             const availableMemory = totalMemory - usedMemory;
             const availableNanoCpus = totalNanoCpus - usedNanoCpus;
+            const availableStorage = totalStorage - usedStorage;
 
-            setAvailableResources({ Memory: availableMemory, NanoCpus: availableNanoCpus });
-            setTotalResources({ Memory: totalMemory, NanoCpus: totalNanoCpus })
+            setAvailableResources({ Memory: availableMemory, NanoCpus: availableNanoCpus , Storage : availableStorage});
+            setTotalResources({ Memory: totalMemory, NanoCpus: totalNanoCpus , Storage: totalStorage})
         }
     }, [userResources]);
 
@@ -53,7 +58,13 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
         } else {
             setMemoryError('');
         }
-    }, [cpus, memory, availableResources]);
+        // Validate Memory
+        if (storage && (storage < 500 || storage > availableResources.Storage )) {
+            setStorageError(`Storage must be between 500 MB and ${availableResources.Storage} MB.`);
+        } else {
+            setStorageError('');
+        }
+    }, [cpus, memory, availableResources, storage]);
 
     console.log(userResources)
 
@@ -73,6 +84,9 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
     const handleMemoryChange = (e) => {
         setMemory(e.target.value);
     };
+    const handleStorageChange = (e) => {
+        setStorage(e.target.value);
+    };
 
     const handleWorkspaceNameChange = (e) => {
         const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
@@ -91,6 +105,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                 memory,
                 workspaceName,
                 selectedVolume,
+                storage,
                 workspaceSource: 'self'
             }, {
                 headers: {
@@ -135,11 +150,13 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                             <h5>Total Resources</h5>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {totalResources.NanoCpus / (1e9)} cores</p>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {totalResources.Memory / (1024 * 1024)} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {totalResources.Storage} MB</p>
                         </div>
                         <div style={{ backgroundColor: '#e9ecef', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: 1, marginLeft: '10px', textAlign: 'center', }}>
                             <h5>Available Resources</h5>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.Storage} MB</p>
                         </div>
                     </div>
                         <div style={{ marginBottom: '15px' }}>
@@ -196,6 +213,26 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                                 }}
                             />
                             {memoryError && <div style={{ color: 'red', marginTop: '5px' }}>{memoryError}</div>}
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Storage (MB):</label>
+                            <input
+                                type="number"
+                                value={storage}
+                                onChange={handleStorageChange}
+                                placeholder="Minimum: 500 MB, Maximum: As per available resources."
+                                min={500}
+                                max={availableResources.Storage}
+                                step={1}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ccc',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                            {storageError && <div style={{ color: 'red', marginTop: '5px' }}>{storageError}</div>}
                         </div>
 
 
@@ -308,7 +345,9 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                         cpus < 0.5 ||
                         cpus > availableResources.NanoCpus / 1e9 ||
                         memory < 256 ||
-                        memory > availableResources.Memory / (1024 * 1024)
+                        memory > availableResources.Memory / (1024 * 1024) ||
+                        storage < 500 ||
+                        storage > availableResources.Storage
                     }
                     onClick={handleNewWorkspace}
                 >

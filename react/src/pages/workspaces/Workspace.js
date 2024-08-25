@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Workspace.css';
 import axiosInstance from '../../services/axiosInstance';
@@ -54,9 +54,10 @@ const Workspace = () => {
     const notify = useNotification();
     const location = useLocation();
     const workspace = location.state?.workspace;
-    const isWorkspaceActive = containerData?.status !== 'running';
+    const isWorkspaceActive = containerData && containerData.status === 'running';
 
-    console.log(workspace)
+
+    console.log(workspace, containerData, volumeData, userResources, user)
 
     if (!workspace) {
         notify('Error', 'This action is not allowed', 'danger')
@@ -105,7 +106,6 @@ const Workspace = () => {
 
     // workspace related
     const handleWorkspaceDelete = async () => {
-
         const userConfirmed = window.confirm(
             "You are about to delete the workspace.\n\n" +
             "If you choose to delete only the workspace, the associated storage volume will remain intact and can be reused with any new workspace or project.\n\n" +
@@ -145,7 +145,6 @@ const Workspace = () => {
     }
 
     const handleChangeResource = async () => {
-
         setChangeResourcesLoading(true);
         try {
             const response = await axiosInstance.post('/change-workspace-resources', { container: workspace, newCpus, newMemoryLimit }, {
@@ -233,12 +232,13 @@ const Workspace = () => {
     }
 
     const handleCodeServerStop = async () => {
-        setCodeServerLoading(true);
+
         if (!isWorkspaceActive) {
             notify('Error', 'Workspace is inactive. Activate it.', 'danger');
             return;
         }
         try {
+            setCodeServerLoading(true);
             const response = await axiosInstance.post('/stop-codeserver', { container: workspace }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -260,33 +260,6 @@ const Workspace = () => {
         } finally {
             setCodeServerLoading(false);
         }
-    }
-
-    const handleCodeServerCredentials = async () => {
-
-        setCodeServerLoading(true);
-        try {
-            const response = await axiosInstance.post('/codeserver-credentials', { container: workspace, codeServerNewPassword, codeServerNewUser }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code server credentails updated', 'info');
-                }
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Faild to update code server credentials.', error);
-            notify('Error', 'Failed to update code server credentails.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-
     }
 
     // port 3000/5000 related
@@ -332,14 +305,14 @@ const Workspace = () => {
     }
     const handlePort5000Credentials = async () => {
         let userConfirmed;
-        if (disablePort3000Auth) {
+        if (disablePort5000Auth) {
             userConfirmed = window.confirm(
                 "Disabling authentication on development ports/domains can expose your application to unauthorized access and security risks. It's important to have authentication in place to protect sensitive data and prevent unauthorized actions. \n\n" +
                 "Are you sure you want to proceed with disabling authentication?"
             );
         }
-        if ((disablePort3000Auth && userConfirmed) || !disablePort3000Auth) {
-            setPort3000Loading(true);
+        if ((disablePort5000Auth && userConfirmed) || !disablePort5000Auth) {
+            setPort5000Loading(true);
             try {
                 const response = await axiosInstance.post('/port5000-credentials', { container: workspace, disableAuth: false }, {
                     headers: {
@@ -376,7 +349,7 @@ const Workspace = () => {
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={'Workspace'} />
+                <Navbar pageTitle={`${workspaceInfo?.workspaceName || '...'}-workspace`} />
                 <div style={{ height: "100%" }}>
                     <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
@@ -401,11 +374,26 @@ const Workspace = () => {
                                             alignItems: 'center',
                                         }}
                                     >
-                                        <h2 style={{ fontWeight: 'bold', color: '#FF5733', fontSize: '18px' }}>
-                                            Activate Workspace
-                                        </h2>
-                                    </div>
+                                        {containerData?.State?.Status === 'running' ? (
+                                            <button
+                                                className="btn btn-danger mx-2 mt-2"
+                                                onClick={() => { setWorkspaceAction('deactivate'); handleWorkspaceAction(); }}
+                                                disabled={workspaceLoading}
+                                            >
+                                                {workspaceLoading ? 'Deactivating workspace...' : ' Deactivate Workspace'}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="btn btn-success mx-2 mt-2"
+                                                onClick={() => { setWorkspaceAction('activate'); handleWorkspaceAction(); }}
+                                                disabled={workspaceLoading}
+                                            >
+                                                {workspaceLoading ? 'Activation Workspace...' : '  Activate Workspace'}
+                                            </button>
+                                        )}
 
+
+                                    </div>
 
                                     <div className="d-flex card-section">
                                         <div className="cards-container">
@@ -473,21 +461,6 @@ const Workspace = () => {
                                                     <p className="text-white mt-3">
                                                         <strong>Code Server Domain:</strong> {workspaceInfo?.subdomains?.codeServer || 'N/A'}<br />
 
-                                                        <button
-                                                            className="btn btn-danger mx-2 mt-2"
-                                                            onClick={handleCodeServerStop}
-                                                            disabled={codeServerLoading}
-                                                        >
-                                                            {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
-                                                        </button>
-
-                                                        <button
-                                                            className="btn btn-primary mx-2 mt-2"
-                                                            onClick={handleCodeServerRestart}
-                                                            disabled={codeServerLoading}
-                                                        >
-                                                            {codeServerLoading ? 'Restarting Code Server...' : 'Restart Code Server'}
-                                                        </button>
                                                     </p>
 
                                                     <h4 className="text-white">Update Code Server Credentials</h4>
@@ -514,11 +487,20 @@ const Workspace = () => {
 
                                                     <button
                                                         className="btn btn-info mt-2"
-                                                        onClick={handleCodeServerCredentials}
+                                                        onClick={handleCodeServerRestart}
                                                         disabled={!codeServerNewPassword || !codeServerNewUser}
                                                     >
-                                                        {codeServerLoading ? 'Updating credentials...' : 'Update'}
+                                                        {codeServerLoading ? 'Updating Credentials and Restarting...' : 'Update Credentials and Restart.'}
                                                     </button>
+
+                                                    <button
+                                                        className="btn btn-danger mt-2"
+                                                        onClick={handleCodeServerStop}
+                                                        disabled={codeServerLoading}
+                                                    >
+                                                        {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
+                                                    </button>
+
 
                                                 </div>
                                             </div>
@@ -616,7 +598,6 @@ const Workspace = () => {
 
                                                 </div>
                                             </div>
-
 
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
@@ -725,33 +706,14 @@ const Workspace = () => {
 
                                                     <h3 className="text-white">Workspace </h3>
                                                     <p className="text-white mt-3">
-
-                                                        <strong>Status:</strong> {containerData?.status === 'running' ? 'Active' : 'Inactive'}
-                                                        {containerData?.status === 'running' ? (
-                                                            <button
-                                                                className="btn btn-secondary mx-2 mt-2"
-                                                                onClick={ () =>{setWorkspaceAction('deactivate'); handleWorkspaceAction();}}
-                                                                disabled={workspaceLoading}
-                                                            >
-                                                                {workspaceLoading ? 'Deactivating workspace...' : 'Deactivate Workspace'}
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                className="btn btn-primary mx-2 mt-2"
-                                                                onClick={ () =>{setWorkspaceAction('activate'); handleWorkspaceAction();}}
-                                                                disabled={workspaceLoading}
-                                                            >
-                                                                {workspaceLoading ? 'Activation Workspace...' : 'Activate Workspace'}
-                                                            </button>
-                                                        )}
+                                                        <strong>Status:</strong> {containerData?.State?.Status}
                                                     </p>
 
                                                     <p><strong>Name:</strong> {workspaceInfo?.workspaceName || 'N/A'}</p>
-                                                    <p><strong>Status:</strong> {workspaceInfo?.status || 'N/A'}</p>
                                                     <p><strong>Created At:</strong> {workspaceInfo?.createdAt || 'N/A'}</p>
-
-                                                    <p><strong>ID:</strong> {volumeData?.Id || 'N/A'}</p>
-                                                    <p><strong>Name:</strong> {volumeData?.VolumeName || 'N/A'}</p>
+                                                    <p><strong>Memory:</strong> {workspaceInfo?.resourceAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>CPUs:</strong> {(workspaceInfo?.resourceAllocated?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Volume Name:</strong> {volumeData?.VolumeName || 'N/A'}</p>
                                                     <p><strong>Storage:</strong> {volumeData?.storage || 'N/A'}</p>
                                                 </div>
                                             </div>
@@ -763,11 +725,12 @@ const Workspace = () => {
 
                                                     <h4 className="text-white">Update Workspace Resources</h4>
 
-                                                    <p><strong>Total Memory:</strong> {workspaceInfo?.resourcesAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
-                                                    <p><strong>Total CPU:</strong> {workspaceInfo?.resourcesAllocated?.NanoCpus / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Total Memory:</strong> {parseFloat(userResources?.totalResources?.Memory) / (1024 * 1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>Total CPUs:</strong> {parseFloat(userResources?.totalResources?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
 
-                                                    <p><strong>Available Memory:</strong> {workspaceInfo?.resourcesAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
-                                                    <p><strong>Available CPU:</strong> {workspaceInfo?.resourcesAllocated?.NanoCpus / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Available Memory:</strong> {(parseFloat(userResources?.totalResources?.Memory) - parseFloat(userResources?.usedResources?.Memory)) / (1024 * 1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>Available CPUs:</strong> {(parseFloat(userResources?.totalResources?.NanoCpus) - parseFloat(userResources?.usedResources?.NanoCpus)) / (1e9) || 'N/A'} Cores</p>
+
 
                                                     <div className="mt-4">
                                                         <div className="form-group">
@@ -797,16 +760,14 @@ const Workspace = () => {
                                                     <button
                                                         className="btn btn-info mt-2"
                                                         onClick={handleChangeResource}
-                                                        disabled={!newMemoryLimit || !newCpus}
+                                                        disabled={!newMemoryLimit || !newCpus || changeResourcesLoading}
                                                     >
-                                                        {codeServerLoading ? 'Updating resourses...' : 'Update Resource'}
+                                                        {changeResourcesLoading ? 'Updating resourses...' : 'Update Resource'}
                                                     </button>
 
 
                                                 </div>
                                             </div>
-
-
 
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
@@ -930,10 +891,6 @@ const Workspace = () => {
 
                                         </div>
                                     </div>
-
-
-
-
 
                                 </div>
 

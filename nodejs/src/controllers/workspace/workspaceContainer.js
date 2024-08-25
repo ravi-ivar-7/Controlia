@@ -17,7 +17,7 @@ async function generateBasicAuth(user, password) {
     }
 }
 
-const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,volumeName, workspaceName) => {
+const createWorkspaceContainer = async (user, memory, nanoCpus, storage, containerName, volumeName, workspaceName) => {
     try {
         const codeServerPort = process.env.CODESERVER_PORT || 8080;
         const mainServerPort = process.env.MAINSERVER_PORT || 7777;
@@ -27,6 +27,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,vo
 
         const Memory = memory || process.env.DEFAULT_CONTAINER_MEMORY;
         const NanoCpus = nanoCpus || process.env.DEFAULT_CONTAINER_NANACPUS;
+        const StorageSize = storage || process.env.DEFAULT_CONTAINER_STORAGE
 
         let volume, container;
 
@@ -35,12 +36,20 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,vo
         const dev3000ServerSubdomain = `${user.username}_${workspaceName}_dev3000server`;
         const dev5000ServerSubdomain = `${user.username}_${workspaceName}_dev5000server`;
 
-        const mainserverAuthString = await generateBasicAuth(`${user.username}_mainserver`, `${user.username}_password`);
-        const codeserverAuthString = await generateBasicAuth(`${user.username}_codeserver`, `${user.username}_password`);
-        const dev3000serverAuthString = await generateBasicAuth(`${user.username}_dev3000server`, `${user.username}_password`);
-        const dev5000serverAuthString = await generateBasicAuth(`${user.username}_dev5000server`, `${user.username}_password`);
-
-        volume = await docker.createVolume({ Name: volumeName });
+        const generalAuthString = await generateBasicAuth(`${user.username}`, `${user.username}`);
+        const mainserverAuthString = generalAuthString
+        const codeserverAuthString = generalAuthString
+        const dev3000serverAuthString = generalAuthString
+        const dev5000serverAuthString = generalAuthString
+        volume = await docker.createVolume({
+            Name: volumeName,
+            DriverOpts: {
+                'type': 'tmpfs',  // using tmpfs for in-memory storage
+                'device': 'tmpfs',
+                'o': `size=${StorageSize}`  // setting the size dynamically, e.g., 'size=100m' for 100MB
+            }
+        });
+        
         if (!volume) {
             throw new Error(`Failed to create volume for ${user.username}`);
         }
@@ -53,7 +62,10 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,vo
                 NanoCpus: NanoCpus,
                 Memory: Memory,
                 Binds: [`${volumeName}:/root`],
-                NetworkMode: 'controlia_workspace',
+                NetworkMode: process.env.WORKSPACE_NETWORK_MODE,
+                StorageOpt: {
+                    'size': StorageSize
+                }
             },
             ExposedPorts: {
                 "80/tcp": {},
@@ -145,7 +157,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, containerName,vo
                 dev5000serverAuthString,
             }
         };
-        
+
     } catch (err) {
         console.log(`Error occured duing workspace container creation: ${err}`)
         throw new Error(`workspace container creation error: ${err}`)

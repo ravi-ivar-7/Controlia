@@ -17,7 +17,7 @@ const { newWorkspaceContainer } = require('../controllers/workspace/newWorkspace
 const { getWorkspaceInfo, changeWorkspaceResource, workspaceAction } = require('../controllers/workspace/configWorkspace')
 const { getWorkspaces } = require('../controllers/workspace/getWorkspaces')
 const { deleteWorkspaceContainer } = require('../controllers/workspace/deleteWorkspace')
-const {startCodeServer, stopCodeServer, codeServerCredentials} = require('../controllers/workspace/codeserver')
+const {restartCodeServer, stopCodeServer} = require('../controllers/workspace/codeserver')
 const { port3000Credentials, port5000Credentials } = require('../controllers/workspace/port3000And5000');
 
 
@@ -45,9 +45,8 @@ router.post('/change-workspace-resources', verifyToken, changeWorkspaceResource)
 router.post('/workspace-action', verifyToken, workspaceAction )// activate, deactivate
 router.post('/delete-workspace', verifyToken, deleteWorkspaceContainer)
 
-router.post('/start-codeserver', verifyToken, startCodeServer)
+router.post('/restart-codeserver', verifyToken, restartCodeServer)
 router.post('/stop-codeserver', verifyToken,stopCodeServer )
-router.post('/codeserver-credentials', verifyToken, codeServerCredentials)
 
 
 router.post('/port3000-credentials', verifyToken, port3000Credentials)

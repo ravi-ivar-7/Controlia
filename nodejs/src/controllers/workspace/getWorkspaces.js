@@ -17,7 +17,6 @@ const getWorkspaces = async (req, res) => {
         const resourcesCollection = db.collection('resources');
         const userResources = await resourcesCollection.findOne({ userId: decodedToken.userId });
 
-
         const containers = await containersCollection.find({ userId: decodedToken.userId, type: 'workspace' }).toArray();
         const volumes = await volumesCollection.find({userId: decodedToken.userId}).toArray();
 

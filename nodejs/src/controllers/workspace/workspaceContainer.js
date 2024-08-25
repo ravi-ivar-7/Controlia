@@ -31,10 +31,10 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
 
         let volume, container;
 
-        const codeServerSubdomain = `${user.username}_${workspaceName}_codeserver`;
-        const mainServerSubdomain = `${user.username}_${workspaceName}_mainserver`;
-        const dev3000ServerSubdomain = `${user.username}_${workspaceName}_dev3000server`;
-        const dev5000ServerSubdomain = `${user.username}_${workspaceName}_dev5000server`;
+        const codeServerSubdomain = `${user.username}-${workspaceName}-codeserver`;
+        const mainServerSubdomain = `${user.username}-${workspaceName}-mainserver`;
+        const dev3000ServerSubdomain = `${user.username}-${workspaceName}-dev3000server`;
+        const dev5000ServerSubdomain = `${user.username}-${workspaceName}-dev5000server`;
 
         const generalAuthString = await generateBasicAuth(`${user.username}`, `${user.username}`);
         const mainserverAuthString = generalAuthString
@@ -92,6 +92,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 [`traefik.http.services.mainserver_service.loadbalancer.server.port`]: `${mainServerPort}`,
                 [`traefik.http.routers.mainserver.middlewares`]: `mainserver_auth`,
                 [`traefik.http.middlewares.mainserver_auth.basicauth.users`]: `${mainserverAuthString}`,
+
                 // code-server
                 [`traefik.http.routers.codeserver.entrypoints`]: "http, https",
                 [`traefik.http.routers.codeserver.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
@@ -103,6 +104,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 [`traefik.http.services.codeserver_service.loadbalancer.server.port`]: `${codeServerPort}`,
                 [`traefik.http.routers.codeserver.middlewares`]: `codeserver_auth`,
                 [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: `${codeserverAuthString}`,
+
                 // development server on port 3000
                 [`traefik.http.routers.dev3000server.entrypoints`]: "http, https",
                 [`traefik.http.routers.dev3000server.rule`]: `Host(\`${dev3000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
@@ -114,6 +116,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 [`traefik.http.services.dev3000server_service.loadbalancer.server.port`]: `${dev3000Port}`,
                 [`traefik.http.routers.dev3000server.middlewares`]: `dev3000server_auth`,
                 [`traefik.http.middlewares.dev3000server_auth.basicauth.users`]: `${dev3000serverAuthString}`,
+
                 // development server on port 5000
                 [`traefik.http.routers.dev5000server.entrypoints`]: "http, https",
                 [`traefik.http.routers.dev5000server.rule`]: `Host(\`${dev5000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,

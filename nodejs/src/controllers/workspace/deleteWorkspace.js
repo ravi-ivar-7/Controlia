@@ -54,16 +54,21 @@ const deleteWorkspaceContainer = async (req, res) => {
         const updatedResources = {
             userId: user.userId,
             usedResources: {
-                Memory: -workspaceContainer.resourceAllocated.Memory,
-                NanoCpus: -workspaceContainer.resourceAllocated.NanoCpus,
-                Storage: -workspaceContainer.resourceAllocated.Storage,
+                Memory: -Number(workspaceContainer.resourceAllocated.Memory),
+                NanoCpus: -Number(workspaceContainer.resourceAllocated.NanoCpus),
+                Storage: -Number(workspaceContainer.resourceAllocated.Storage),
             }
         };
-
+        
         await resourcesCollection.updateOne(
             { userId: updatedResources.userId },
-            { $inc: { 'usedResources.Memory': updatedResources.usedResources.Memory, 'usedResources.NanoCpus': updatedResources.usedResources.NanoCpus , 'usedResources.Storage': updatedResources.usedResources.Storage} }
+            { $inc: {
+                'usedResources.Memory': updatedResources.usedResources.Memory,
+                'usedResources.NanoCpus': updatedResources.usedResources.NanoCpus,
+                'usedResources.Storage': updatedResources.usedResources.Storage
+            }}
         );
+        
 
         if (deleteType === 'deleteOnlyContainer') {
             await volumesCollection.updateOne(

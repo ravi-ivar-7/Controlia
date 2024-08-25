@@ -1,0 +1,7 @@
+- checkig permissions
+ls -l /path/to/acme.json
+
+The -rw------- indicates that only the owner (in this case, root) has read and write permissions
+
+- changing permission
+chmod 600 /path/to/acme.json

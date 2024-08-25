@@ -119,8 +119,11 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
             if (response.status === 200) {
                 notify('Info', response.data.info, 'info');
                 isOpen = false;
-                navigate('/workspaces');
-            } else {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            }
+             else {
                 notify('Error', response.data.warn || 'Internal Server Error', 'danger');
             }
         } catch (error) {

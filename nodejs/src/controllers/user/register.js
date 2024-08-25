@@ -73,7 +73,7 @@ const register = async (req, res) => {
 
         const newResources = {
             userId,
-            totalResources: { Memory: process.env.TOTAL_FREE_MEMORY, NanoCpus: process.env.TOTAL_FREE_NANOCPUS, Storage: process.env.TOTAL_FREE_STORAGE },
+            totalResources: { Memory: Number(process.env.TOTAL_FREE_MEMORY), NanoCpus: Number(process.env.TOTAL_FREE_NANOCPUS), Storage: Number(process.env.TOTAL_FREE_STORAGE) },
             usedResources: { Memory: 0, NanoCpus:0 , Storage: 0},
         };
         await resourcesCollection.insertOne(newResources);

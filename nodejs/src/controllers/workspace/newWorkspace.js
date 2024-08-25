@@ -177,20 +177,21 @@ const newWorkspaceContainer = async (req, res) => {
         const updatedResources = {
             userId: user.userId,
             usedResources: {
-                Memory: parseInt(userResources.usedResources.Memory, 10) + Memory,
-                NanoCpus: parseInt(userResources.usedResources.NanoCpus, 10) + NanoCpus,
-                Storage: parseInt(userResources.usedResources.Storage,10) + storage
-            },
+                Memory: Number(userResources.usedResources.Memory) + Number(Memory),
+                NanoCpus: Number(userResources.usedResources.NanoCpus) + Number(NanoCpus),
+                Storage: Number(userResources.usedResources.Storage) + Number(storage)
+            }
         };
-
+        
         await resourcesCollection.updateOne(
             { userId: user.userId },
             { $set: updatedResources }
         );
+        
 
         newVolumeEntry = {
             userId: user.userId,
-            containerName: container.containerName,
+            containerName: newContainerEntry.containerName,
             volumeName:volumeName,
             workspaceName,
             createdAt: new Date(),

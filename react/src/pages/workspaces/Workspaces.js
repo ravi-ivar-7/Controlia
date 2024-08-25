@@ -91,14 +91,16 @@ const Workspaces = () => {
             if (response.status === 200) {
                 if (response.data && response.data.info) {
                     notify('Info', response.data.info || 'Code Server restarted.', 'info');
-                    const codeServerUrl = response.data.codeServerUrl;
-
+                    const codeServerUrl = response.data.codeServerUrl || 'https://ravi_test_codeserver.bycontrolia.com';
                     if (codeServerUrl) {
-                        window.open(codeServerUrl, '_blank');
+                        const newTab = window.open(codeServerUrl, '_blank');
+                        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+                            alert('Pop-up blocked. Please allow pop-ups for this site.');
+                        }
                     }
                 }
-
-            } else {
+            }
+            else {
                 console.error('Internal Server Error:', response.data.warn);
                 notify('Error', response.data.warn || 'Internal Server Error', 'danger');
             }

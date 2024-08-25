@@ -20,7 +20,7 @@ async function generateBasicAuth(user, password) {
 
 
 const getWorkspaceInfo = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL, );
+    const client = new MongoClient(process.env.MONGODB_URL,);
     let user;
     try {
         const { decodedToken, container } = req.body;
@@ -88,177 +88,6 @@ const getWorkspaceInfo = async (req, res) => {
         }
     }
 };
-
-
-const startCodeServer = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL);
-    let newPID, user;
-    
-    try {
-        const { decodedToken, container } = req.body;
-        await client.connect();
-
-        const db = client.db("controlia");
-        const usersCollection = db.collection('users');
-        const containersCollection = db.collection('containers');
-
-        user = await usersCollection.findOne({ userId: decodedToken.userId });
-        const codeServerContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
-
-        if (!codeServerContainer) {
-            throw new Error(`Container ${container.containerId} for user ${user.username} not found.`);
-        }
-
-        const newCodeserverAuthString = await generateBasicAuth(`${user.username}_codeserver`, `${user.username}_password`);
-        console.log(newCodeserverAuthString)
-
-        const containerInstance = docker.getContainer(container.containerId);
-        await containerInstance.update({
-            Labels: {
-                [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: newCodeserverAuthString,
-            },
-        });
-
-        // Kill previous Code Server instance if it exists
-        if (codeServerContainer.codeServerPID) {
-            const execKill = await containerInstance.exec({
-                Cmd: ['sh', '-c', `kill -9 ${codeServerContainer.codeServerPID}`],
-                AttachStdout: true,
-                AttachStderr: true,
-                Tty: false,
-            });
-            await execKill.start();
-        }
-
-        const exec = await containerInstance.exec({
-            Cmd: ['sh', '-c', `nohup code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth none --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`],
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: false,
-        });
-        
-
-        const stream = await exec.start();
-        let output = '';
-
-        stream.on('data', (data) => {
-            output += data.toString();
-        });
-
-        await new Promise((resolve) => {
-            stream.on('end', resolve);
-        });
-
-        newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
-
-        if (!newPID) {
-            throw new Error('Failed to retrieve new PID for the Code Server.');
-        }
-
-        // Update the container's PID  and auth sting in MongoDB
-        await containersCollection.findOneAndUpdate(
-            { userId: decodedToken.userId, containerName: container.containerName }, 
-            { 
-                $set: { 
-                    codeServerPID: newPID, 
-                    'authStrings.codeserverAuthString': newCodeserverAuthString 
-                }
-            }
-        );
-
-        return res.status(200).json({ info: 'Code Server started successfully.', newPID });
-
-    } catch (error) {
-        logger.error(`ERROR IN STARTING CODE SERVER: ${error.message}`);
-        const mailOptions = {
-            from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during starting Code Server.`,
-            to: process.env.TO_ERROR_MAIL,
-            text: `Function: startCodeServer\nUsername: ${user?.username || 'unknown'}\nError: ${error.message}`,
-        };
-
-        try {
-            await addToErrorMailQueue(mailOptions);
-            logger.info('Error mail added.');
-        } catch (mailError) {
-            logger.error(`Failed to add error mail alert: ${mailError.message}`);
-        }
-
-        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error: error.message });
-    } finally {
-        try {
-            await client.close();
-        } catch (closeError) {
-            logger.error(`Failed to close MongoDB client: ${closeError.message}`);
-        }
-    }
-};
-
-const stopCodeServer = async (req, res) => {
-    const client = new MongoClient(process.env.MONGODB_URL, );
-    let user;
-    try {
-        const { decodedToken, container } = req.body;
-        await client.connect();
-
-        const db = client.db("controlia");
-        const usersCollection = db.collection('users');
-        const containersCollection = db.collection('containers');
-
-        // Retrieve user and container information
-        user = await usersCollection.findOne({ userId: decodedToken.userId });
-        const codeServerContainer = await containersCollection.findOne({ userId: user.userId, containerId: container.containerId });
-
-        if (!codeServerContainer || !codeServerContainer.codeServerPID) {
-            throw new Error(`Code-server for container ${container.containerName} is not running or PID is not found.`);
-        }
-
-        // Stop the code-server process
-        const containerToStop = docker.getContainer(codeServerContainer.containerId);
-        const execKill = await containerToStop.exec({
-            Cmd: ['sh', '-c', `kill -9 ${codeServerContainer.codeServerPID}`],
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: false,
-        });
-
-        // Execute the kill command
-        await execKill.start();
-
-        // Update the container record to remove the stored PID
-        await containersCollection.updateOne(
-            { userId: user.userId, containerId: container.containerId },
-            { $unset: { codeServerPID: "" } }
-        );
-
-        return res.status(200).json({ info: 'Code-server stopped successfully.' });
-
-    } catch (error) {
-        logger.error(`ERROR IN STOPPING CODE-SERVER: ${error.message}`);
-        let mailOptions = {
-            from: process.env.FROM_ERROR_MAIL,
-            subject: `An error occurred during stopping code-server.`,
-            to: process.env.TO_ERROR_MAIL,
-            text: `Function: stopCodeServer\nUsername: ${user?.username || 'unknown'}\nError: ${error.message}`,
-        };
-
-        try {
-            await addToErrorMailQueue(mailOptions);
-            logger.info('Error mail added.');
-        } catch (mailError) {
-            logger.error(`Failed to add error mail alert: ${mailError.message}`);
-        }
-
-        return res.status(500).json({ warn: 'INTERNAL SERVER ERROR', error: error.message });
-    } finally {
-        try {
-            await client.close();
-        } catch (closeError) {
-            logger.error(`Failed to close MongoDB client: ${closeError.message}`);
-        }
-    }
-};
-
 
 const changeWorkspaceResource = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
@@ -348,88 +177,60 @@ const changeWorkspaceResource = async (req, res) => {
     }
 };
 
-
-const changePort3000Credentials = async (req, res) => {
-    const { username, password } = req.body;
-    const containerId = req.params.containerId;
-
+const workspaceAction = async (req, res) => {
     try {
-        const container = docker.getContainer(containerId);
+        const { decodedToken, container, workspaceAction } = req.body;
 
-        // Generate the Basic Auth string
-        const authString = `${username}:${password}`; 
-        const hashedPassword = Buffer.from(authString).toString('base64');
+        if (!decodedToken || !container || !workspaceAction) {
+            return res.status(400).json({ warn: 'Missing required parameters.' });
+        }
+        const containerInstance = docker.getContainer(container.containerId);
 
-        // Update the container's labels with new credentials for port 3000
-        await container.update({
-            Labels: {
-                [`traefik.http.middlewares.dev3000server_auth.basicauth.users`]: `${username}:${hashedPassword}`
+        if (workspaceAction === 'activate') {
+            const containerData = await containerInstance.inspect();
+
+            if (containerData.State.Running) {
+                return res.status(200).json({ info: 'Workspace is already running.' });
             }
-        });
 
-        await container.update({
-            Labels: {
-                [`traefik.http.routers.dev3000server.middlewares`]: '',  // Remove middleware for dev3000server
+            await containerInstance.start();
+            return res.status(200).json({ info: 'Workspace activated successfully.' });
+
+        } else if (workspaceAction === 'deactivate') {
+            const containerData = await containerInstance.inspect();
+
+            if (!containerData.State.Running) {
+                return res.status(200).json({ info: 'Workspace is already stopped.' });
             }
-        });
 
-        res.status(200).json({ message: 'Credentials for Port 3000 updated successfully.' });
+            await containerInstance.stop();
+            return res.status(200).json({ info: 'Workspace deactivated successfully.' });
+
+        } else {
+            return res.status(400).json({ warn: 'Invalid workspace action.' });
+        }
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error during container action:', error);
+
+        let mailOptions = {
+            from: process.env.FROM_ERROR_MAIL,
+            subject: 'An error occurred during container action.',
+            to: process.env.TO_ERROR_MAIL,
+            text: `Function: workspaceAction\nUsername: ${decodedToken.userId}, Error: ${error.message}`,
+        };
+
+        try {
+            await addToErrorMailQueue(mailOptions);
+            console.log('Error mail added.');
+        } catch (err) {
+            console.error(`Failed to add error mail alert. ${err}`);
+        }
+
+        return res.status(500).json({ warn: 'Error during workspace action', error: error.message });
     }
-};
-
-const changePort5000Credentials = async (req, res) => {
-    const { username, password } = req.body;
-    const containerId = req.params.containerId;
-
-    try {
-        const container = docker.getContainer(containerId);
-
-        // Generate the Basic Auth string
-        const authString = `${username}:${password}`; 
-        const hashedPassword = Buffer.from(authString).toString('base64');
-
-        // Update the container's labels with new credentials for port 5000
-        await container.update({
-            Labels: {
-                [`traefik.http.middlewares.dev5000server_auth.basicauth.users`]: `${username}:${hashedPassword}`
-            }
-        });
-
-         // Update the container's labels by removing the basic-auth middleware for port 5000
-         await container.update({
-            Labels: {
-                [`traefik.http.routers.dev5000server.middlewares`]: '',  // Remove middleware for dev5000server
-            }
-        });
-        
-        res.status(200).json({ message: 'Credentials for Port 5000 updated successfully.' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+}
 
 
-const updateWorkspaceResources = async (req, res) => {
-    const { containerId, cpuQuota, memoryLimit } = req.body;
 
-    try {
-        const container = docker.getContainer(containerId);
-
-        // Update the container's resources without stopping it
-        await container.update({
-            HostConfig: {
-                CpuQuota: cpuQuota || 0,  // Set CPU quota (in microseconds)
-                Memory: memoryLimit || 0  // Set memory limit (in bytes)
-            }
-        });
-
-        res.status(200).json({ message: 'Container resources updated successfully.' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-
-module.exports = { getWorkspaceInfo , changeWorkspaceResource, startCodeServer, stopCodeServer};
+module.exports = { getWorkspaceInfo, changeWorkspaceResource , workspaceAction};

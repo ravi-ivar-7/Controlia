@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useContext } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Workspace.css';
 import axiosInstance from '../../services/axiosInstance';
@@ -30,17 +30,21 @@ const Workspace = () => {
     const [port3000NewPassword, setPort3000NewPassword] = useState('')
     const [port3000Loading, setPort3000Loading] = useState(false)
     const [port3000HelpText, setPort3000HelpText] = useState(false)
+    const [disablePort3000Auth, setDisablePort3000Auth] = useState(false)
 
 
     const [port5000NewUser, setPort5000NewUser] = useState('')
     const [port5000NewPassword, setPort5000NewPassword] = useState('')
     const [port5000Loading, setPort5000Loading] = useState(false)
     const [port5000HelpText, setPort5000HelpText] = useState(false)
+    const [disablePort5000Auth, setDisablePort5000Auth] = useState(false)
+
 
     const [newCpus, setNewCpus] = useState(0);
     const [newMemoryLimit, setNewMemoryLimit] = useState(0)
 
     const [workspaceLoading, setWorkspaceLoading] = useState(false)
+    const [workspaceAction, setWorkspaceAction] = useState('activate')
     const [changeResourcesLoading, setChangeResourcesLoading] = useState(false);
     const [deleteWorkspaceHelpText, setDeleteWorkspaceHelpText] = useState(false)
     const [deleteWorkspaceWithVolumeHelpText, setDeleteWorkspaceWithVolumeHelpText] = useState(false)
@@ -50,7 +54,7 @@ const Workspace = () => {
     const notify = useNotification();
     const location = useLocation();
     const workspace = location.state?.workspace;
-    const isDisabled = containerData?.status !== 'running';
+    const isWorkspaceActive = containerData?.status !== 'running';
 
     console.log(workspace)
 
@@ -99,59 +103,9 @@ const Workspace = () => {
         fetchWorkspaceInfo(token);
     }, [fetchWorkspaceInfo, token, notify]);
 
-    const handleCodeServerStart = async () => {
-        setCodeServerLoading(true);
-        try {
-            const response = await axiosInstance.post('/start-code-server', { container: workspace }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code Server started.', 'info');
-                }
-
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Failed to start code server.', error);
-            notify('Error', 'Failed to start code server.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-    }
-
-    const handleCodeServerRestart = async () => {
-        setCodeServerLoading(true);
-        try {
-            const response = await axiosInstance.post('/stop-code-server', { container: workspace }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code Server stopped.', 'info');
-                }
-
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Failed to stop code server.', error);
-            notify('Error', 'Failed to stop code server.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-    }
-
+    // workspace related
     const handleWorkspaceDelete = async () => {
+
         const userConfirmed = window.confirm(
             "You are about to delete the workspace.\n\n" +
             "If you choose to delete only the workspace, the associated storage volume will remain intact and can be reused with any new workspace or project.\n\n" +
@@ -191,6 +145,7 @@ const Workspace = () => {
     }
 
     const handleChangeResource = async () => {
+
         setChangeResourcesLoading(true);
         try {
             const response = await axiosInstance.post('/change-workspace-resources', { container: workspace, newCpus, newMemoryLimit }, {
@@ -215,53 +170,203 @@ const Workspace = () => {
         }
     }
 
-    const handlePort3000Credentails = async () => {
+    const handleWorkspaceAction = async () => {
 
+        setWorkspaceLoading(true);
+        try {
+            const response = await axiosInstance.post('/workspace-action', { container: workspace, workspaceAction }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    notify('Info', response.data.info || `Workspace is ${workspaceAction}`, 'info');
+                    setContainerData(response.data.containerData);
+                    setVolumeData(response.data.volumeData);
+                    setUserResources(response.data.userResources);
+                    setWorkspaceInfo(response.data.workspaceInfo);
+                    setUser(response.data.user);
+                }
+            } else {
+                console.error(`Failed to ${workspaceAction} workspace:`, response.data.warn);
+                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+            }
+        } catch (error) {
+            console.error(`Failed to ${workspaceAction} workspace:`, error);
+            notify('Error', `Failed to ${workspaceAction} workspace.`, 'danger');
+        } finally {
+            setWorkspaceLoading(false);
+        }
     }
-    const handlePort5000Credentails = async () => {
 
+    // code server related
+    const handleCodeServerRestart = async () => {
+        if (!isWorkspaceActive) {
+            notify('Error', 'Workspace is inactive. Activate it.', 'danger');
+            return;
+        }
+        setCodeServerLoading(true);
+        try {
+            const response = await axiosInstance.post('/restart-codeserver', { container: workspace }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    notify('Info', response.data.info || 'Code Server restarted.', 'info');
+                }
+
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+            }
+        } catch (error) {
+            console.error('Failed to restart code server.', error);
+            notify('Error', 'Failed to restart code server.', 'danger');
+        } finally {
+            setCodeServerLoading(false);
+        }
+    }
+
+    const handleCodeServerStop = async () => {
+        setCodeServerLoading(true);
+        if (!isWorkspaceActive) {
+            notify('Error', 'Workspace is inactive. Activate it.', 'danger');
+            return;
+        }
+        try {
+            const response = await axiosInstance.post('/stop-codeserver', { container: workspace }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    notify('Info', response.data.info || 'Code Server stopped.', 'info');
+                }
+
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+            }
+        } catch (error) {
+            console.error('Failed to stop code server.', error);
+            notify('Error', 'Failed to stop code server.', 'danger');
+        } finally {
+            setCodeServerLoading(false);
+        }
     }
 
     const handleCodeServerCredentials = async () => {
 
+        setCodeServerLoading(true);
+        try {
+            const response = await axiosInstance.post('/codeserver-credentials', { container: workspace, codeServerNewPassword, codeServerNewUser }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.status === 200) {
+                if (response.data && response.data.info) {
+                    notify('Info', response.data.info || 'Code server credentails updated', 'info');
+                }
+            } else {
+                console.error('Internal Server Error:', response.data.warn);
+                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+            }
+        } catch (error) {
+            console.error('Faild to update code server credentials.', error);
+            notify('Error', 'Failed to update code server credentails.', 'danger');
+        } finally {
+            setCodeServerLoading(false);
+        }
+
     }
 
-    const handleWorkspaceDeactivate = async () => {
+    // port 3000/5000 related
 
-    }
+    const handlePort3000Credentials = async () => {
 
-    const handleWorkspaceActivate = async () => {
+        let userConfirmed;
+        if (disablePort3000Auth) {
+            userConfirmed = window.confirm(
+                "Disabling authentication on development ports/domains can expose your application to unauthorized access and security risks. It's important to have authentication in place to protect sensitive data and prevent unauthorized actions. \n\n" +
+                "Are you sure you want to proceed with disabling authentication?"
+            );
+        }
+        if ((disablePort3000Auth && userConfirmed) || !disablePort3000Auth) {
+            setPort3000Loading(true);
+            try {
+                const response = await axiosInstance.post('/port3000-credentials', { container: workspace, port3000NewPassword, port3000NewUser, disablePort3000Auth }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                });
 
-    }
-
-
-    const handlePort3000AuthDisable = () => {
-        const userConfirmed = window.confirm(
-            "Disabling authentication on development ports/domains can expose your application to unauthorized access and security risks. It's important to have authentication in place to protect sensitive data and prevent unauthorized actions. \n\n" +
-            "Are you sure you want to proceed with disabling authentication?"
-        );
-
-        if (userConfirmed) {
-            console.log('disalbing')
+                if (response.status === 200) {
+                    if (response.data && response.data.info) {
+                        notify('Info', response.data.info || 'Port 3000 credentials updated.', 'info');
+                    }
+                } else {
+                    console.error('Internal Server Error:', response.data.warn);
+                    notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+                }
+            } catch (error) {
+                console.error('Failed to update port 3000 credentials.', error);
+                notify('Error', 'Failed to update port 3000 credentials.', 'danger');
+            } finally {
+                setPort3000Loading(false);
+            }
         }
         else {
-            notify('Info', 'Action aborted!', 'warning')
+            notify('Info', 'Action aborted!', 'danger')
         }
-    };
 
-    const handlePort5000AuthDisable = () => {
-        const userConfirmed = window.confirm(
-            "Disabling authentication on development ports/domains can expose your application to unauthorized access and security risks. It's important to have authentication in place to protect sensitive data and prevent unauthorized actions. \n\n" +
-            "Are you sure you want to proceed with disabling authentication?"
-        );
 
-        if (userConfirmed) {
-            console.log('disalbing')
+    }
+    const handlePort5000Credentials = async () => {
+        let userConfirmed;
+        if (disablePort3000Auth) {
+            userConfirmed = window.confirm(
+                "Disabling authentication on development ports/domains can expose your application to unauthorized access and security risks. It's important to have authentication in place to protect sensitive data and prevent unauthorized actions. \n\n" +
+                "Are you sure you want to proceed with disabling authentication?"
+            );
+        }
+        if ((disablePort3000Auth && userConfirmed) || !disablePort3000Auth) {
+            setPort3000Loading(true);
+            try {
+                const response = await axiosInstance.post('/port5000-credentials', { container: workspace, disableAuth: false }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                });
+
+                if (response.status === 200) {
+                    if (response.data && response.data.info) {
+                        notify('Info', response.data.info || 'Port 5000 credentials updated.', 'info');
+                    }
+                } else {
+                    console.error('Internal Server Error:', response.data.warn);
+                    notify('Error', response.data.warn || 'Internal Server Error', 'danger');
+                }
+            } catch (error) {
+                console.error('Failed to update port 5000 credentials.', error);
+                notify('Error', 'Failed to update port 5000 credentials.', 'danger');
+            } finally {
+                setPort5000Loading(false);
+            }
         }
         else {
-            notify('Info', 'Action aborted!', 'warning')
+            notify('Info', 'Action aborted!', 'danger')
         }
-    };
+    }
+
 
     return (
 
@@ -286,7 +391,7 @@ const Workspace = () => {
                         </div>) : (
                             <div>
 
-                               
+
                                 <div className="info">
                                     <div
                                         style={{
@@ -368,20 +473,21 @@ const Workspace = () => {
                                                     <p className="text-white mt-3">
                                                         <strong>Code Server Domain:</strong> {workspaceInfo?.subdomains?.codeServer || 'N/A'}<br />
 
-                                                        {containerData?.status === 'running' ? (
-                                                            <button
-                                                                className="btn btn-secondary mx-2 mt-2"
-                                                                onClick={handleCodeServerRestart}
-                                                                disabled={codeServerLoading}
-                                                            >
-                                                                {codeServerLoading ? 'Restarting Code Server...' : 'Restart Code Server'}
-                                                            </button>
-                                                        ) : (
-                                                            <p style={{ 'font-weight': 'bold', 'color': '#FF5733', 'font-size': '18px' }}>
-                                                                Activate Workspace to work on code server
-                                                            </p>
+                                                        <button
+                                                            className="btn btn-danger mx-2 mt-2"
+                                                            onClick={handleCodeServerStop}
+                                                            disabled={codeServerLoading}
+                                                        >
+                                                            {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
+                                                        </button>
 
-                                                        )}
+                                                        <button
+                                                            className="btn btn-primary mx-2 mt-2"
+                                                            onClick={handleCodeServerRestart}
+                                                            disabled={codeServerLoading}
+                                                        >
+                                                            {codeServerLoading ? 'Restarting Code Server...' : 'Restart Code Server'}
+                                                        </button>
                                                     </p>
 
                                                     <h4 className="text-white">Update Code Server Credentials</h4>
@@ -485,14 +591,17 @@ const Workspace = () => {
                                                     </div>
                                                     <button
                                                         className="btn btn-info mt-2"
-                                                        onClick={handlePort3000Credentails}
+                                                        onClick={handlePort3000Credentials}
                                                         disabled={!port3000NewPassword || !port3000NewUser}
                                                     >
                                                         {port3000Loading ? 'Updating credentials...' : 'Update Credentials'}
                                                     </button>
                                                     <button
                                                         className="btn btn-danger mt-2"
-                                                        onClick={handlePort3000AuthDisable}
+                                                        onClick={() => {
+                                                            setDisablePort3000Auth(true);
+                                                            handlePort3000Credentials();
+                                                        }}
                                                         disabled={port3000Loading}
                                                     >
                                                         <i
@@ -500,9 +609,8 @@ const Workspace = () => {
                                                             style={{ fontSize: '25px', color: 'black', margin: '5px' }}
                                                         ></i>
                                                         {port3000Loading ? 'Disabling ...' : 'Disable Port 3000 Auth'}
-
-
                                                     </button>
+
 
 
 
@@ -579,23 +687,27 @@ const Workspace = () => {
                                                     </div>
                                                     <button
                                                         className="btn btn-info mx-2 mt-2"
-                                                        onClick={handlePort5000Credentails}
+                                                        onClick={handlePort5000Credentials}
                                                         disabled={!port5000NewPassword || !port5000NewUser}
                                                     >
                                                         {port5000Loading ? 'Updating credentials...' : 'Update Credentials'}
                                                     </button>
 
                                                     <button
-                                                        className="btn btn-danger mx-2 mt-2"
-                                                        onClick={handlePort5000AuthDisable}
+                                                        className="btn btn-danger mt-2"
+                                                        onClick={() => {
+                                                            setDisablePort5000Auth(true);
+                                                            handlePort5000Credentials();
+                                                        }}
                                                         disabled={port5000Loading}
                                                     >
                                                         <i
                                                             className="fas fa-exclamation-triangle"
                                                             style={{ fontSize: '25px', color: 'black', margin: '5px' }}
                                                         ></i>
-                                                        {port5000Loading ? 'Disabling...' : 'Disable Port 5000 Auth'}
+                                                        {port5000Loading ? 'Disabling ...' : 'Disable Port 5000 Auth'}
                                                     </button>
+
 
 
                                                 </div>
@@ -618,7 +730,7 @@ const Workspace = () => {
                                                         {containerData?.status === 'running' ? (
                                                             <button
                                                                 className="btn btn-secondary mx-2 mt-2"
-                                                                onClick={handleWorkspaceDeactivate}
+                                                                onClick={ () =>{setWorkspaceAction('deactivate'); handleWorkspaceAction();}}
                                                                 disabled={workspaceLoading}
                                                             >
                                                                 {workspaceLoading ? 'Deactivating workspace...' : 'Deactivate Workspace'}
@@ -626,7 +738,7 @@ const Workspace = () => {
                                                         ) : (
                                                             <button
                                                                 className="btn btn-primary mx-2 mt-2"
-                                                                onClick={handleWorkspaceActivate}
+                                                                onClick={ () =>{setWorkspaceAction('activate'); handleWorkspaceAction();}}
                                                                 disabled={workspaceLoading}
                                                             >
                                                                 {workspaceLoading ? 'Activation Workspace...' : 'Activate Workspace'}

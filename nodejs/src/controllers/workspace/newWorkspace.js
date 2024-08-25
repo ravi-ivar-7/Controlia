@@ -128,6 +128,7 @@ const newWorkspaceContainer = async (req, res) => {
             } else {
                 volumeName = `${user.username}_${workspaceName}_workspace_volume`;
             }
+            containerName = `${user.username}_${workspaceName}_workspace_container`;
         }
         else {
             const existingVolume = await volumesCollection.findOne({ userId: user.userId, volumeName: selectedVolume.volumeName })

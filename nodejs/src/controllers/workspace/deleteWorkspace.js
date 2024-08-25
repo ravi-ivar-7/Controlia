@@ -47,8 +47,17 @@ const deleteWorkspaceContainer = async (req, res) => {
             throw new Error(`Container ${container.containerId} not found.`);
         }
 
-        await containerToDelete.stop();
+        if (containerInspect.State.Running) {
+            console.log('Stopping the container...');
+            await containerToDelete.stop();
+        } else {
+            console.log('Container is already stopped.');
+        }
+    
+        console.log('Removing the container...');
         await containerToDelete.remove();
+        console.log('Container removed successfully.');
+        
         await containersCollection.deleteOne({ userId: user.userId, containerId: container.containerId });
 
         const updatedResources = {

@@ -43,12 +43,18 @@ const restartCodeServer = async (req, res) => {
         if (newUsername && newPassword) {
             const newCodeserverAuthString = await generateBasicAuth(`${newUsername}`, `${newPassword}`);
             console.log(newCodeserverAuthString)
+            
             await containerInstance.update({
                 Labels: {
                     [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: newCodeserverAuthString,
                 },
             });
-            
+            const containerInfo = await containerInstance.inspect();
+
+            // Extract existing labels
+            const existingLabels = containerInfo.Config.Labels || {};
+            console.log(existingLabels)
+
         }
 
 
@@ -69,7 +75,7 @@ const restartCodeServer = async (req, res) => {
             Cmd: [
                 'sh',
                 '-c',
-                `PASSWORD='1234' code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+                `code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
             ],
             AttachStdout: true,
             AttachStderr: true,

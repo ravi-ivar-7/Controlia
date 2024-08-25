@@ -3,6 +3,7 @@ import useNotification from '../../hooks/useNotification';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import axiosInstance from '../../services/axiosInstance';
 
 let token = localStorage.getItem('token');
@@ -12,7 +13,6 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
     const [memory, setMemory] = useState('');
     const [storage, setStorage] = useState('')
     const [selectedVolume, setSelectedVolume] = useState(null);
-    const notify = useNotification();
     const [workspaceName, setWorkspaceName] = useState('');
     const [loading, setLoading] = useState(false);
     const [volumes, setVolumes] = useState([]);
@@ -23,6 +23,9 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
     const [storageError, setStorageError] = useState('')
     const [showHelp, setShowHelp] = useState(false);
 
+    const { user } = useUser();
+
+    const notify = useNotification();
     // Ensure userResources is properly initialized
     useEffect(() => {
         if (userResources && userResources.totalResources && userResources.usedResources) {
@@ -156,7 +159,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                             <h5>Available Resources</h5>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
                             <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.Storage} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {availableResources.Storage} MB</p>
                         </div>
                     </div>
                         <div style={{ marginBottom: '15px' }}>
@@ -319,7 +322,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                                 color: volume.workspaceName !== '' ? 'gray' : 'black',
                             }}
                         >
-                            {volume.volumeName} - {volume.workspaceName !== '' ? `Used by ${volume.workspaceName}` : `(Username_workspacename_workspace_volume)`}
+                            {volume.volumeName} - {volume.workspaceName !== '' ? `Used by ${volume.workspaceName}` : `(${user.username}_${workspaceName}_workspace_volume)`}
                         </label>
                     </li>
                 ))}

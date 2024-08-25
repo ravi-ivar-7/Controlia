@@ -43,11 +43,11 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
         const dev5000serverAuthString = generalAuthString
         volume = await docker.createVolume({
             Name: volumeName,
-            DriverOpts: {
-                'type': 'tmpfs',  // using tmpfs for in-memory storage
-                'device': 'tmpfs',
-                'o': `size=${StorageSize}`  // setting the size dynamically, e.g., 'size=100m' for 100MB
-            }
+            // DriverOpts: {
+            //     'type': 'tmpfs',  // using tmpfs for in-memory storage
+            //     'device': 'tmpfs',
+            //     'o': `size=${StorageSize}m` 
+            // }
         });
         
         if (!volume) {
@@ -55,7 +55,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
         }
 
         container = await docker.createContainer({
-            Image: `${process.env.BASE_WORKSPACE_IMAGE_NAME}:${process.env.BASE_WORKSPACE_IMAGE_VERSION}`,
+            Image: `${process.env.WORKSPACE_BASE_IMAGE_NAME}:${process.env.WORKSPACE_BASE_IMAGE_VERSION}`,
             name: containerName,
             Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
             HostConfig: {
@@ -63,9 +63,9 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 Memory: Memory,
                 Binds: [`${volumeName}:/root`],
                 NetworkMode: process.env.WORKSPACE_NETWORK_MODE,
-                StorageOpt: {
-                    'size': StorageSize
-                }
+                // StorageOpt: {
+                //     'size': StorageSize
+                // }
             },
             ExposedPorts: {
                 "80/tcp": {},

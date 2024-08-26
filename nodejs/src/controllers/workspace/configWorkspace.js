@@ -186,18 +186,17 @@ const changeWorkspaceResource = async (req, res) => {
 };
 
 const workspaceAction = async (req, res) => {
+    let decodedToken, container, workspaceAction, workspacePassword
     try {
-        const { decodedToken, container, workspaceAction } = req.body;
+        ({ decodedToken, container, workspaceAction, workspacePassword } = req.body);
 
         if (!decodedToken || !container || !workspaceAction) {
             return res.status(400).json({ warn: 'Missing required parameters.' });
         }
         const containerInstance = docker.getContainer(container.containerId);
-
+        const containerData = await containerInstance.inspect();
         if (workspaceAction === 'activate') {
-            const containerData = await containerInstance.inspect();
-
-            if (containerData.State.Running) {
+            if (containerData.State.Status === 'running') {
                 return res.status(200).json({ info: 'Workspace is already running.' });
             }
 
@@ -205,14 +204,69 @@ const workspaceAction = async (req, res) => {
             return res.status(200).json({ info: 'Workspace activated successfully.' });
 
         } else if (workspaceAction === 'deactivate') {
-            const containerData = await containerInstance.inspect();
-
-            if (!containerData.State.Running) {
+            if (containerData.State.Status !== 'running') {
                 return res.status(200).json({ info: 'Workspace is already stopped.' });
             }
 
             await containerInstance.stop();
             return res.status(200).json({ info: 'Workspace deactivated successfully.' });
+
+        } else if (workspaceAction === 'restartCodeserver') {
+            if (containerData.State.Status === 'running') {
+                // Stop the running code-server instance
+                const stopExec = await containerInstance.exec({
+                    Cmd: [
+                        'sh',
+                        '-c',
+                        `pkill -f "code-server --bind-addr"`
+                    ],
+                    AttachStdout: true,
+                    AttachStderr: true,
+                    Tty: false,
+                });
+
+                // Start the exec command and wait for it to complete
+                const stopExecStream = await stopExec.start();
+
+                // Collect the output to ensure it completes
+                await new Promise((resolve, reject) => {
+                    stopExecStream.on('data', (chunk) => {
+                        console.log('Output:', chunk.toString());
+                    });
+                    stopExecStream.on('end', resolve);
+                    stopExecStream.on('error', reject);
+                });
+            }
+
+            // Start code-server with the new password
+            const exec = await containerInstance.exec({
+                Cmd: [
+                    'sh',
+                    '-c',
+                    `code-server --bind-addr 0.0.0.0:${container.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+                ],
+                Env: [
+                    `PASSWORD=${workspacePassword}`
+                ],
+                AttachStdout: true,
+                AttachStderr: true,
+                Tty: false,
+            });
+
+            const execStream = await exec.start();
+
+            // Handle the output stream of the exec command
+            await new Promise((resolve, reject) => {
+                execStream.on('data', (chunk) => {
+                    console.log('Output:', chunk.toString());
+                });
+                execStream.on('end', resolve);
+                execStream.on('error', reject);
+            });
+
+            return res.status(200).json({ info: 'Workspace restarted successfully.' });
+
+
 
         } else {
             return res.status(400).json({ warn: 'Invalid workspace action.' });

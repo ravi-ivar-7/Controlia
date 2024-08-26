@@ -24,8 +24,9 @@ const restartCodeServer = async (req, res) => {
     let newPID, user;
 
     try {
-        const { decodedToken, container, newUsername, newPassword } = req.body;
+        const { decodedToken, container, newPassword } = req.body;
         await client.connect();
+        console.log('starting container')
 
         const db = client.db("controlia");
         const usersCollection = db.collection('users');
@@ -40,20 +41,20 @@ const restartCodeServer = async (req, res) => {
 
         const containerInstance = docker.getContainer(container.containerId);
 
-        if (newUsername && newPassword) {
-            await containerInstance.update({
-
-                
-                Labels: {
-                    [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: newCodeserverAuthString,
-                },
-            });
+        try {
             const containerInfo = await containerInstance.inspect();
-
-            // Extract existing labels
-            const existingLabels = containerInfo.Config.Labels || {};
-            console.log(existingLabels)
-
+            if (containerInfo.State.Status !== 'running') {
+                console.log(`Container ${container.containerId} is not running. Attempting to start...`);
+                await containerInstance.start();
+                console.log(`Container ${container.containerId} has been started.`);
+            } else {
+                console.log(`Container ${container.containerId} is already running.`);
+            }
+        } catch (error) {
+            console.error(`Error while starting the container: ${error.message}`);
+        }
+        if(!newPassword){
+            return res.status(209).json({warn:`Password is requried`})
         }
 
 
@@ -74,16 +75,16 @@ const restartCodeServer = async (req, res) => {
                 console.error(`Failed to kill process with PID: ${codeServerContainer.codeServerPID}`, error);
             }
         }
-        const password = '1234'
+        console.log(newPassword)
         
         const exec = await containerInstance.exec({
             Cmd: [
                 'sh',
                 '-c',
-                `code-server --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+                `code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
             ],
             Env: [
-                `PASSWORD=${password}`
+                `PASSWORD=${newPassword}`
             ],
             AttachStdout: true,
             AttachStderr: true,
@@ -105,7 +106,7 @@ const restartCodeServer = async (req, res) => {
         });
         
         // Clean the output to extract the new PID
-        const newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
+        newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
         console.log('New PID:', newPID);
         
         if (!newPID) {

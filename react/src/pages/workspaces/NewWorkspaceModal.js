@@ -22,6 +22,7 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
     const [memoryError, setMemoryError] = useState('');
     const [storageError, setStorageError] = useState('')
     const [showHelp, setShowHelp] = useState(false);
+    const [workspacePassword, setWorkspacePassword] = useState('')
 
     const { user } = useUser();
 
@@ -109,7 +110,8 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                 workspaceName,
                 selectedVolume,
                 storage,
-                workspaceSource: 'self'
+                workspaceSource: 'self',
+                workspacePassword
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -180,6 +182,25 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
                                 }}
                             />
                         </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+    <label style={{ display: 'block', marginBottom: '5px' }}>Password For Workspace:</label>
+    <input
+        value={workspacePassword}
+        onChange={(e) => setWorkspacePassword(e.target.value)}
+        placeholder="Enter Password for workspace."
+        style={{
+            width: '100%',
+            padding: '8px',
+            borderRadius: '4px',
+            border: '1px solid #ccc',
+            boxSizing: 'border-box'
+        }}
+    />
+</div>
+
+
+
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px' }}>CPU (in cores):</label>
                             <input

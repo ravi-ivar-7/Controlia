@@ -46,7 +46,7 @@ const execCommandInContainer = async (containerId, command) => {
 const newWorkspaceContainer = async (req, res) => {
     const client = new MongoClient(process.env.MONGODB_URL);
     let accessToken, selectedRepo, decodedToken, containerName, volumeName, workspaceName, workspaceVolume, user;
-    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, authStrings, subdomains, NanoCpus, Memory, cpus, memory, storage, workspaceSource
+    let volume, container, newContainerEntry, newVolumeEntry, updatedResources, ports, workspacePassword, subdomains, NanoCpus, Memory, cpus, memory, storage, workspaceSource
 
     const cleanUp = async () => {
         if (container) {
@@ -95,7 +95,7 @@ const newWorkspaceContainer = async (req, res) => {
     };
 
     try {
-        ({ accessToken, selectedRepo, decodedToken, cpus, memory, storage, workspaceSource, selectedVolume, workspaceName } = req.body);
+        ({ accessToken, selectedRepo, decodedToken, cpus, memory, storage, workspaceSource, selectedVolume, workspaceName ,workspacePassword} = req.body);
 
         if (!workspaceName) {
             return res.status(209).json({ warn: `Missing: workspaceSource: ${workspaceSource} or workspaceName: ${workspaceName}` });
@@ -149,7 +149,7 @@ const newWorkspaceContainer = async (req, res) => {
         if (containers.some(container => container.Names.includes(`/${containerName}`))) {
             return res.status(209).json({ warn: `${workspaceName} already exitst.` })
         }
-        ({ container, volume, subdomains, ports, authStrings } = await createWorkspaceContainer(user, Memory, NanoCpus, storage, containerName, volumeName, workspaceName))
+        ({ container, volume, subdomains, ports, authStrings } = await createWorkspaceContainer(user, Memory, NanoCpus, storage, containerName, volumeName, workspaceName,workspacePassword))
 
         if (workspaceSource === 'github') {
             const zipUrl = `https://github.com/${selectedRepo.full_name}/archive/refs/heads/${selectedRepo.default_branch}.zip`;

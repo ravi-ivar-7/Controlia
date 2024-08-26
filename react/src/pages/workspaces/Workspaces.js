@@ -21,8 +21,6 @@ const Workspaces = () => {
     const [volumes, setVolumes] = useState([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [userResources, setUserResources] = useState(null);
-    const [codeServerLoading, setCodeServerLoading] = useState(false)
-    const [codeServerUrl, setCodeServerUrl] = useState('')
 
 
     const navigate = useNavigate();
@@ -79,64 +77,31 @@ const Workspaces = () => {
         navigate('/workspace', { state: { workspace } });
     }
 
-    const handleCodeServer = async (workspace) => {
-        setCodeServerLoading(true);
-
-        try {
-            const response = await axiosInstance.post('/restart-codeserver', { container: workspace }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code Server restarted.', 'info');
-                    setCodeServerUrl(response.data.codeServerUrl)
-                    if (codeServerUrl) {
-                    }
-                }
-            }
-            else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Failed to restart code server.', error);
-            notify('Error', 'Failed to restart code server.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-
-
-
-    }
-
 
     return (
 
         <div className="profile d-flex">
-			<div>
-				<Sidebar />
-			</div>
-			<div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-				<Navbar pageTitle={'Profile'} />
-				<div style={{ height: "100%" }}>
-					<div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
+            <div>
+                <Sidebar />
+            </div>
+            <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
+                <Navbar pageTitle={'Profile'} />
+                <div style={{ height: "100%" }}>
+                    <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
-						{loading ? (<div>
-							<SkeletonTheme baseColor="#202020" highlightColor="#444">
-								<h1>{<Skeleton />}</h1>
-								<p>
-									<Skeleton count={5} />
-								</p>
-							</SkeletonTheme>
-						</div>) : (
+                        {loading ? (<div>
+                            <SkeletonTheme baseColor="#202020" highlightColor="#444">
+                                <h1>{<Skeleton />}</h1>
+                                <p>
+                                    <Skeleton count={5} />
+                                </p>
+                            </SkeletonTheme>
+                        </div>) : (
 
-							<div>
+                            <div>
 
 
-<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <div className="icon-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                         <div className="popup" onClick={() => setWorkspaceDropDown(!workspaceDropDown)} style={{ cursor: 'pointer', marginLeft: '15px', marginTop: '15px' }}>
 
@@ -170,11 +135,11 @@ const Workspaces = () => {
 
 
 
-								<div className="info">
-									<div className="d-flex card-section">
-										<div className="cards-container">
+                                <div className="info">
+                                    <div className="d-flex card-section">
+                                        <div className="cards-container">
 
-											{workspaces.map((workpace, index) => (
+                                            {workspaces.map((workpace, index) => (
                                                 <div key={index} className="card-bg w-100 border d-flex flex-column">
                                                     <div className="p-4 d-flex flex-column h-100">
                                                         <h4 className="my-4 text-right text-white h2 font-weight-bold">
@@ -187,41 +152,50 @@ const Workspaces = () => {
                                                             <p className="text-white">CPUs: {workpace.resourceAllocated.NanoCpus / 1e9} cores</p>
                                                             <p className="text-white">Storage: {workpace.resourceAllocated.Storage} MB</p>
                                                             <p style={{ color: 'red', fontWeight: 'bold' }}>
-                                                                ⚠️ Use your account username and password if Sign-in required. For security reasons, update your workspace credentials from the configuration below.
+                                                                ⚠️ Restart from Configure below if code-server is not working.
                                                                 <br />
-                                                                Do verify that  <span style={{ color: 'blue', fontWeight: 'bold' }}> ALL URL</span> ends with
-                                                                <span style={{ color: 'blue', fontWeight: 'bold' }}> .bycontrolia.com</span>
+                                                                Do verify that  <span style={{ color: 'white', fontWeight: 'bold' }}> ALL URL</span> ends with
+                                                                <span style={{ color: 'white', fontWeight: 'bold' }}> .bycontrolia.com</span>
                                                             </p>
-
-                                                            <a href={`${codeServerUrl}`}> Code-Server URL: {codeServerUrl}</a>
 
                                                         </div>
 
-                                                        <div className="d-flex justify-content-between mt-auto">
-                                                            <button className="btn btn-primary" onClick={() => handleWorkspaceConfiguration(workpace)}>
-                                                                Configuration
-                                                            </button>
+                                                        <div
+                                                            style={{backgroundColor: '#708090',padding: '10px',borderRadius: '5px',display: 'inline-block'}}>
+                                                            <a
+                                                                href={`${workpace?.subdomains?.codeServer}.bycontrolia.com` || "#"}
+                                                                target={workpace?.subdomains?.codeServer  ? "_blank" : "_self"}
+                                                                style={{color:'white'}}
+                                                            >
+                                                                {workpace?.subdomains?.codeServer}.bycontrolia.com
+                                                            </a>
+                                                        </div>
 
-                                                            <button disabled={codeServerLoading} className="btn btn-success" onClick={() => handleCodeServer(workpace)}>
-                                                                {codeServerLoading ? 'Starting Code Server' : 'Enter Into Code Server'}
-                                                            </button>
+
+
+                                                        <div>
+                                                            <div className="d-flex justify-content-between mt-2">
+                                                                <button className="btn btn-primary" onClick={() => handleWorkspaceConfiguration(workpace)}>
+                                                                    Configure Workspace
+                                                                </button>
+                                                            </div>
 
 
                                                         </div>
                                                     </div>
-                                      
-                                            </div>
+
+                                                </div>
 
 
 
-                                        ))}
+                                            ))}
 
-											
-										</div>
-									</div>
-								</div>
 
-								{/* <div className="info">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* <div className="info">
 									<div className="d-flex card-section">
 
 										<div className="cards-container">
@@ -243,15 +217,15 @@ const Workspaces = () => {
 										</div>
 									</div>
 								</div> */}
-							</div>
+                            </div>
 
 
-						)}
-					</div>
-				</div>
-			</div>
+                        )}
+                    </div>
+                </div>
+            </div>
             <FreshWorkspaceModal isOpen={isModalOpen} onClose={handleCloseModal} existingVolumes={volumes} userResources={userResources} />
-		</div>
+        </div>
     );
 }
 

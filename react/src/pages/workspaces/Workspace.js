@@ -11,6 +11,7 @@ import Navbar from "../../components/bars/Navbar";
 
 let token = localStorage.getItem('token');
 
+// TODO: restart code server with new password
 
 const Workspace = () => {
     const [loading, setLoading] = useState(false);
@@ -20,11 +21,10 @@ const Workspace = () => {
     const [userResources, setUserResources] = useState();
     const [codeServerLoading, setCodeServerLoading] = useState(false);
     const [codeServerHelpText, setCodeServerHelpText] = useState(false)
-    const [codeServerNewUser, setCodeServerNewUsername] = useState('')
     const [codeServerNewPassword, setCodeServerNewPassword] = useState('')
+    const [workspacePassword, setWorkspacePassword] = useState('')
 
     const [deleteLoading, setDeleteLoading] = useState(false);
-    const [deleteType, setDeleteType] = useState('');
     const [user, setUser] = useState();
     const [port3000NewUser, setPort3000NewUser] = useState('')
     const [port3000NewPassword, setPort3000NewPassword] = useState('')
@@ -44,7 +44,6 @@ const Workspace = () => {
     const [newMemoryLimit, setNewMemoryLimit] = useState(0)
 
     const [workspaceLoading, setWorkspaceLoading] = useState(false)
-    const [workspaceAction, setWorkspaceAction] = useState('activate')
     const [changeResourcesLoading, setChangeResourcesLoading] = useState(false);
     const [deleteWorkspaceHelpText, setDeleteWorkspaceHelpText] = useState(false)
     const [deleteWorkspaceWithVolumeHelpText, setDeleteWorkspaceWithVolumeHelpText] = useState(false)
@@ -56,7 +55,7 @@ const Workspace = () => {
     const navigate = useNavigate();
 
     const workspace = location.state?.workspace;
-    const isWorkspaceActive = containerData && containerData.status === 'running';
+    const isWorkspaceActive = containerData && containerData.State.Status === 'running';
 
     if (!workspace) {
         notify('Error', 'This action is not allowed', 'danger')
@@ -132,7 +131,7 @@ const Workspace = () => {
                     if (response.data && response.data.info) {
                         notify('Info', response.data.info || 'Workspace deleted.', 'info');
                         navigate('/workspaces')
-                        
+
                     }
 
                 } else {
@@ -176,10 +175,15 @@ const Workspace = () => {
         }
     }
 
-    const handleWorkspaceAction = async () => {
+    const handleWorkspaceAction = async (workspaceAction) => {
+      
+        if(!isWorkspaceActive && workspaceAction === 'restartCodeserver'){
+            notify('Error', `Activate workspace to apply changes`, 'danger');
+            return;
+        }
         setWorkspaceLoading(true);
         try {
-            const response = await axiosInstance.post('/workspace-action', { container: workspace, workspaceAction }, {
+            const response = await axiosInstance.post('/workspace-action', { container: workspace, workspaceAction, workspacePassword }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -193,6 +197,8 @@ const Workspace = () => {
                     setUserResources(response.data.userResources);
                     setWorkspaceInfo(response.data.workspaceInfo);
                     setUser(response.data.user);
+                    window.location.reload();
+
                 }
             } else {
                 console.error(`Failed to ${workspaceAction} workspace:`, response.data.warn);
@@ -206,67 +212,6 @@ const Workspace = () => {
         }
     }
 
-    // code server related
-    const handleCodeServerRestart = async () => {
-        if (!isWorkspaceActive) {
-            notify('Error', 'Workspace is inactive. Activate it.', 'danger');
-            return;
-        }
-        setCodeServerLoading(true);
-        try {
-            const response = await axiosInstance.post('/restart-codeserver', { container: workspace }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code Server restarted.', 'info');
-                }
-
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Failed to restart code server.', error);
-            notify('Error', 'Failed to restart code server.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-    }
-
-    const handleCodeServerStop = async () => {
-
-        if (!isWorkspaceActive) {
-            notify('Error', 'Workspace is inactive. Activate it.', 'danger');
-            return;
-        }
-        try {
-            setCodeServerLoading(true);
-            const response = await axiosInstance.post('/stop-codeserver', { container: workspace }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.status === 200) {
-                if (response.data && response.data.info) {
-                    notify('Info', response.data.info || 'Code Server stopped.', 'info');
-                }
-
-            } else {
-                console.error('Internal Server Error:', response.data.warn);
-                notify('Error', response.data.warn || 'Internal Server Error', 'danger');
-            }
-        } catch (error) {
-            console.error('Failed to stop code server.', error);
-            notify('Error', 'Failed to stop code server.', 'danger');
-        } finally {
-            setCodeServerLoading(false);
-        }
-    }
 
     // port 3000/5000 related
 
@@ -346,7 +291,6 @@ const Workspace = () => {
         }
     }
 
-    console.log(volumeData, userResources)
     return (
 
 
@@ -355,7 +299,7 @@ const Workspace = () => {
                 <Sidebar />
             </div>
             <div style={{ flex: "1 1 auto", display: "flex", flexFlow: "column", height: "100vh", overflowY: "hidden" }}>
-                <Navbar pageTitle={`${workspaceInfo?.workspaceName || '...'}-workspace`} />
+                <Navbar pageTitle={`workspace - ${workspaceInfo?.workspaceName || '...'}`} />
                 <div style={{ height: "100%" }}>
                     <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
@@ -383,7 +327,7 @@ const Workspace = () => {
                                         {containerData?.State?.Status === 'running' ? (
                                             <button
                                                 className="btn btn-danger mx-2 mt-2"
-                                                onClick={() => { setWorkspaceAction('deactivate'); handleWorkspaceAction(); }}
+                                                onClick={() => { handleWorkspaceAction('deactivate'); }}
                                                 disabled={workspaceLoading}
                                             >
                                                 {workspaceLoading ? 'Deactivating workspace...' : ' Deactivate Workspace'}
@@ -391,7 +335,7 @@ const Workspace = () => {
                                         ) : (
                                             <button
                                                 className="btn btn-success mx-2 mt-2"
-                                                onClick={() => { setWorkspaceAction('activate'); handleWorkspaceAction(); }}
+                                                onClick={() => {  handleWorkspaceAction('activate'); }}
                                                 disabled={workspaceLoading}
                                             >
                                                 {workspaceLoading ? 'Activation Workspace...' : '  Activate Workspace'}
@@ -408,7 +352,7 @@ const Workspace = () => {
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">
 
-                                                    <h3 className="text-white">Code Server
+                                                    <h3 className="text-white">Workspace: {workspaceInfo?.workspaceName || 'N/A'}
                                                         <span
                                                             style={{
                                                                 marginLeft: '8px',
@@ -462,51 +406,50 @@ const Workspace = () => {
                                                             </p>
                                                         </div>
                                                     )}
+                                                    <div
+                                                        style={{ backgroundColor: '#708090', padding: '10px', borderRadius: '5px', display: 'inline-block' }}>
+                                                        <a
+                                                            href={`${workspaceInfo?.subdomains?.codeServer}.bycontrolia.com` || "#"}
+                                                            target={workspaceInfo?.subdomains?.codeServer ? "_blank" : "_self"}
+                                                            style={{ color: 'white' }}
+                                                        >
+                                                            Domain: {workspaceInfo?.subdomains?.codeServer}.bycontrolia.com <br/>
+                                                            
+                                                        </a>Password: Set during workspace creation.
+                                                    </div>
 
 
                                                     <p className="text-white mt-3">
-                                                        <strong>Code Server Domain:</strong> {workspaceInfo?.subdomains?.codeServer || 'N/A'}<br />
-
+                                                        <strong>Status:</strong> {containerData?.State?.Status}
                                                     </p>
 
-                                                    <h4 className="text-white">Update Code Server Credentials</h4>
-                                                    <div className="form-group mt-3">
-                                                        <label htmlFor="port3000NewUser" className="text-white">New Username</label>
+                                                    <p><strong>Created At:</strong> {workspaceInfo?.createdAt || 'N/A'}</p>
+                                                    <p><strong>Memory:</strong> {workspaceInfo?.resourceAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
+                                                    <p><strong>CPUs:</strong> {(workspaceInfo?.resourceAllocated?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
+                                                    <p><strong>Storage:</strong> {workspaceInfo?.resourceAllocated?.Storage || 'N/A'}</p> MB
+                                                    <p><strong>Volume Name:</strong> {volumeData?.volumeName || 'N/A'}</p>
+
+                                                    {/* <div className="form-group mt-3">
+                                                        <label htmlFor="workspacePassword" className="text-white">${'PASSWORD'}</label>
                                                         <input
+                                                            placeholder='Enter password and restart.'
                                                             type="text"
-                                                            id="port3000NewUser"
+                                                            id="workspacePassword"
                                                             className="form-control"
-                                                            value={codeServerNewUser || ''}
-                                                            onChange={(e) => setCodeServerNewUsername(e.target.value)}
-                                                        />
-                                                    </div>
-                                                    <div className="form-group mt-3">
-                                                        <label htmlFor="port3000NewPassword" className="text-white">New Password</label>
-                                                        <input
-                                                            type="text"
-                                                            id="port3000NewPassword"
-                                                            className="form-control"
-                                                            value={codeServerNewPassword || ''}
-                                                            onChange={(e) => setCodeServerNewPassword(e.target.value)}
+                                                            value={workspacePassword || ''}
+                                                            onChange={(e) => setWorkspacePassword(e.target.value)}
                                                         />
                                                     </div>
 
                                                     <button
                                                         className="btn btn-info mt-2"
-                                                        onClick={handleCodeServerRestart}
-                                                        disabled={!codeServerNewPassword || !codeServerNewUser}
+                                                        onClick={() => {
+                                                            handleWorkspaceAction('restartCodeserver');
+                                                        }}
+                                                        disabled={!workspacePassword}
                                                     >
-                                                        {codeServerLoading ? 'Updating Credentials and Restarting...' : 'Update Credentials and Restart.'}
-                                                    </button>
-
-                                                    <button
-                                                        className="btn btn-danger mt-2"
-                                                        onClick={handleCodeServerStop}
-                                                        disabled={codeServerLoading}
-                                                    >
-                                                        {codeServerLoading ? 'Stopping Code Server...' : 'Stop Code Server'}
-                                                    </button>
-
+                                                        {codeServerLoading ? 'Updating Password and Restarting...' : 'Update Password and Restart Code Server.'}
+                                                    </button> */}
 
                                                 </div>
                                             </div>
@@ -554,7 +497,16 @@ const Workspace = () => {
 
 
                                                     <p className="text-white">
-                                                        <strong>Domain:</strong> {workspaceInfo?.subdomains?.dev3000Server || 'N/A'}
+                                                        <div
+                                                            style={{ backgroundColor: '#708090', padding: '10px', borderRadius: '5px', display: 'inline-block' }}>
+                                                            <a
+                                                                href={`${workspaceInfo?.subdomains?.dev3000Server}.bycontrolia.com` || "#"}
+                                                                target={workspaceInfo?.subdomains?.dev3000Server ? "_blank" : "_self"}
+                                                                style={{ color: 'white' }}
+                                                            >
+                                                                Domain: {workspaceInfo?.subdomains?.dev3000Server}.bycontrolia.com
+                                                            </a>
+                                                        </div>
                                                     </p>
                                                     <h4 className="text-white">Update Port 3000 Credentials</h4>
                                                     <div className="form-group mt-3">
@@ -645,12 +597,16 @@ const Workspace = () => {
                                                         </div>
                                                     )}
 
-
-
-
-                                                    <p className="text-white">
-                                                        <strong>Domain:</strong> {workspaceInfo?.subdomains?.dev5000Server || 'N/A'}
-                                                    </p>
+                                                    <div
+                                                        style={{ backgroundColor: '#708090', padding: '10px', borderRadius: '5px', display: 'inline-block' }}>
+                                                        <a
+                                                            href={`${workspaceInfo?.subdomains?.dev5000Server}.bycontrolia.com` || "#"}
+                                                            target={workspaceInfo?.subdomains?.dev5000Server ? "_blank" : "_self"}
+                                                            style={{ color: 'white' }}
+                                                        >
+                                                            Domain: {workspaceInfo?.subdomains?.dev5000Server}.bycontrolia.com
+                                                        </a>
+                                                    </div>
                                                     <h4 className="text-white">Update Port 5000 Credentials</h4>
                                                     <div className="form-group mt-3">
                                                         <label htmlFor="port5000NewUser" className="text-white">New Username</label>
@@ -707,23 +663,7 @@ const Workspace = () => {
                                     <div className="d-flex card-section">
                                         <div className="cards-container">
 
-                                            <div className="card-bg w-100 border d-flex flex-column">
-                                                <div className="p-4 d-flex flex-column h-100">
 
-                                                    <h3 className="text-white">Workspace </h3>
-                                                    <p className="text-white mt-3">
-                                                        <strong>Status:</strong> {containerData?.State?.Status}
-                                                    </p>
-
-                                                    <p><strong>Name:</strong> {workspaceInfo?.workspaceName || 'N/A'}</p>
-                                                    <p><strong>Created At:</strong> {workspaceInfo?.createdAt || 'N/A'}</p>
-                                                    <p><strong>Memory:</strong> {workspaceInfo?.resourceAllocated?.Memory / (1024 * 1024) || 'N/A'} MB</p>
-                                                    <p><strong>CPUs:</strong> {(workspaceInfo?.resourceAllocated?.NanoCpus) / (1e9) || 'N/A'} Cores</p>
-                                                    <p><strong>Storage:</strong> {workspaceInfo?.resourceAllocated?.Storage || 'N/A'}</p>
-                                                    <p><strong>Volume Name:</strong> {volumeData?.volumeName || 'N/A'}</p>
-
-                                                </div>
-                                            </div>
 
                                             <div className="card-bg w-100 border d-flex flex-column">
                                                 <div className="p-4 d-flex flex-column h-100">

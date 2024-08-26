@@ -17,7 +17,7 @@ async function generateBasicAuth(user, password) {
     }
 }
 
-const createWorkspaceContainer = async (user, memory, nanoCpus, storage, containerName, volumeName, workspaceName) => {
+const createWorkspaceContainer = async (user, memory, nanoCpus, storage, containerName, volumeName, workspaceName, workspacePassword) => {
     try {
         const codeServerPort = process.env.CODESERVER_PORT || 8080;
         const mainServerPort = process.env.MAINSERVER_PORT || 7777;
@@ -55,15 +55,12 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
         }
         console.log(`${codeServerSubdomain}.${WILDCARD_DOMAIN}`, 'wildcard subdoamin')
 
-        let password = '1234'
         container = await docker.createContainer({
             Image: `${process.env.WORKSPACE_BASE_IMAGE_NAME}:${process.env.WORKSPACE_BASE_IMAGE_VERSION}`,
             name: containerName,
             // Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
-            Cmd: ['sh', '-c', 'code-server --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry --user-data-dir /project/.vscode'],
-            Env: [
-                `PASSWORD=${password}`
-            ],
+            Cmd: ['sh', '-c', `code-server --bind-addr 0.0.0.0:${codeServerPort} --auth password --disable-telemetry --user-data-dir /project/.vscode`],
+
             HostConfig: {
                 NanoCpus: NanoCpus,
                 Memory: Memory,
@@ -82,6 +79,9 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 [`${dev5000Port}/tcp`]: {},
                 [`${dev8000Port}/tcp`]: {},
             },
+            Env: [
+                `PASSWORD=${workspacePassword}`
+            ],
             Labels: {
                 "traefik.enable": "true",
                 // main-server

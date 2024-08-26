@@ -55,7 +55,91 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
         }
         console.log(`${codeServerSubdomain}.${WILDCARD_DOMAIN}`, 'wildcard subdoamin')
 
-        // container = await docker.createContainer({
+        let password = '1234'
+        container = await docker.createContainer({
+            Image: `${process.env.WORKSPACE_BASE_IMAGE_NAME}:${process.env.WORKSPACE_BASE_IMAGE_VERSION}`,
+            name: containerName,
+            // Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
+            Cmd: ['sh', '-c', 'code-server --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry --user-data-dir /project/.vscode'],
+            Env: [
+                `PASSWORD=${password}`
+            ],
+            HostConfig: {
+                NanoCpus: NanoCpus,
+                Memory: Memory,
+                Binds: [`${volumeName}:/root`],
+                NetworkMode: process.env.WORKSPACE_NETWORK_MODE,
+                // StorageOpt: {
+                //     'size': StorageSize
+                // }
+            },
+            ExposedPorts: {
+                "80/tcp": {},
+                "443/tcp": {},
+                [`${codeServerPort}/tcp`]: {},
+                [`${mainServerPort}/tcp`]: {},
+                [`${dev3000Port}/tcp`]: {},
+                [`${dev5000Port}/tcp`]: {},
+                [`${dev8000Port}/tcp`]: {},
+            },
+            Labels: {
+                "traefik.enable": "true",
+                // main-server
+                // [`traefik.http.routers.mainserver.entrypoints`]: "http, https",
+                // [`traefik.http.routers.mainserver.rule`]: `Host(\`${mainServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.middlewares.mainserver-https-redirect.redirectscheme.scheme`]: "https",
+                // [`traefik.http.routers.mainserver-secure.rule`]: `Host(\`${mainServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.routers.mainserver-secure.tls`]: "true",
+                // [`traefik.http.routers.mainserver-secure.tls.certresolver`]: "cloudflare",
+                // [`traefik.http.routers.mainserver.service`]: `mainserver_service`,
+                // [`traefik.http.services.mainserver_service.loadbalancer.server.port`]: `${mainServerPort}`,
+                // [`traefik.http.routers.mainserver.middlewares`]: `mainserver_auth`,
+                // [`traefik.http.middlewares.mainserver_auth.basicauth.users`]: `${mainserverAuthString}`,
+
+                // code-server    
+                [`traefik.http.routers.${codeServerSubdomain}.entrypoints`]: "http",
+                [`traefik.http.routers.${codeServerSubdomain}.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                [`traefik.http.middlewares.${codeServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
+                [`traefik.http.routers.${codeServerSubdomain}-secure.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                [`traefik.http.routers.${codeServerSubdomain}-secure.entrypoints`]: "https",
+                [`traefik.http.routers.${codeServerSubdomain}-secure.tls`]: "true",
+                [`traefik.http.routers.${codeServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
+                [`traefik.http.routers.${codeServerSubdomain}.service`]: `${codeServerSubdomain}_service`,
+                [`traefik.http.services.${codeServerSubdomain}_service.loadbalancer.server.port`]: `${codeServerPort}`,
+
+
+                // [`traefik.http.routers.${codeServerSubdomain}.middlewares`]: `${codeServerSubdomain}_auth`,
+                // [`traefik.http.middlewares.${codeServerSubdomain}_auth.basicauth.users`]: `${codeserverAuthString}`,
+
+                // development server on port 3000
+                // [`traefik.http.routers.${codeServerSubdomain}.entrypoints`]: "http, https",
+                // [`traefik.http.routers.${codeServerSubdomain}.rule`]: `Host(\`${dev3000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.middlewares.${codeServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
+                // [`traefik.http.routers.${codeServerSubdomain}-secure.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.routers.${codeServerSubdomain}-secure.tls`]: "true",
+                // [`traefik.http.routers.${codeServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
+                // [`traefik.http.routers.dev3000s${codeServerSubdomain}erver.service`]: `${codeServerSubdomain}_service`,
+                // [`traefik.http.services.${codeServerSubdomain}_service.loadbalancer.server.port`]: `${dev3000Port}`,
+                // [`traefik.http.routers.${codeServerSubdomain}.middlewares`]: `${codeServerSubdomain}_auth`,
+                // [`traefik.http.middlewares.${codeServerSubdomain}_auth.basicauth.users`]: `${dev3000serverAuthString}`,
+
+                // development server on port 5000
+                // [`traefik.http.routers.dev5000server.entrypoints`]: "http, https",
+                // [`traefik.http.routers.dev5000server.rule`]: `Host(\`${dev5000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.middlewares.dev5000server-https-redirect.redirectscheme.scheme`]: "https",
+                // [`traefik.http.routers.dev5000server-secure.rule`]: `Host(\`${dev5000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+                // [`traefik.http.routers.dev5000server-secure.tls`]: "true",
+                // [`traefik.http.routers.dev5000server-secure.tls.certresolver`]: "cloudflare",
+                // [`traefik.http.routers.dev5000server.service`]: `dev5000server_service`,
+                // [`traefik.http.services.dev5000server_service.loadbalancer.server.port`]: `${dev5000Port}`,
+                // [`traefik.http.routers.dev5000server.middlewares`]: `dev5000server_auth`,
+                // [`traefik.http.middlewares.dev5000server_auth.basicauth.users`]: `${dev5000serverAuthString}`,
+            },
+        });
+
+        
+
+        //  container = await docker.createContainer({
         //     Image: `${process.env.WORKSPACE_BASE_IMAGE_NAME}:${process.env.WORKSPACE_BASE_IMAGE_VERSION}`,
         //     name: containerName,
         //     Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
@@ -78,102 +162,57 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
         //         [`${dev8000Port}/tcp`]: {},
         //     },
         //     Env: [
-        //         `USERNAME=${user.username}`,
+        //         `PASSWORD=1234`,
         //     ],
         //     Labels: {
         //         "traefik.enable": "true",
-        //         // main-server
-        //         // [`traefik.http.routers.mainserver.entrypoints`]: "http, https",
-        //         // [`traefik.http.routers.mainserver.rule`]: `Host(\`${mainServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.middlewares.mainserver-https-redirect.redirectscheme.scheme`]: "https",
-        //         // [`traefik.http.routers.mainserver-secure.rule`]: `Host(\`${mainServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.routers.mainserver-secure.tls`]: "true",
-        //         // [`traefik.http.routers.mainserver-secure.tls.certresolver`]: "cloudflare",
-        //         // [`traefik.http.routers.mainserver.service`]: `mainserver_service`,
-        //         // [`traefik.http.services.mainserver_service.loadbalancer.server.port`]: `${mainServerPort}`,
-        //         // [`traefik.http.routers.mainserver.middlewares`]: `mainserver_auth`,
-        //         // [`traefik.http.middlewares.mainserver_auth.basicauth.users`]: `${mainserverAuthString}`,
-
-        //         // code-server    
+            
+        //         // HTTP router configuration for code server
         //         [`traefik.http.routers.${codeServerSubdomain}.entrypoints`]: "http",
-        //         [`traefik.http.routers.${codeServerSubdomain}.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+        //         [`traefik.http.routers.${codeServerSubdomain}.rule`]: `Host(\`${codeServerSubdomain}.bycontrolia.com\`)`,
         //         [`traefik.http.middlewares.${codeServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
-        //         [`traefik.http.routers.${codeServerSubdomain}-secure.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
+            
+        //         // HTTPS router configuration for code server
         //         [`traefik.http.routers.${codeServerSubdomain}-secure.entrypoints`]: "https",
+        //         [`traefik.http.routers.${codeServerSubdomain}-secure.rule`]: `Host(\`${codeServerSubdomain}.bycontrolia.com\`)`,
         //         [`traefik.http.routers.${codeServerSubdomain}-secure.tls`]: "true",
         //         [`traefik.http.routers.${codeServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
+            
+        //         // Service configuration for code server
         //         [`traefik.http.routers.${codeServerSubdomain}.service`]: `${codeServerSubdomain}_service`,
         //         [`traefik.http.services.${codeServerSubdomain}_service.loadbalancer.server.port`]: `${codeServerPort}`,
-
-
-        //         // [`traefik.http.routers.${codeServerSubdomain}.middlewares`]: `${codeServerSubdomain}_auth`,
-        //         // [`traefik.http.middlewares.${codeServerSubdomain}_auth.basicauth.users`]: `${codeserverAuthString}`,
-
-        //         // development server on port 3000
-        //         // [`traefik.http.routers.${codeServerSubdomain}.entrypoints`]: "http, https",
-        //         // [`traefik.http.routers.${codeServerSubdomain}.rule`]: `Host(\`${dev3000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.middlewares.${codeServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
-        //         // [`traefik.http.routers.${codeServerSubdomain}-secure.rule`]: `Host(\`${codeServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.routers.${codeServerSubdomain}-secure.tls`]: "true",
-        //         // [`traefik.http.routers.${codeServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
-        //         // [`traefik.http.routers.dev3000s${codeServerSubdomain}erver.service`]: `${codeServerSubdomain}_service`,
-        //         // [`traefik.http.services.${codeServerSubdomain}_service.loadbalancer.server.port`]: `${dev3000Port}`,
-        //         // [`traefik.http.routers.${codeServerSubdomain}.middlewares`]: `${codeServerSubdomain}_auth`,
-        //         // [`traefik.http.middlewares.${codeServerSubdomain}_auth.basicauth.users`]: `${dev3000serverAuthString}`,
-
-        //         // development server on port 5000
-        //         // [`traefik.http.routers.dev5000server.entrypoints`]: "http, https",
-        //         // [`traefik.http.routers.dev5000server.rule`]: `Host(\`${dev5000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.middlewares.dev5000server-https-redirect.redirectscheme.scheme`]: "https",
-        //         // [`traefik.http.routers.dev5000server-secure.rule`]: `Host(\`${dev5000ServerSubdomain}.${WILDCARD_DOMAIN}\`)`,
-        //         // [`traefik.http.routers.dev5000server-secure.tls`]: "true",
-        //         // [`traefik.http.routers.dev5000server-secure.tls.certresolver`]: "cloudflare",
-        //         // [`traefik.http.routers.dev5000server.service`]: `dev5000server_service`,
-        //         // [`traefik.http.services.dev5000server_service.loadbalancer.server.port`]: `${dev5000Port}`,
-        //         // [`traefik.http.routers.dev5000server.middlewares`]: `dev5000server_auth`,
-        //         // [`traefik.http.middlewares.dev5000server_auth.basicauth.users`]: `${dev5000serverAuthString}`,
-        //     },
+            
+        //         // HTTP router configuration for port 3000
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}.entrypoints`]: "http",
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}.rule`]: `Host(\`${dev3000ServerSubdomain}.bycontrolia.com\`)`,
+        //         [`traefik.http.middlewares.${dev3000ServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
+            
+        //         // HTTPS router configuration for port 3000
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}-secure.entrypoints`]: "https",
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}-secure.rule`]: `Host(\`${dev3000ServerSubdomain}.bycontrolia.com\`)`,
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}-secure.tls`]: "true",
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
+            
+        //         // Service configuration for port 3000
+        //         [`traefik.http.routers.${dev3000ServerSubdomain}.service`]: `${dev3000ServerSubdomain}_service`,
+        //         [`traefik.http.services.${dev3000ServerSubdomain}_service.loadbalancer.server.port`]:`${dev3000Port}`,
+            
+        //         // HTTP router configuration for port 5000
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}.entrypoints`]: "http",
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}.rule`]: `Host(\`${dev5000ServerSubdomain}.bycontrolia.com\`)`,
+        //         [`traefik.http.middlewares.${dev5000ServerSubdomain}-https-redirect.redirectscheme.scheme`]: "https",
+            
+        //         // HTTPS router configuration for port 5000
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}-secure.entrypoints`]: "https",
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}-secure.rule`]: `Host(\`${dev5000ServerSubdomain}.bycontrolia.com\`)`,
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}-secure.tls`]: "true",
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}-secure.tls.certresolver`]: "cloudflare",
+            
+        //         // Service configuration for port 5000
+        //         [`traefik.http.routers.${dev5000ServerSubdomain}.service`]: `${dev5000ServerSubdomain}_service`,
+        //         [`traefik.http.services.${dev5000ServerSubdomain}_service.loadbalancer.server.port`]:`${dev5000Port}`,
+        //     }            
         // });
-
-
-         container = await docker.createContainer({
-            Image: `${process.env.WORKSPACE_BASE_IMAGE_NAME}:${process.env.WORKSPACE_BASE_IMAGE_VERSION}`,
-            name: containerName,
-            // Cmd: ['sh', '-c', 'while :; do sleep 2073600; done'],
-            Cmd: ['sh', '-c', 'code-server --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry --user-data-dir /project/.vscode'],
-            HostConfig: {
-                NanoCpus: NanoCpus,
-                Memory: Memory,
-                Binds: [`${volumeName}:/root`],
-                NetworkMode: process.env.WORKSPACE_NETWORK_MODE,
-                // StorageOpt: {
-                //     'size': StorageSize
-                // }
-            },
-            ExposedPorts: {
-                "80/tcp": {},
-                "443/tcp": {},
-                [`${codeServerPort}/tcp`]: {},
-                [`${mainServerPort}/tcp`]: {},
-                [`${dev3000Port}/tcp`]: {},
-                [`${dev5000Port}/tcp`]: {},
-                [`${dev8000Port}/tcp`]: {},
-            },
-            Env: [
-                `PASSWORD=1234`,
-            ],
-            Labels: {
-                "traefik.enable": "true",
-                "traefik.http.routers.app1.rule": "Host(`codeserver.bycontrolia.com`)",
-                "traefik.http.routers.app1.entrypoints": "http,https",
-                "traefik.http.routers.app1.tls": "true",
-                "traefik.http.routers.app1.service": "app1s",
-                "traefik.http.routers.app1.tls.certresolver": "cloudflare",
-                "traefik.http.services.app1s.loadbalancer.server.port": "8080",
-                "traefik.http.routers.app1.middlewares": "auth-app1",
-                "traefik.http.middlewares.auth-app1.basicauth.users": "user:$$2y$$05$$NkeSaeE2Cxrl2x8of68cdu88WpUIK6ObxXUIcWCXLAI9zfHKGocAC"
-            }
-        });
         
 
         if (!container) {

@@ -41,10 +41,9 @@ const restartCodeServer = async (req, res) => {
         const containerInstance = docker.getContainer(container.containerId);
 
         if (newUsername && newPassword) {
-            const newCodeserverAuthString = await generateBasicAuth(`${newUsername}`, `${newPassword}`);
-            console.log(newCodeserverAuthString)
-            
             await containerInstance.update({
+
+                
                 Labels: {
                     [`traefik.http.middlewares.codeserver_auth.basicauth.users`]: newCodeserverAuthString,
                 },
@@ -59,52 +58,60 @@ const restartCodeServer = async (req, res) => {
 
 
         // Kill previous Code Server instance if it exists
-        console.log(`Killing ${codeServerContainer.codeServerPID} process`);
+        console.log(`Killing process with PID: ${codeServerContainer.codeServerPID}`);
 
         if (codeServerContainer.codeServerPID) {
-            const execKill = await containerInstance.exec({
-                Cmd: ['sh', '-c', `kill -9 ${codeServerContainer.codeServerPID}`],
-                AttachStdout: true,
-                AttachStderr: true,
-                Tty: false,
-            });
-            await execKill.start();
+            try {
+                const execKill = await containerInstance.exec({
+                    Cmd: ['sh', '-c', `kill -9 ${codeServerContainer.codeServerPID}`],
+                    AttachStdout: true,
+                    AttachStderr: true,
+                    Tty: false,
+                });
+                await execKill.start();
+                console.log(`Successfully killed process with PID: ${codeServerContainer.codeServerPID}`);
+            } catch (error) {
+                console.error(`Failed to kill process with PID: ${codeServerContainer.codeServerPID}`, error);
+            }
         }
-
+        const password = '1234'
+        
         const exec = await containerInstance.exec({
             Cmd: [
                 'sh',
                 '-c',
-                `code-server --bind-addr 0.0.0.0:${codeServerContainer.ports['codeServerPort']} --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+                `code-server --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry --user-data-dir /root > /dev/null 2>&1 & echo $!`
+            ],
+            Env: [
+                `PASSWORD=${password}`
             ],
             AttachStdout: true,
             AttachStderr: true,
             Tty: false,
         });
-
-
+        
         // Start the exec command and get the stream
         const stream = await exec.start();
-
+        
         let output = '';
-
-        // Pipe the output to process stdout and stderr
+        
+        // Capture the output to get the new PID
         stream.on('data', (data) => {
-            console.log(data.toString());
             output += data.toString();  // Accumulate output to capture the new PID
         });
-
+        
         await new Promise((resolve) => {
             stream.on('end', resolve);
         });
-
+        
         // Clean the output to extract the new PID
         const newPID = output.replace(/[^\x20-\x7E]/g, '').trim();
         console.log('New PID:', newPID);
-
+        
         if (!newPID) {
             throw new Error('Failed to retrieve new PID for the Code Server.');
         }
+        
 
         // Update the container's document with the new PID in the database
         await containersCollection.findOneAndUpdate(

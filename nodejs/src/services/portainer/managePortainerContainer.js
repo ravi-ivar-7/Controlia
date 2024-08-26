@@ -3,6 +3,31 @@ const Docker = require('dockerode');
 
 const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock' });
 
+
+const createPortainerImage = async (imageName) => {
+    const images = await docker.listImages({ filter: imageName });
+    const imageExists = images.some(img => img.RepoTags && img.RepoTags.includes(imageName));
+
+    if (!imageExists) {
+        console.log(`Image ${imageName} not found locally. Pulling the image...`);
+        await new Promise((resolve, reject) => {
+            docker.pull(imageName, (err, stream) => {
+                if (err) {
+                    return reject(err);
+                }
+                docker.modem.followProgress(stream, (err, res) => {
+                    return err ? reject(err) : resolve(res);
+                });
+            });
+        });
+        console.log(`Successfully pulled the image ${imageName}`);
+    } else {
+        console.log(`Image ${imageName} already exists locally.`);
+    }
+}
+
+
+
 const startPortainer = async (req, res) => {
     try {
         const containerName = 'portainer';
@@ -12,13 +37,15 @@ const startPortainer = async (req, res) => {
         const containers = await docker.listContainers({ all: true });
         const portainerContainer = containers.find(container => container.Names.some(name => name === `/${containerName}`));
 
+        await createPortainerImage(imageName)
+
         if (portainerContainer) {
             return res.send('Portainer container already exists.');
         }
 
         const portainer_server_subdomain = 'portainer-dashboard';
-        const adminUsername = 'admin'; 
-        const adminPassword = 'adminpassword'; 
+        const adminUsername = 'admin';
+        const adminPassword = 'adminpassword';
 
         // Create and start the Portainer container if not present
         const containerOptions = {
@@ -63,8 +90,8 @@ const startPortainer = async (req, res) => {
         res.send('Portainer container created and started successfully.');
     } catch (error) {
         console.error('Error setting up Portainer container:', error);
-        res.status(500).send('Failed to set up Portainer container.');
+        res.status(500).send(`Failed to set up Portainer container. ${error}`);
     }
 };
 
-module.exports = {startPortainer}
+module.exports = { startPortainer }

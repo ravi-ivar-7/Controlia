@@ -160,10 +160,7 @@ const createWorkspaceContainer = async (user, memory, nanoCpus, storage, contain
                 [`${dev8000Port}/tcp`]: {},
             },
             Env: [
-                `INSECURE_COOKIE=true`,
-                `LOG_LEVEL=debug`,
                 `PASSWORD=1234`,
-                // Add other environment variables as needed
             ],
             Labels: {
                 "traefik.enable": "true",

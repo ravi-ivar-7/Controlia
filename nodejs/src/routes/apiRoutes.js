@@ -22,6 +22,7 @@ const { port3000Credentials, port5000Credentials } = require('../controllers/wor
 
 
 const { startPortainer } = require('../services/portainer/managePortainerContainer');
+const { startCodeServer } = require('../services/codeserver/codeserver');
 
 
 
@@ -57,6 +58,7 @@ router.post('/port5000-credentials', verifyToken, port5000Credentials )
 
 // docker related
 router.get('/start-portainer', startPortainer)
+router.get('/start-codeserver', startCodeServer)
 
 // logs related
 router.get('/get-logs/:filename', getLogs)

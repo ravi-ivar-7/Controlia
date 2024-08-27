@@ -1,5 +1,5 @@
 
-const { jupyterServer } = require('../controllers/notebooks/startJupyterServer');
+const { jupyterServer } = require('../controllers/workers/startJupyterServer');
 
 
 module.exports = (io) => {

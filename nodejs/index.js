@@ -39,7 +39,7 @@ const connection = new IORedis(redisOptions);
 
 // FOR UI
 // const {scheduleScriptQueue} = require('./src/controllers/scripts/scheduleScript')
-const {scheduleNotebookQueue} = require('./src/controllers/notebooks/schduleNotebook')
+const {scheduleNotebookQueue} = require('./src/controllers/workers/schduleNotebook')
 const {errorMailQueue, scheduleMailQueue} = require('./src/services/mail/manageMail')
 const { createBullBoard } = require('@bull-board/api');
 const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
@@ -58,7 +58,7 @@ app.use('/admin/queues', serverAdapter.getRouter());
 const { sendMail } = require('./src/services/mail/manageMail');
 
 
-const {runBgNotebookFile} = require('./src/controllers/notebooks/runBgNotebookFile');
+const {runBgNotebookFile} = require('./src/controllers/workers/runBgNotebookFile');
 
 const jobHandlers = {
   sendMail,

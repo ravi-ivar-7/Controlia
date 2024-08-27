@@ -37,9 +37,9 @@ const Home = () => {
 
   useEffect(() => {
     if (user) {
-      showNotification('Info', `Signed-in as ${user.userId}`, 'info');
+      showNotification('', `Signed-in as ${user.username}`, 'info');
     } else {
-      showNotification('Info', 'Guest', 'info');
+      showNotification('', 'Guest', 'info');
     }
   }, [user]);
 
@@ -158,25 +158,41 @@ const Home = () => {
                 <div className="d-flex card-section">
                   <div className="cards-container">
                     {workspaceFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border" >
-                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                      <div key={index} className="card-bg d-flex flex-column border">
+                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                          {/* Background Image with Opacity */}
                           <div
-                            className="status-tag"
                             style={{
-                              display: 'flex',
-                              alignItems: 'right',
-                              justifyContent: 'right'
+                              backgroundImage: `${info.imgLink}`,
+                              opacity: 0.2, // Adjust this value for desired background opacity
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              zIndex: 1,
                             }}
-                          >
-                            {info.status === 'ready' ? (
-                              <span style={{ fontSize: '2rem' }}>✅ </span>
-                            ) : (
-                              <span style={{ fontSize: '2rem' }}>🔜</span>
-                            )}
-                          </div>
-                          <Card.Body>
-                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          />
+                          {/* Content on Top of the Background */}
+                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
+                            <div
+                              className="status-tag"
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              {info.status === 'ready' ? (
+                                <span style={{ fontSize: '2rem' }}>✅</span>
+                              ) : (
+                                <span style={{ fontSize: '2rem' }}>🔜</span>
+                              )}
+                            </div>
+                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
                           </Card.Body>
                         </Card>
                       </div>
@@ -185,6 +201,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
+
 
 
             {/* lab  */}
@@ -216,25 +233,41 @@ const Home = () => {
                 <div className="d-flex card-section">
                   <div className="cards-container">
                     {labFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border" >
-                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                      <div key={index} className="card-bg d-flex flex-column border">
+                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                          {/* Background Image with Opacity */}
                           <div
-                            className="status-tag"
                             style={{
-                              display: 'flex',
-                              alignItems: 'right',
-                              justifyContent: 'right'
+                              backgroundImage: `${info.imgLink}`,
+                              opacity: 0.2, // Adjust this value for desired background opacity
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              zIndex: 1,
                             }}
-                          >
-                            {info.status === 'ready' ? (
-                              <span style={{ fontSize: '2rem' }}>✅ </span>
-                            ) : (
-                              <span style={{ fontSize: '2rem' }}>🔜</span>
-                            )}
-                          </div>
-                          <Card.Body>
-                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          />
+                          {/* Content on Top of the Background */}
+                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
+                            <div
+                              className="status-tag"
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              {info.status === 'ready' ? (
+                                <span style={{ fontSize: '2rem' }}>✅</span>
+                              ) : (
+                                <span style={{ fontSize: '2rem' }}>🔜</span>
+                              )}
+                            </div>
+                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
                           </Card.Body>
                         </Card>
                       </div>
@@ -272,25 +305,41 @@ const Home = () => {
                 <div className="d-flex card-section">
                   <div className="cards-container">
                     {runMateFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border" >
-                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                      <div key={index} className="card-bg d-flex flex-column border">
+                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                          {/* Background Image with Opacity */}
                           <div
-                            className="status-tag"
                             style={{
-                              display: 'flex',
-                              alignItems: 'right',
-                              justifyContent: 'right'
+                              backgroundImage: `${info.imgLink}`,
+                              opacity: 0.2, // Adjust this value for desired background opacity
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              zIndex: 1,
                             }}
-                          >
-                            {info.status === 'ready' ? (
-                              <span style={{ fontSize: '2rem' }}>✅ </span>
-                            ) : (
-                              <span style={{ fontSize: '2rem' }}>🔜</span>
-                            )}
-                          </div>
-                          <Card.Body>
-                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          />
+                          {/* Content on Top of the Background */}
+                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
+                            <div
+                              className="status-tag"
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              {info.status === 'ready' ? (
+                                <span style={{ fontSize: '2rem' }}>✅</span>
+                              ) : (
+                                <span style={{ fontSize: '2rem' }}>🔜</span>
+                              )}
+                            </div>
+                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
                           </Card.Body>
                         </Card>
                       </div>
@@ -329,25 +378,41 @@ const Home = () => {
                 <div className="d-flex card-section">
                   <div className="cards-container">
                     {deploymentFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border" >
-                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                      <div key={index} className="card-bg d-flex flex-column border">
+                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                          {/* Background Image with Opacity */}
                           <div
-                            className="status-tag"
                             style={{
-                              display: 'flex',
-                              alignItems: 'right',
-                              justifyContent: 'right'
+                              backgroundImage: `${info.imgLink}`,
+                              opacity: 0.2, // Adjust this value for desired background opacity
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              zIndex: 1,
                             }}
-                          >
-                            {info.status === 'ready' ? (
-                              <span style={{ fontSize: '2rem' }}>✅ </span>
-                            ) : (
-                              <span style={{ fontSize: '2rem' }}>🔜</span>
-                            )}
-                          </div>
-                          <Card.Body>
-                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          />
+                          {/* Content on Top of the Background */}
+                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
+                            <div
+                              className="status-tag"
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              {info.status === 'ready' ? (
+                                <span style={{ fontSize: '2rem' }}>✅</span>
+                              ) : (
+                                <span style={{ fontSize: '2rem' }}>🔜</span>
+                              )}
+                            </div>
+                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
                           </Card.Body>
                         </Card>
                       </div>
@@ -356,7 +421,6 @@ const Home = () => {
                 </div>
               </div>
             </div>
-
             {/* footer */}
 
             <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/codingbg.jpg")', padding: '20px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
@@ -471,37 +535,37 @@ const workspaceFeatures = [
   {
     title: 'Local-Like Development Experience',
     text: 'Code as if you are working locally, with instant scheduling and deployment capabilities for any project. Mimicking a familiar development environment.',
-    imgLink: 'url("img/pages/local-development.webp")',
+    imgLink: 'url("img/homepage/local-development.png)',
     status: 'ready'
   },
   {
     title: 'Resolve Environment Discrepancies',
     text: 'With each workspace having an independent and isolated environment, you eliminate environment discrepancies. This guarantees that your code performs consistently across different workspaces and deployments, reducing unexpected issues and boosting productivity.',
-    imgLink: 'url("img/pages/environment-discrepancies.webp")',
+    imgLink: 'url("img/homepage/environment-discrepancies.jpeg")',
     status: 'ready'
   },
   {
     title: 'Minimize Context Switching',
     text: 'Reduce productivity loss caused by frequent tool-switching. Controlia integrates all necessary tools, streamlining workflows and enhancing overall efficiency.',
-    imgLink: 'url("img/pages/context-switching.webp")',
+    imgLink: 'url("img/homepage/context-switching.webp")',
     status: 'ready'
   },
   {
     title: 'Dynamic Resource Allocation',
     text: 'Efficiently manage your resources with the ability to dynamically adjust RAM and CPU based on current needs. Continuously scale resources to match workload requirements, for optimal performance and flexibility.',
-    imgLink: 'url("img/pages/resource-allocation.webp")',
+    imgLink: 'url("img/homepage/resource-allocation.png")',
     status: 'ready'
   },
   {
     title: 'Unlimited Workspaces and Deployments',
     text: 'There are no limits on the number of workspaces, labs, or deployments you can create. As long as you have resources available in your cloud, scale up effortlessly, providing unmatched flexibility and scalability.',
-    imgLink: 'url("img/pages/unlimited-workspaces.webp")',
+    imgLink: 'url("img/homepage/unlimited-workspaces.jpeg")',
     status: 'ready'
   },
   {
     title: 'Two Protected Domains for Development',
     text: 'For development needs, get two bycontrolia.com protected domains to test your projects over the network. Easily share these domains for feedback, iterate, and make improvements efficiently.',
-    imgLink: 'url("img/pages/protected-domains.webp")',
+    imgLink: 'url("img/homepage/protected-domains.jpeg")',
     status: 'ready'
   },
 ];
@@ -512,25 +576,25 @@ const labFeatures = [
   {
     title: 'Cloud-Based Jupyter Lab',
     text: 'Experience the power of Jupyter Lab in the cloud. Access a fully-featured environment that’s secure and fast, providing seamless data analysis and visualization capabilities.',
-    imgLink: 'url("img/pages/lab-cloud.webp")',
+    imgLink: 'url("img/homepage/lab-cloud.png")',
     status: 'ready'
   },
   {
     title: 'Secure and Scalable',
     text: 'Our Jupyter Lab environment is designed with top-notch security and scalability in mind. Scale resources as needed and ensure your data and projects are protected.',
-    imgLink: 'url("img/pages/lab-secure.webp")',
+    imgLink: 'url("img/homepage/lab-secure.jpeg")',
     status: 'ready'
   },
   {
     title: 'Instant Setup and Access',
     text: 'Get started quickly with instant setup. No need to configure local environments; simply launch your Jupyter Lab and start working on your data science projects right away.',
-    imgLink: 'url("img/pages/lab-instant.webp")',
+    imgLink: 'url("img/homepage/lab-instant.webp")',
     status: 'ready'
   },
   {
     title: 'Collaborative Features',
     text: 'Work collaboratively with team members. Share your Jupyter Lab environment and projects, making it easy to collaborate and get feedback in real time.',
-    imgLink: 'url("img/pages/lab-collaborative.webp")',
+    imgLink: 'url("img/homepage/lab-collaborative.jpg")',
     status: 'ready'
   }
 ];
@@ -541,19 +605,19 @@ const runMateFeatures = [
   {
     title: 'Background Execution',
     text: 'RunMate allows you to execute projects, scripts, and notebooks in the background. Ensure that your tasks continue processing while you focus on other work.',
-    imgLink: 'url("img/pages/runmate-background.webp")',
+    imgLink: 'url("img/homepage/runmate-background.jpeg")',
     status: 'inprogress'
   },
   {
     title: 'Scheduled Tasks',
     text: 'Automate your workflows with scheduled tasks. Set up cron jobs and background processes to run at specific times.',
-    imgLink: 'url("img/pages/runmate-scheduled.webp")',
+    imgLink: 'url("img/homepage/runmate-scheduled.webp")',
     status: 'inprogress'
   },
   {
     title: 'Seamless Integration',
     text: 'Integrate RunMate smoothly with your existing tools and workflows. Ensure that background tasks and processes fit naturally into your development environment without disruptions.',
-    imgLink: 'url("img/pages/runmate-integration.webp")',
+    imgLink: 'url("img/homepage/runmate-integration.webp")',
     status: 'inprogress'
   }
 ];
@@ -563,38 +627,32 @@ const deploymentFeatures = [
   {
     title: 'One-Click Deployment',
     text: 'Deploy your projects with just a single click. Streamline the process and reduce manual steps for faster and more reliable deployments.',
-    imgLink: 'url("img/pages/deploy-oneclick.webp")',
+    imgLink: 'url("img/homepage/deploy-oneclick.jpg")',
     status: 'inprogress'
   },
   {
     title: 'Automated Rollbacks',
     text: 'Easily revert to previous versions if needed. Automated rollbacks ensure that you can quickly address issues without downtime.',
-    imgLink: 'url("img/pages/deploy-rollbacks.webp")',
-    status: 'inprogress'
-  },
-  {
-    title: 'Multi-Platform Support',
-    text: 'Deploy across various platforms and environments with ease. Controlia supports diverse deployment targets to meet all your needs.',
-    imgLink: 'url("img/pages/deploy-multiplatform.webp")',
+    imgLink: 'url("img/homepage/deploy-rollbacks.png")',
     status: 'inprogress'
   },
 
   {
     title: 'Comprehensive Analytics',
     text: 'Track and analyze performance metrics, user interactions, and deployment impact with our analytics tools. Make data-driven decisions to optimize your projects.',
-    imgLink: 'url("img/pages/analytics-comprehensive.webp")',
+    imgLink: 'url("img/homepage/analytics-comprehensive.jpeg")',
     status: 'inprogress'
   },
   {
     title: 'Robust Authentication',
     text: 'Secure your applications with our out-of-the-box authentication layer. Implement user authentication seamlessly to protect your data and control access.',
-    imgLink: 'url("img/pages/authentication-robust.webp")',
+    imgLink: 'url("img/homepage/authentication-robust.webp")',
     status: 'inprogress'
   },
   {
     title: 'Customizable Security Settings',
     text: 'Customize security settings to meet specific needs. Configure authentication methods, permissions, and access controls easily to ensure robust protection.',
-    imgLink: 'url("img/pages/authentication-customizable.webp")',
+    imgLink: 'url("img/homepage/authentication-customizable.jpeg")',
     status: 'inprogress'
   }
 ];

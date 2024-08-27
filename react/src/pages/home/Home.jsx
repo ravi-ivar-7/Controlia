@@ -64,7 +64,7 @@ const Home = () => {
                       <h1
                         className="m-0 h5 font-weight-bold text-white"
                         style={{
-                          fontSize: '4.5rem', /* Large font size for the heading */
+                          fontSize: '3rem', /* Large font size for the heading */
                           textTransform: 'uppercase', /* Transform text to uppercase */
                           margin: '0', /* Remove default margin */
                           padding: '0' /* Remove default padding */
@@ -85,10 +85,10 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="mt-3 text-center" style={{ margin: '10px' }}>
-                    <h4 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                    <h4 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '10px' }}>
                       Control It All
                     </h4>
-                    <h1 style={{ fontSize: '2rem', lineHeight: '1.5' }}>
+                    <h1 style={{ fontSize: '1.4rem', lineHeight: '1.5' }}>
                       Build, Schedule, Automate, Deploy
                     </h1>
                     <div className="page">
@@ -97,13 +97,13 @@ const Home = () => {
 
                     {user ? (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
                           <Link className="popup-item" to="/profile" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             Profile
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
                           <Link className="popup-item" to="/dashboard" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             Dashboard
                           </Link>
@@ -111,13 +111,13 @@ const Home = () => {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
                           <Link className="popup-item" to="/login" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             <i className="fas fa-sign-in-alt" style={{ marginRight: '8px' }}></i> Login
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
                           <Link className="popup-item" to="/register" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             <i className="fas fa-user-plus" style={{ marginRight: '8px' }}></i> Register
                           </Link>

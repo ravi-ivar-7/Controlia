@@ -110,7 +110,7 @@
 .info-box .card-title {
   color: rgb(99, 57, 57);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-size: 2.2rem;
+  font-size: 2rem;
 }
 
 .info-box .card-text {
@@ -186,13 +186,13 @@
 
 h2 {
   color: white;
-  font-size: 2.5rem; /* Increase the size of the title */
+  font-size: 1.5rem; /* Increase the size of the title */
   margin: 0; /* Remove default margin */
 }
 
 p {
   color: white;
-  font-size: 1.25rem; /* Increase the size of the paragraph text */
+  font-size: 1.2rem; /* Increase the size of the paragraph text */
   line-height: 1.5; /* Adjust line height for better readability */
 }
 
@@ -209,5 +209,3 @@ p {
     margin-bottom: 0; /* Remove bottom margin for the last element */
   }
 }
-
-

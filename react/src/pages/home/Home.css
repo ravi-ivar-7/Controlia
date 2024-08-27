@@ -2,7 +2,7 @@
   margin: auto;
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   grid-gap: 25px;
   grid-template-rows: auto;
 }
@@ -93,12 +93,14 @@
 }
 
 .info-box {
+  border-top: 4px solid #00bfae; /* Skyblue-greenish color for the top border */
   background-color: #343a40;
   border: 2px solid #007bff;
   animation: borderColorChange 5s infinite;
   color: white;
   transition: transform 0.5s ease;
   width: 100%; 
+  font-size: 1.5rem;
 }
 
 .info-box:hover {
@@ -106,14 +108,18 @@
 }
 
 .info-box .card-title {
-  color: white;
+  color: rgb(99, 57, 57);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 2.2rem;
 }
 
 .info-box .card-text {
   color: #f8f9fa;
   animation: textSlide 5s ease-out;
+  font-size: 1.4rem;
+  font-weight: 500; /* Adjust this value to make the text bolder */
 }
+
 
 @keyframes borderColorChange {
   0% {
@@ -152,3 +158,56 @@
     transform: translateX(0);
   }
 }
+
+
+/* styles.css */
+/* .css */
+.container {
+  display: flex;
+  flex-direction: row; /* Default layout: text box and video side by side */
+  justify-content: space-between;
+  margin: 20px auto;
+  max-width: 95%; /* Adjust maxWidth as needed */
+}
+
+.text-box {
+  flex: 0 0 40%; /* Fix the width of the text box to 40% */
+  padding-right: 20px; /* Optional: add some spacing between text box and video */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* Center content horizontally */
+  text-align: center; /* Center text horizontally */
+}
+
+.video-box {
+  flex: 1; /* Take up the remaining space */
+}
+
+h2 {
+  color: white;
+  font-size: 2.5rem; /* Increase the size of the title */
+  margin: 0; /* Remove default margin */
+}
+
+p {
+  color: white;
+  font-size: 1.25rem; /* Increase the size of the paragraph text */
+  line-height: 1.5; /* Adjust line height for better readability */
+}
+
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+  .container {
+    flex-direction: column; /* Stack the text box below the video */
+  }
+
+  .text-box {
+    margin-bottom: 20px; /* Add space between the text box and the video */
+  }
+
+  .video-box {
+    margin-bottom: 0; /* Remove bottom margin for the last element */
+  }
+}
+
+

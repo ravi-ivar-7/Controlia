@@ -1,10 +1,8 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Store } from 'react-notifications-component';
 import 'react-notifications-component/dist/theme.css';
 import 'animate.css';
 
-// import 'bootstrap/dist/css/bootstrap.min.css';
-import './Home.css';
 import { Modal, Button } from 'react-bootstrap';
 import { CDBBtn } from "cdbreact";
 import Sidebar from "../../components/bars/Sidebar";
@@ -35,7 +33,7 @@ const Home = () => {
       }
     });
   };
-  
+
 
   useEffect(() => {
     if (user) {
@@ -57,33 +55,55 @@ const Home = () => {
         <div style={{ height: "100%" }}>
           <div style={{ height: "calc(100% - 64px)", overflowY: "scroll" }}>
 
+            {/* home page top */}
             <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/simplebg.webp")', padding: '10px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
               <div className="cards-container">
                 <div className="d-flex flex-column h-100 justify-content-center align-items-center">
                   <div className="mx-4 mt-3 d-flex justify-content-center align-items-center" style={{ marginBottom: '20px' }}>
-                    <h2 className="m-0 h5 font-weight-bold text-white" style={{ fontSize: '2rem', textTransform: 'uppercase' }}>
-                      Controlia
-                    </h2>
+                    <div style={{ textAlign: 'center', margin: '20px auto' }}>
+                      <h1
+                        className="m-0 h5 font-weight-bold text-white"
+                        style={{
+                          fontSize: '4.5rem', /* Large font size for the heading */
+                          textTransform: 'uppercase', /* Transform text to uppercase */
+                          margin: '0', /* Remove default margin */
+                          padding: '0' /* Remove default padding */
+                        }}
+                      >
+                        Controlia
+                      </h1>
+                      <p
+                        style={{
+                          fontSize: '1rem', /* Adjust font size for the paragraph */
+                          marginTop: '0.5rem', /* Space between heading and paragraph */
+                          marginBottom: '0', /* Remove default margin */
+                          color: '#ffffff' /* Optional: Set text color */
+                        }}
+                      >
+                        Cloud
+                      </p>
+                    </div>
                   </div>
                   <div className="mt-3 text-center" style={{ margin: '10px' }}>
-                    <h4 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '10px' }}>
-                      Control It All!
+                    <h4 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                      Control It All
                     </h4>
-                    <p style={{ fontSize: '1rem', lineHeight: '1.5' }}>
+                    <h1 style={{ fontSize: '2rem', lineHeight: '1.5' }}>
                       Build, Schedule, Automate, Deploy
-                    </p>
+                    </h1>
                     <div className="page">
-                     
                     </div>
+
+
                     {user ? (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="primary" style={{ margin: '0 10px', padding: '8px 16px' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
                           <Link className="popup-item" to="/profile" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             Profile
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="primary" style={{ margin: '0 10px', padding: '8px 16px' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
                           <Link className="popup-item" to="/dashboard" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             Dashboard
                           </Link>
@@ -91,13 +111,13 @@ const Home = () => {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="primary" style={{ margin: '0 10px', padding: '8px 16px' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
                           <Link className="popup-item" to="/login" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             <i className="fas fa-sign-in-alt" style={{ marginRight: '8px' }}></i> Login
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="secondary" style={{ margin: '0 10px', padding: '8px 16px' }}>
+                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.5rem' }}>
                           <Link className="popup-item" to="/register" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                             <i className="fas fa-user-plus" style={{ marginRight: '8px' }}></i> Register
                           </Link>
@@ -109,21 +129,56 @@ const Home = () => {
               </div>
             </div>
 
+            {/* workspace  */}
+            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+              <div className="container" >
+                <div className="text-box">
+                  <h2 style={{ color: 'white' }}>Meet Workspace: Your Cloud-Based Development Hub</h2>
+                  <p style={{ color: "white", font: '1rem' }}>
+                    Experience a cloud environment as intuitive as your laptop. Code, prototype, and deploy effortlessly. Transform your workspace into a server, test it, reset it, and start fresh—all in the cloud.
+                  </p>
+                </div>
+                <div className="video-box">
+                  <video
+                    src="path/to/your/video.mp4"
+                    controls
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            </div>
+
             <div className="d-flex card-section">
               <div className="cards-container">
                 <div className="d-flex card-section">
                   <div className="cards-container">
-                    {content.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border">
-                        <div className="card-content p-4 d-flex flex-column h-100">
-                          <Card className="info-box h-100">
-                            <Card.Body>
-                              <Card.Title className='text-primary'>{info.title}</Card.Title>
-                              <Card.Subtitle className="mb-2 text-info">{info.subtitle}</Card.Subtitle>
-                              <Card.Text>{info.text}</Card.Text>
-                            </Card.Body>
-                          </Card>
-                        </div>
+                    {workspaceFeatures.map((info, index) => (
+                      <div key={index} className="card-bg d-flex flex-column border" >
+                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                          <div
+                            className="status-tag"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'right',
+                              justifyContent: 'right'
+                            }}
+                          >
+                            {info.status === 'ready' ? (
+                              <span style={{ fontSize: '2rem' }}>✅ </span>
+                            ) : (
+                              <span style={{ fontSize: '2rem' }}>🔜</span>
+                            )}
+                          </div>
+                          <Card.Body>
+                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          </Card.Body>
+                        </Card>
                       </div>
                     ))}
                   </div>
@@ -131,6 +186,178 @@ const Home = () => {
               </div>
             </div>
 
+
+            {/* lab  */}
+            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+              <div className="container" >
+                <div className="text-box">
+                  <h2 style={{ color: 'white' }}>Meet Lab: Your Cloud-Based Notebooks Lab</h2>
+                  <p style={{ color: "white", font: '1rem' }}>
+                    Experience Lab, your secure and fast cloud-based Jupyter Lab environment. Enjoy the power and flexibility of Jupyter with the added benefits of cloud accessibility and enhanced security.
+                  </p>
+                </div>
+                <div className="video-box">
+                  <video
+                    src="path/to/your/video.mp4"
+                    controls
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex card-section">
+              <div className="cards-container">
+                <div className="d-flex card-section">
+                  <div className="cards-container">
+                    {labFeatures.map((info, index) => (
+                      <div key={index} className="card-bg d-flex flex-column border" >
+                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                          <div
+                            className="status-tag"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'right',
+                              justifyContent: 'right'
+                            }}
+                          >
+                            {info.status === 'ready' ? (
+                              <span style={{ fontSize: '2rem' }}>✅ </span>
+                            ) : (
+                              <span style={{ fontSize: '2rem' }}>🔜</span>
+                            )}
+                          </div>
+                          <Card.Body>
+                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* runmate */}
+            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+              <div className="container" >
+                <div className="text-box">
+                  <h2 style={{ color: 'white' }}>Introducing RunMate: Your Trusted Cloud-Based Background Worker</h2>
+                  <p style={{ color: "white", font: '1rem' }}>
+                    RunMate, your trusted cloud-based background worker. Keep your projects, scripts, and notebooks running smoothly behind the scenes, ensuring continuous progress while you focus on what matters most.
+                  </p>
+                </div>
+                <div className="video-box">
+                  <video
+                    src="path/to/your/video.mp4"
+                    controls
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex card-section">
+              <div className="cards-container">
+                <div className="d-flex card-section">
+                  <div className="cards-container">
+                    {runMateFeatures.map((info, index) => (
+                      <div key={index} className="card-bg d-flex flex-column border" >
+                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                          <div
+                            className="status-tag"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'right',
+                              justifyContent: 'right'
+                            }}
+                          >
+                            {info.status === 'ready' ? (
+                              <span style={{ fontSize: '2rem' }}>✅ </span>
+                            ) : (
+                              <span style={{ fontSize: '2rem' }}>🔜</span>
+                            )}
+                          </div>
+                          <Card.Body>
+                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* deployment */}
+            <div style={{ backgroundImage: 'url("img/pages/deployment-bg.webp")' }}>
+              <div className="container">
+                <div className="text-box">
+                  <h2 style={{ color: 'white' }}>Effortless Deployment with Controlia</h2>
+                  <p style={{ color: "white", fontSize: '1rem' }}>
+                    Simplify your deployment process with Controlia. Our platform provides seamless, one-click deployment for all your projects, ensuring that your applications go live effortlessly and efficiently. Focus on your code while we handle the complexities of deployment.
+                  </p>
+                </div>
+                <div className="video-box">
+                  <video
+                    src="path/to/deployment-video.mp4"
+                    controls
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex card-section">
+              <div className="cards-container">
+                <div className="d-flex card-section">
+                  <div className="cards-container">
+                    {deploymentFeatures.map((info, index) => (
+                      <div key={index} className="card-bg d-flex flex-column border" >
+                        <Card className="info-box h-100" style={{ backgroundImage: `${info.imgLink}` }}>
+                          <div
+                            className="status-tag"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'right',
+                              justifyContent: 'right'
+                            }}
+                          >
+                            {info.status === 'ready' ? (
+                              <span style={{ fontSize: '2rem' }}>✅ </span>
+                            ) : (
+                              <span style={{ fontSize: '2rem' }}>🔜</span>
+                            )}
+                          </div>
+                          <Card.Body>
+                            <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
+                            <Card.Text style={{ color: '#B0E0E6', }}>{info.text}</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* footer */}
 
             <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/codingbg.jpg")', padding: '20px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
               <div className="cards-container">
@@ -240,54 +467,137 @@ const Home = () => {
 
 export default Home;
 
-const content = [
+const workspaceFeatures = [
   {
-    title: 'Inbuilt Code Execution Environment',
-    subtitle: 'Instant Coding and Testing',
-    text: 'Develop and test your scripts in real-time without any setup hassle.'
+    title: 'Local-Like Development Experience',
+    text: 'Code as if you are working locally, with instant scheduling and deployment capabilities for any project. Mimicking a familiar development environment.',
+    imgLink: 'url("img/pages/local-development.webp")',
+    status: 'ready'
   },
   {
-    title: 'Preinstalled Packages/Libraries',
-    subtitle: 'Ready to Use',
-    text: 'Most used packages and libraries are already preinstalled. Start working immediately with essential tools already in place.'
+    title: 'Resolve Environment Discrepancies',
+    text: 'With each workspace having an independent and isolated environment, you eliminate environment discrepancies. This guarantees that your code performs consistently across different workspaces and deployments, reducing unexpected issues and boosting productivity.',
+    imgLink: 'url("img/pages/environment-discrepancies.webp")',
+    status: 'ready'
   },
   {
-    title: 'Custom Installation',
-    subtitle: 'Tailor Your Environment',
-    text: 'Easily perform custom installations to meet specific needs and preferences. Add or modify packages and libraries beyond the preinstalled ones.'
+    title: 'Minimize Context Switching',
+    text: 'Reduce productivity loss caused by frequent tool-switching. Controlia integrates all necessary tools, streamlining workflows and enhancing overall efficiency.',
+    imgLink: 'url("img/pages/context-switching.webp")',
+    status: 'ready'
   },
   {
-    title: 'Schedule',
-    subtitle: 'Automate Task Execution',
-    text: 'All scripts and notebooks can be scheduled to run at specific times or in background. No need to wait for long processes.'
+    title: 'Dynamic Resource Allocation',
+    text: 'Efficiently manage your resources with the ability to dynamically adjust RAM and CPU based on current needs. Continuously scale resources to match workload requirements, for optimal performance and flexibility.',
+    imgLink: 'url("img/pages/resource-allocation.webp")',
+    status: 'ready'
   },
   {
-    title: 'Deploy',
-    subtitle: 'Seamless Integration',
-    text: 'Instantly deploy all your projects. With our no-code frontend development, easily integrate your projects and release them to the public.'
+    title: 'Unlimited Workspaces and Deployments',
+    text: 'There are no limits on the number of workspaces, labs, or deployments you can create. As long as you have resources available in your cloud, scale up effortlessly, providing unmatched flexibility and scalability.',
+    imgLink: 'url("img/pages/unlimited-workspaces.webp")',
+    status: 'ready'
   },
   {
-    title: 'Workspace Access',
-    subtitle: 'Full Control and Flexibility',
-    text: 'Get full access to the workspace, including sudo and filesystem access. Enjoy complete control and flexibility over your environment.'
+    title: 'Two Protected Domains for Development',
+    text: 'For development needs, get two bycontrolia.com protected domains to test your projects over the network. Easily share these domains for feedback, iterate, and make improvements efficiently.',
+    imgLink: 'url("img/pages/protected-domains.webp")',
+    status: 'ready'
+  },
+];
+
+
+
+const labFeatures = [
+  {
+    title: 'Cloud-Based Jupyter Lab',
+    text: 'Experience the power of Jupyter Lab in the cloud. Access a fully-featured environment that’s secure and fast, providing seamless data analysis and visualization capabilities.',
+    imgLink: 'url("img/pages/lab-cloud.webp")',
+    status: 'ready'
   },
   {
-    title: 'ML/AI',
-    subtitle: 'Interactive Notebooks',
-    text: 'With interactive notebooks, code effortlessly, schedule , run in background or share instantly.'
+    title: 'Secure and Scalable',
+    text: 'Our Jupyter Lab environment is designed with top-notch security and scalability in mind. Scale resources as needed and ensure your data and projects are protected.',
+    imgLink: 'url("img/pages/lab-secure.webp")',
+    status: 'ready'
   },
   {
-    title: 'Analytics',
-    subtitle: 'Performance Insights',
-    text: 'See how your deployed projects and shared notebooks/scripts are making an impact. Get detailed insights into performance, usage patterns, and more.'
+    title: 'Instant Setup and Access',
+    text: 'Get started quickly with instant setup. No need to configure local environments; simply launch your Jupyter Lab and start working on your data science projects right away.',
+    imgLink: 'url("img/pages/lab-instant.webp")',
+    status: 'ready'
   },
   {
-    title: 'Resources',
-    subtitle: 'Comprehensive Guides',
-    text: 'Access comprehensive documentation and tutorials to help you get started and make the most of all features. Benefit from detailed guides and resources to support your development journey.'
+    title: 'Collaborative Features',
+    text: 'Work collaboratively with team members. Share your Jupyter Lab environment and projects, making it easy to collaborate and get feedback in real time.',
+    imgLink: 'url("img/pages/lab-collaborative.webp")',
+    status: 'ready'
   }
 ];
 
+
+
+const runMateFeatures = [
+  {
+    title: 'Background Execution',
+    text: 'RunMate allows you to execute projects, scripts, and notebooks in the background. Ensure that your tasks continue processing while you focus on other work.',
+    imgLink: 'url("img/pages/runmate-background.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Scheduled Tasks',
+    text: 'Automate your workflows with scheduled tasks. Set up cron jobs and background processes to run at specific times.',
+    imgLink: 'url("img/pages/runmate-scheduled.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Seamless Integration',
+    text: 'Integrate RunMate smoothly with your existing tools and workflows. Ensure that background tasks and processes fit naturally into your development environment without disruptions.',
+    imgLink: 'url("img/pages/runmate-integration.webp")',
+    status: 'inprogress'
+  }
+];
+
+
+const deploymentFeatures = [
+  {
+    title: 'One-Click Deployment',
+    text: 'Deploy your projects with just a single click. Streamline the process and reduce manual steps for faster and more reliable deployments.',
+    imgLink: 'url("img/pages/deploy-oneclick.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Automated Rollbacks',
+    text: 'Easily revert to previous versions if needed. Automated rollbacks ensure that you can quickly address issues without downtime.',
+    imgLink: 'url("img/pages/deploy-rollbacks.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Multi-Platform Support',
+    text: 'Deploy across various platforms and environments with ease. Controlia supports diverse deployment targets to meet all your needs.',
+    imgLink: 'url("img/pages/deploy-multiplatform.webp")',
+    status: 'inprogress'
+  },
+
+  {
+    title: 'Comprehensive Analytics',
+    text: 'Track and analyze performance metrics, user interactions, and deployment impact with our analytics tools. Make data-driven decisions to optimize your projects.',
+    imgLink: 'url("img/pages/analytics-comprehensive.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Robust Authentication',
+    text: 'Secure your applications with our out-of-the-box authentication layer. Implement user authentication seamlessly to protect your data and control access.',
+    imgLink: 'url("img/pages/authentication-robust.webp")',
+    status: 'inprogress'
+  },
+  {
+    title: 'Customizable Security Settings',
+    text: 'Customize security settings to meet specific needs. Configure authentication methods, permissions, and access controls easily to ensure robust protection.',
+    imgLink: 'url("img/pages/authentication-customizable.webp")',
+    status: 'inprogress'
+  }
+];
 
 const aboutUsInfo = `
 <h3>Who We Are</h3>

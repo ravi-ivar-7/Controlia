@@ -18,6 +18,13 @@ const { getWorkspaceInfo, changeWorkspaceResource, workspaceAction } = require('
 const { getWorkspaces } = require('../controllers/workspace/getWorkspaces')
 const { deleteWorkspaceContainer } = require('../controllers/workspace/deleteWorkspace')
 const {restartCodeServer, stopCodeServer} = require('../controllers/workspace/codeserver')
+
+const {newLabContainer} = require('../controllers/labs/newLab')
+const {getLabInfo, changeLabResource, labAction} = require('../controllers/labs/configLabs')
+const {getLabs} = require('../controllers/labs/getLabs')
+const {deleteLabContainer} = require('../controllers/labs/deleteLabs')
+
+
 const { port3000Credentials, port5000Credentials } = require('../controllers/workspace/port3000And5000');
 
 
@@ -49,10 +56,17 @@ router.post('/delete-workspace', verifyToken, deleteWorkspaceContainer)
 router.post('/restart-codeserver', verifyToken, restartCodeServer)
 router.post('/stop-codeserver', verifyToken,stopCodeServer )
 
-
 router.post('/port3000-credentials', verifyToken, port3000Credentials)
 router.post('/port5000-credentials', verifyToken, port5000Credentials )
 
+
+// lab related
+router.post('/new-lab', verifyToken, newLabContainer);
+router.post('/labs', verifyToken, getLabs)
+router.post('/lab-info', verifyToken, getLabInfo)
+router.post('/change-lab-resources', verifyToken, changeLabResource)
+router.post('/lab-action', verifyToken, labAction )// activate, deactivate
+router.post('/delete-lab', verifyToken, deleteLabContainer)
 
 
 

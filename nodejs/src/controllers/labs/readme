@@ -1,0 +1,22 @@
+python3 -m venv myenv
+source myenv/bin/activate
+
+# streamlit run app.py
+# streamlit run app.py --server.port 3000
+
+sudo apt update
+sudo apt install lsof
+lsof -i :3000
+
+uvicorn fastapiApp:app --host 0.0.0.0 --port 3000 --reload
+
+
+
+
+// Start Jupyter server with nohup
+        const exec = await container.exec({
+            Cmd: ['sh', '-c', `nohup jupyter notebook --no-browser --ip=0.0.0.0 --port=8888 --notebook-dir=${NOTEBOOK_DIR} --allow-root > ${LOGS_DIR}/jupyter.log 2>&1 & echo $!`],
+            AttachStdout: true,
+            AttachStderr: true,
+            Tty: false,
+        });

@@ -14,11 +14,12 @@ import RegisterModal from './components/userModals/RegisterModal';
 
 import Profile from './pages/profile/Profile';
 
-import Notebooks from './pages/notebooks/Notebooks';
-import Notebook from './pages/notebooks/Notebook';
-
 import Workspaces from './pages/workspaces/Workspaces';
 import Workspace from './pages/workspaces/Workspace';
+
+import Labs from './pages/labs/Labs';
+import Lab from './pages/labs/Lab';
+
 import GithubRepoModal from './pages/workspaces/GithubWorkspaceModal';
 
 
@@ -57,9 +58,9 @@ return (
             {/* <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
             <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} /> */}
 
-            {/* <Route path="/notebooks" element={user ? <Notebooks /> : <LoginWarningModal isOpen={true} redirectPath="notebooks" />} />
-            <Route path="/notebook" element={user ? <Notebook /> : <LoginWarningModal isOpen={true} redirectPath="notebook" />} />
-            <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
+            <Route path="/labs" element={user ? <Labs /> : <LoginWarningModal isOpen={true} redirectPath="labs" />} />
+            <Route path="/lab" element={user ? <Lab /> : <LoginWarningModal isOpen={true} redirectPath="lab" />} />
+            {/* <Route path="/schedule-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-notebooks" />} />
             <Route path="/share-notebooks" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-notebooks" />} /> */}
 
             <Route path="/workspaces" element={user ? <Workspaces /> : <LoginWarningModal isOpen={true} redirectPath="workspaces" />} />

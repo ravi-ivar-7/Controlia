@@ -64,6 +64,9 @@ const Navbar = ({ pageTitle }) => {
 
       <h1 style={{ fontSize: '1rem', marginTop: '10px' }}>{pageTitle}</h1>
 
+      <CDBBtn color="warning" onClick={() => navigate('/subscription')} >
+        <i className="fas fa-crown"></i>
+      </CDBBtn>
       <CDBBtn color="warning" onClick={() => setBetaModal(true)} >
         <i className="fas fa-info"></i>
       </CDBBtn>

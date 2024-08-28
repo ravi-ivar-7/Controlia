@@ -21,6 +21,7 @@ import Labs from './pages/labs/Labs';
 import Lab from './pages/labs/Lab';
 
 import GithubRepoModal from './pages/workspaces/GithubWorkspaceModal';
+import Subscription from './pages/subscription/Subscription';
 
 
 function App() {
@@ -54,6 +55,8 @@ return (
             <Route path="/logout" element={<Home />} />
 
             <Route path="/profile" element={user ? <Profile /> : <LoginWarningModal isOpen={true} redirectPath="profile" />} />
+            <Route path="/dashboard" element={user ? <Dashboard /> : <LoginWarningModal isOpen={true} redirectPath="/dashboard" />} />
+            <Route path="/subscription" element={<Subscription/>} />
 
             {/* <Route path="/schedule-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/schedule-scripts" />} />
             <Route path="/share-scripts" element={user ? <ScheduleScripts /> : <LoginWarningModal isOpen={true} redirectPath="/share-scripts" />} /> */}
@@ -66,7 +69,7 @@ return (
             <Route path="/workspaces" element={user ? <Workspaces /> : <LoginWarningModal isOpen={true} redirectPath="workspaces" />} />
             <Route path="/workspace" element={user ? <Workspace /> : <LoginWarningModal isOpen={true} redirectPath="workspace" />} />
 
-            <Route path="/dashboard" element={user ? <Dashboard /> : <LoginWarningModal isOpen={true} redirectPath="/dashboard" />} />
+           
 
 
           </Routes>

@@ -155,15 +155,15 @@ const NewLabModal = ({ isOpen, onClose, existingVolumes, userResources }) => {
                     <div><div style={{ marginTop: '20px' }}><div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', }}>
                         <div style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: 1, marginRight: '10px', textAlign: 'center', }}>
                             <h5>Total Resources</h5>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {totalResources.NanoCpus / (1e9)} cores</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {totalResources.Memory / (1024 * 1024)} MB</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {totalResources.Storage} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>CPUs: {totalResources.NanoCpus / (1e9)} cores</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Memory: {totalResources.Memory / (1024 * 1024)} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Storage: {totalResources.Storage} MB</p>
                         </div>
                         <div style={{ backgroundColor: '#e9ecef', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: 1, marginLeft: '10px', textAlign: 'center', }}>
                             <h5>Available Resources</h5>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {availableResources.Storage} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
+                            <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Storage: {availableResources.Storage} MB</p>
                         </div>
                     </div>
                         <div style={{ marginBottom: '15px' }}>

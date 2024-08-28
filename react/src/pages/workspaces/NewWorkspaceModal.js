@@ -153,217 +153,219 @@ const NewWorkspaceModal = ({ isOpen, onClose, existingVolumes, userResources }) 
 
             <Modal.Body>
                 {!loading ? (
-                    <div><div style={{ marginTop: '20px' }}><div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', }}>
-                        <div style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: 1, marginRight: '10px', textAlign: 'center', }}>
-                            <h5>Total Resources</h5>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {totalResources.NanoCpus / (1e9)} cores</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {totalResources.Memory / (1024 * 1024)} MB</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {totalResources.Storage} MB</p>
-                        </div>
-                        <div style={{ backgroundColor: '#e9ecef', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: 1, marginLeft: '10px', textAlign: 'center', }}>
-                            <h5>Available Resources</h5>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
-                            <p style={{ margin: '10px 0', fontSize: '16px' }}>Storage: {availableResources.Storage} MB</p>
-                        </div>
-                    </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Unique Workspace Name:</label>
-                            <input
-                                value={workspaceName}
-                                onChange={handleWorkspaceNameChange}
-                                placeholder="Enter unique name for workspace."
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-    <label style={{ display: 'block', marginBottom: '5px' }}>Password For Workspace:</label>
-    <input
-        value={workspacePassword}
-        onChange={(e) => setWorkspacePassword(e.target.value)}
-        placeholder="Enter Password for workspace."
-        style={{
-            width: '100%',
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            boxSizing: 'border-box'
-        }}
-    />
-</div>
-
-
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>CPU (in cores):</label>
-                            <input
-                                type="number"
-                                value={cpus}
-                                onChange={handleCpusChange}
-                                placeholder="Minimum: 0.5 Cores, Maximum: As per available resources."
-                                min={0.5}
-                                max={availableResources.NanoCpus / 1e9}
-                                step={0.1}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                            {cpusError && <div style={{ color: 'red', marginTop: '5px' }}>{cpusError}</div>}
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Memory (MB):</label>
-                            <input
-                                type="number"
-                                value={memory}
-                                onChange={handleMemoryChange}
-                                placeholder="Minimum: 256 MB, Maximum: As per available resources."
-                                min={256}
-                                max={availableResources.Memory / (1024 * 1024)}
-                                step={1}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                            {memoryError && <div style={{ color: 'red', marginTop: '5px' }}>{memoryError}</div>}
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Storage (MB):</label>
-                            <input
-                                type="number"
-                                value={storage}
-                                onChange={handleStorageChange}
-                                placeholder="Minimum: 500 MB, Maximum: As per available resources."
-                                min={500}
-                                max={availableResources.Storage}
-                                step={1}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                            {storageError && <div style={{ color: 'red', marginTop: '5px' }}>{storageError}</div>}
-                        </div>
-
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>
-                                Volume For Workspace:
-                                <span
-                                    style={{
-                                        marginLeft: '8px',
-                                        cursor: 'pointer',
-                                        color: '#007bff',
-                                        textDecoration: 'underline',
-                                    }}
-                                    onClick={() => setShowHelp(!showHelp)}
-                                >
-                                    <i
-                                        className="fas fa-info-circle"
-                                        style={{ fontSize: '20px', color: 'black' , marginTop:'5px' }}
-                                    ></i>
-                                </span>
-                            </label>
-                            {showHelp && (
-                                <div
-                                    style={{
-                                        backgroundColor: '#f8f9fa',
-                                        border: '1px solid #ddd',
-                                        borderRadius: '4px',
-                                        padding: '10px',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,1)',
-                                        zIndex: 1000,
-                                    }}
-                                >
-                                    <h5>What is a Volume?</h5>
-                                    <p>
-                                        A volume is a storage area that is used to persist data in a containerized environment. It allows you to save data that can be shared between different containers or retained even when a container is stopped or removed.
-                                    </p>
-                                    <h5>Use Case</h5>
-                                    <p>
-                                        Volumes are commonly used to store configuration files, logs, and other data that need to be preserved across container restarts. They ensure that important data is not lost when containers are updated or redeployed.
-                                    </p>
-                                    <h5>Consequences of Not Using</h5>
-                                    <p>
-                                        If you do not use volumes, any data stored inside a container will be lost when the container is removed or stopped. This could lead to loss of important information and affect the stability and consistency of your applications.
-                                    </p>
+                    <div>
+                        <div style={{ marginTop: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', }}>
+                                <div style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,1)', flex: 1, marginRight: '10px', textAlign: 'center', }}>
+                                    <h5>Total Resources</h5>
+                                    <p style={{ margin: '10px 0', fontSize: '16px',color:'black' }}>CPUs: {totalResources.NanoCpus / (1e9)} cores</p>
+                                    <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Memory: {totalResources.Memory / (1024 * 1024)} MB</p>
+                                    <p style={{ margin: '10px 0', fontSize: '16px',color:'black'  }}>Storage: {totalResources.Storage} MB</p>
                                 </div>
-                            )}
-                        </div>
-                        <ul style={{ listStyleType: 'none', padding: 0 }}>
-                            {volumes.map(volume => (
-                                <li
-                                    key={volume.id}
+                                <div style={{ backgroundColor: '#e9ecef', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,1)', flex: 1, marginLeft: '10px', textAlign: 'center', }}>
+                                    <h5>Available Resources</h5>
+                                    <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>CPUs: {availableResources.NanoCpus / (1e9)} cores</p>
+                                    <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Memory: {availableResources.Memory / (1024 * 1024)} MB</p>
+                                    <p style={{ margin: '10px 0', fontSize: '16px' ,color:'black' }}>Storage: {availableResources.Storage} MB</p>
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>Unique Workspace Name:</label>
+                                <input
+                                    value={workspaceName}
+                                    onChange={handleWorkspaceNameChange}
+                                    placeholder="Enter unique name for workspace."
                                     style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        marginBottom: '10px',
-                                        padding: '10px',
-                                        border: `1px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
-                                        borderRadius: '5px',
-                                        backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? 'rgba(0, 123, 255, 0.1)' : 'white',
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        boxSizing: 'border-box'
                                     }}
-                                >
-                                    <input
-                                        disabled={volume.workspaceName !== ''}
-                                        type="radio"
-                                        name="volumes"
-                                        checked={selectedVolume?.id === volume.id && volume.workspaceName === ''}
-                                        onChange={() => handleSelectVolume(volume)}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>Password For Workspace:</label>
+                                <input
+                                    value={workspacePassword}
+                                    onChange={(e) => setWorkspacePassword(e.target.value)}
+                                    placeholder="Enter Password for workspace."
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                            </div>
+
+
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>CPU (in cores):</label>
+                                <input
+                                    type="number"
+                                    value={cpus}
+                                    onChange={handleCpusChange}
+                                    placeholder="Minimum: 0.5 Cores, Maximum: As per available resources."
+                                    min={0.5}
+                                    max={availableResources.NanoCpus / 1e9}
+                                    step={0.1}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                {cpusError && <div style={{ color: 'red', marginTop: '5px' }}>{cpusError}</div>}
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>Memory (MB):</label>
+                                <input
+                                    type="number"
+                                    value={memory}
+                                    onChange={handleMemoryChange}
+                                    placeholder="Minimum: 256 MB, Maximum: As per available resources."
+                                    min={256}
+                                    max={availableResources.Memory / (1024 * 1024)}
+                                    step={1}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                {memoryError && <div style={{ color: 'red', marginTop: '5px' }}>{memoryError}</div>}
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>Storage (MB):</label>
+                                <input
+                                    type="number"
+                                    value={storage}
+                                    onChange={handleStorageChange}
+                                    placeholder="Minimum: 500 MB, Maximum: As per available resources."
+                                    min={500}
+                                    max={availableResources.Storage}
+                                    step={1}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                {storageError && <div style={{ color: 'red', marginTop: '5px' }}>{storageError}</div>}
+                            </div>
+
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>
+                                    Volume For Workspace:
+                                    <span
                                         style={{
-                                            marginRight: '10px',
-                                            width: '20px',
-                                            height: '20px',
-                                            WebkitAppearance: 'none',
-                                            MozAppearance: 'none',
-                                            appearance: 'none',
-                                            borderRadius: '5px',
-                                            border: `2px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
-                                            outline: 'none',
-                                            cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
-                                            backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : 'white',
+                                            marginLeft: '8px',
+                                            cursor: 'pointer',
+                                            color: '#007bff',
+                                            textDecoration: 'underline',
                                         }}
-                                    />
-                                    <label
+                                        onClick={() => setShowHelp(!showHelp)}
+                                    >
+                                        <i
+                                            className="fas fa-info-circle"
+                                            style={{ fontSize: '20px', color: 'black', marginTop: '5px' }}
+                                        ></i>
+                                    </span>
+                                </label>
+                                {showHelp && (
+                                    <div
                                         style={{
-                                            flex: 1,
-                                            cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
-                                            userSelect: 'none',
-                                            color: volume.workspaceName !== '' ? 'gray' : 'black',
+                                            backgroundColor: '#f8f9fa',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            padding: '10px',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,1)',
+                                            zIndex: 1000,
                                         }}
                                     >
-                                        {volume.volumeName === 'New Volume'
-                                            ? 'Create New Volume :'
-                                            : volume.volumeName} -
-                                        {volume.volumeName === 'New Volume'
-                                            ? `${user.username}_${workspaceName}_workspace_volume`
-                                            : (volume.workspaceName !== ''
-                                                ? `Used by ${volume.workspaceName}`
-                                                : 'Freed volume'
-                                            )}
-                                    </label>
-                                </li>
-                            ))}
-                        </ul>
+                                        <h5>What is a Volume?</h5>
+                                        <p>
+                                            A volume is a storage area that is used to persist data in a containerized environment. It allows you to save data that can be shared between different containers or retained even when a container is stopped or removed.
+                                        </p>
+                                        <h5>Use Case</h5>
+                                        <p>
+                                            Volumes are commonly used to store configuration files, logs, and other data that need to be preserved across container restarts. They ensure that important data is not lost when containers are updated or redeployed.
+                                        </p>
+                                        <h5>Consequences of Not Using</h5>
+                                        <p>
+                                            If you do not use volumes, any data stored inside a container will be lost when the container is removed or stopped. This could lead to loss of important information and affect the stability and consistency of your applications.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                {volumes.map(volume => (
+                                    <li
+                                        key={volume.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            marginBottom: '10px',
+                                            padding: '10px',
+                                            border: `1px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
+                                            borderRadius: '5px',
+                                            backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? 'rgba(0, 123, 255, 0.1)' : 'white',
+                                        }}
+                                    >
+                                        <input
+                                            disabled={volume.workspaceName !== ''}
+                                            type="radio"
+                                            name="volumes"
+                                            checked={selectedVolume?.id === volume.id && volume.workspaceName === ''}
+                                            onChange={() => handleSelectVolume(volume)}
+                                            style={{
+                                                marginRight: '10px',
+                                                width: '20px',
+                                                height: '20px',
+                                                WebkitAppearance: 'none',
+                                                MozAppearance: 'none',
+                                                appearance: 'none',
+                                                borderRadius: '5px',
+                                                border: `2px solid ${selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : '#ccc'}`,
+                                                outline: 'none',
+                                                cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
+                                                backgroundColor: selectedVolume?.id === volume.id && volume.workspaceName === '' ? '#007bff' : 'white',
+                                            }}
+                                        />
+                                        <label
+                                            style={{
+                                                flex: 1,
+                                                cursor: volume.workspaceName === '' ? 'pointer' : 'not-allowed',
+                                                userSelect: 'none',
+                                                color: volume.workspaceName !== '' ? 'gray' : 'black',
+                                            }}
+                                        >
+                                            {volume.volumeName === 'New Volume'
+                                                ? 'Create New Volume :'
+                                                : volume.volumeName} -
+                                            {volume.volumeName === 'New Volume'
+                                                ? `${user.username}_${workspaceName}_workspace_volume`
+                                                : (volume.workspaceName !== ''
+                                                    ? `Used by ${volume.workspaceName}`
+                                                    : 'Freed volume'
+                                                )}
+                                        </label>
+                                    </li>
+                                ))}
+                            </ul>
 
-                    </div>
+                        </div>
                     </div>
                 ) : (
                     <p>Loading...</p>

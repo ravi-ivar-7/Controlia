@@ -38,9 +38,7 @@ const Home = () => {
   useEffect(() => {
     if (user) {
       showNotification('', `Signed-in as ${user.username}`, 'info');
-    } else {
-      showNotification('', 'Guest', 'info');
-    }
+    } 
   }, [user]);
 
 
@@ -164,7 +162,7 @@ const Home = () => {
 
             {/* workspace  */}
             <div >
-              <div className="container" >
+              <div className="container"  style={{marginTop:'60px'}}>
                 <div className="text-box">
                   <h2 style={{ color: '#00BFFF', marginBottom: '15px' }}>Workspace: Your Cloud-Based Development Hub</h2>
                   <ul style={{
@@ -250,12 +248,12 @@ const Home = () => {
 
             {/* lab  */}
             <div>
-              <div className="container" >
+              <div className="container"style={{marginTop:'70px'}} >
                 <div className="text-box">
                   <h2 style={{ color: '#00FFFF', marginBottom: '15px' }}>Lab: Your Cloud-Based Notebooks Lab</h2>
                   <ul style={{
                     color: "white",
-                    padding: 0,
+                    padding: '5px',
                     margin: 0,
                     listStyleType: 'none',
                     display: 'flex',
@@ -341,12 +339,12 @@ const Home = () => {
             </div>
             {/* runmate */}
             <div >
-              <div className="container" >
+              <div className="container"style={{marginTop:'20px'}} >
                 <div className="text-box">
                   <h2 style={{ color: '#32CD32', marginBottom: "10px" }}>RunMate: Your Cloud-Based Background Worker</h2>
                   <ul style={{
                     color: "white",
-                    padding: 0,
+                    padding: '5px',
                     margin: 0,
                     listStyleType: 'none',
                     display: 'flex',
@@ -431,13 +429,13 @@ const Home = () => {
 
             {/* deployment */}
             <div >
-              <div className="container">
+              <div className="container"style={{marginTop:'20px'}}>
                 <div className="text-box">
-                  <h2 style={{ color: 'white' }}>Effortless Deployment with Controlia</h2>
+                  <h2 style={{ color: '#9370DB' }}>Effortless Deployment with Controlia</h2>
                   <ul style={{
                     color: "white",
-                    padding: 0,
-                    margin: 0,
+                    padding: '5px',
+                    margin: '5px',
                     listStyleType: 'none',
                     display: 'flex',
                     flexDirection: 'column',
@@ -473,7 +471,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="card-container">
+            <div className="card-container" style={{marginBottom:'20px'}}>
               {deploymentFeatures.map((info, index) => (
                 <Card key={index} className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
                   {/* Background Image with Opacity */}

@@ -60,69 +60,102 @@ const Home = () => {
               <div className="cards-container">
                 <div className="d-flex flex-column h-100 justify-content-center align-items-center">
                   <div className="mx-4 mt-3 d-flex justify-content-center align-items-center" style={{ marginBottom: '20px' }}>
-                    <div style={{ textAlign: 'center', margin: '20px auto' }}>
-                      <h1
-                        className="m-0 h5 font-weight-bold text-white"
-                        style={{
-                          fontSize: '3rem', /* Large font size for the heading */
-                          textTransform: 'uppercase', /* Transform text to uppercase */
-                          margin: '0', /* Remove default margin */
-                          padding: '0' /* Remove default padding */
-                        }}
-                      >
-                        Controlia
+                    <div style={{ textAlign: 'center' }}>
+                      <h1 className="m-2 font-weight-bold text-white">
+                        CONTROLIA
                       </h1>
-                      <p
-                        style={{
-                          fontSize: '1rem', /* Adjust font size for the paragraph */
-                          marginTop: '0.5rem', /* Space between heading and paragraph */
-                          marginBottom: '0', /* Remove default margin */
-                          color: '#ffffff' /* Optional: Set text color */
-                        }}
-                      >
-                        Cloud
-                      </p>
+                      <div class="typing-container">
+                        <h4 class="typing-animation">...Control It All</h4>
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-3 text-center" style={{ margin: '10px' }}>
-                    <h4 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '10px' }}>
-                      Control It All
-                    </h4>
-                    <h1 style={{ fontSize: '1.4rem', lineHeight: '1.5' }}>
+                  <div className=" text-center" >
+
+                    <h3 style={{ lineHeight: '1.5' }}>
                       Build, Schedule, Automate, Deploy
-                    </h1>
+                    </h3>
                     <div className="page">
                     </div>
 
 
                     {user ? (
-                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
-                          <Link className="popup-item" to="/profile" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', marginBottom: '10px' }}>
+                        <CDBBtn
+                          color="success"
+                          style={{
+                            margin: '0 5px', // Reduced margin
+                            padding: '4px 8px', // Reduced padding
+                            transition: 'background-color 0.3s, transform 0.3s',
+                            fontSize: '0.9rem', // Reduced font size
+                          }}
+                        >
+                          <Link
+                            className="popup-item"
+                            to="/profile"
+                            style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                          >
                             Profile
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
-                          <Link className="popup-item" to="/dashboard" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                        <CDBBtn
+                          color="success"
+                          style={{
+                            margin: '0 5px', // Reduced margin
+                            padding: '4px 8px', // Reduced padding
+                            transition: 'background-color 0.3s, transform 0.3s',
+                            fontSize: '0.9rem', // Reduced font size
+                          }}
+                        >
+                          <Link
+                            className="popup-item"
+                            to="/dashboard"
+                            style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                          >
                             Dashboard
                           </Link>
                         </CDBBtn>
                       </div>
+
                     ) : (
-                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '20px' }}>
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
-                          <Link className="popup-item" to="/login" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                            <i className="fas fa-sign-in-alt" style={{ marginRight: '8px' }}></i> Login
+                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <CDBBtn
+                          color="success"
+                          style={{
+                            margin: '0 5px', // Reduced margin
+                            padding: '4px 8px', // Reduced padding
+                            transition: 'background-color 0.3s, transform 0.3s',
+                            fontSize: '0.9rem', // Reduced font size
+                          }}
+                        >
+                          <Link
+                            className="popup-item"
+                            to="/login"
+                            style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                          >
+                            <i className="fas fa-sign-in-alt" style={{ marginRight: '5px' }}></i> Login
                           </Link>
                         </CDBBtn>
 
-                        <CDBBtn color="success" style={{ margin: '0 10px', padding: '8px 16px', transition: 'background-color 0.3s, transform 0.3s', fontSize: '1.2rem' }}>
-                          <Link className="popup-item" to="/register" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                            <i className="fas fa-user-plus" style={{ marginRight: '8px' }}></i> Register
+                        <CDBBtn
+                          color="success"
+                          style={{
+                            margin: '0 5px', // Reduced margin
+                            padding: '4px 8px', // Reduced padding
+                            transition: 'background-color 0.3s, transform 0.3s',
+                            fontSize: '0.9rem', // Reduced font size
+                          }}
+                        >
+                          <Link
+                            className="popup-item"
+                            to="/register"
+                            style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                          >
+                            <i className="fas fa-user-plus" style={{ marginRight: '5px' }}></i> Register
                           </Link>
                         </CDBBtn>
                       </div>
+
                     )}
                   </div>
                 </div>
@@ -130,13 +163,35 @@ const Home = () => {
             </div>
 
             {/* workspace  */}
-            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+            <div >
               <div className="container" >
                 <div className="text-box">
-                  <h2 style={{ color: 'white' }}>Meet Workspace: Your Cloud-Based Development Hub</h2>
-                  <p style={{ color: "white", font: '1rem' }}>
-                    Experience a cloud environment as intuitive as your laptop. Code, prototype, and deploy effortlessly. Transform your workspace into a server, test it, reset it, and start fresh—all in the cloud.
-                  </p>
+                  <h2 style={{ color: '#00BFFF', marginBottom: '15px' }}>Workspace: Your Cloud-Based Development Hub</h2>
+                  <ul style={{
+                    color: "white",
+                    padding: 0,
+                    margin: 0,
+                    listStyleType: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    width: '100%',
+                  }}>
+                    <li style={{ marginBottom: "10px", width: '100%' }}>
+                      🌟 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Transform</span> your cloud workspace into an intuitive, local-like development hub.
+                    </li>
+                    <li style={{ marginBottom: "10px", width: '100%' }}>
+                      💻 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Code</span> as if you're working locally, with effortless scheduling and instant project deployment.
+                    </li>
+                    <li style={{ marginBottom: "10px", width: '100%' }}>
+                      🏗️ Benefit from <span style={{ color: "#FFD700", fontWeight: "bold" }}>independent and isolated environments</span> that eliminate discrepancies.
+                    </li>
+                    <li style={{ marginBottom: "10px", width: '100%' }}>
+                      🚀 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Avoid</span> productivity loss from constant tool-switching with integrated essential tools.
+                    </li>
+                  </ul>
+
+
                 </div>
                 <div className="video-box">
                   <video
@@ -153,65 +208,73 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="d-flex card-section">
-              <div className="cards-container">
-                <div className="d-flex card-section">
-                  <div className="cards-container">
-                    {workspaceFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border">
-                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
-                          {/* Background Image with Opacity */}
-                          <div
-                            style={{
-                              backgroundImage: `${info.imgLink}`,
-                              opacity: 0.2, // Adjust this value for desired background opacity
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              zIndex: 1,
-                            }}
-                          />
-                          {/* Content on Top of the Background */}
-                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
-                            <div
-                              className="status-tag"
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'right',
-                                marginBottom: '10px',
-                              }}
-                            >
-                              {info.status === 'ready' ? (
-                                <span style={{ fontSize: '2rem' }}>✅</span>
-                              ) : (
-                                <span style={{ fontSize: '2rem' }}>🔜</span>
-                              )}
-                            </div>
-                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
-                          </Card.Body>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+
+
+            <div className="card-container">
+              {workspaceFeatures.map((info, index) => (
+                <Card key={index} className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      backgroundImage: `${info.imgLink}`,
+                      opacity: 0.2,
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      zIndex: 1,
+                    }}
+                  />
+                  <Card.Body style={{ position: 'relative' }}>
+                    <div
+                      className="status-tag"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'right',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      {/* Optional status tag content */}
+                    </div>
+                    <Card.Title style={{ color: 'white', fontWeight: "bold" }}>{info.title}</Card.Title>
+                    <Card.Text style={{ color: '#B0E0E6' }}>{info.text}</Card.Text>
+                  </Card.Body>
+                </Card>
+              ))}
             </div>
 
 
 
+
             {/* lab  */}
-            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+            <div>
               <div className="container" >
                 <div className="text-box">
-                  <h2 style={{ color: 'white' }}>Meet Lab: Your Cloud-Based Notebooks Lab</h2>
-                  <p style={{ color: "white", font: '1rem' }}>
-                    Experience Lab, your secure and fast cloud-based Jupyter Lab environment. Enjoy the power and flexibility of Jupyter with the added benefits of cloud accessibility and enhanced security.
-                  </p>
+                  <h2 style={{ color: '#00FFFF', marginBottom: '15px' }}>Lab: Your Cloud-Based Notebooks Lab</h2>
+                  <ul style={{
+                    color: "white",
+                    padding: 0,
+                    margin: 0,
+                    listStyleType: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    width: '100%',
+                  }}>
+                    <li style={{ marginBottom: "10px" }}>
+                      🔐 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Fully-Featured </span> secure, and fast environment for seamless data analysis and visualization in the cloud.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      🚀 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Top-Notch Security </span>  and scalability, allowing you to scale resources as needed.
+                    </li>
+                    <li>
+                      ⚡ <span style={{ color: "#FFD700", fontWeight: "bold" }}>Instant Setup</span> —no need to configure local environments. Simply launch your Jupyter Lab and start working.
+                    </li>
+                  </ul>
+
+
                 </div>
                 <div className="video-box">
                   <video
@@ -277,13 +340,30 @@ const Home = () => {
               </div>
             </div>
             {/* runmate */}
-            <div style={{ backgroundImage: 'url("img/pages/simplebg.webp")' }}>
+            <div >
               <div className="container" >
                 <div className="text-box">
-                  <h2 style={{ color: 'white' }}>Introducing RunMate: Your Trusted Cloud-Based Background Worker</h2>
-                  <p style={{ color: "white", font: '1rem' }}>
-                    RunMate, your trusted cloud-based background worker. Keep your projects, scripts, and notebooks running smoothly behind the scenes, ensuring continuous progress while you focus on what matters most.
-                  </p>
+                  <h2 style={{ color: '#32CD32', marginBottom: "10px" }}>RunMate: Your Cloud-Based Background Worker</h2>
+                  <ul style={{
+                    color: "white",
+                    padding: 0,
+                    margin: 0,
+                    listStyleType: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    width: '100%',
+                  }}>
+                    <li style={{ marginBottom: "10px" }}>
+                      🔄 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Keep your</span> projects, scripts, and notebooks running behind the scenes, while you focus on what matters most.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      🔗 <span style={{ color: "#FFD700", fontWeight: "bold" }}>Integrate</span> RunMate with your existing workspaces, labs, or create a new environment.
+                    </li>
+                  </ul>
+
+
+
                 </div>
                 <div className="video-box">
                   <video
@@ -350,13 +430,33 @@ const Home = () => {
             </div>
 
             {/* deployment */}
-            <div style={{ backgroundImage: 'url("img/pages/deployment-bg.webp")' }}>
+            <div >
               <div className="container">
                 <div className="text-box">
                   <h2 style={{ color: 'white' }}>Effortless Deployment with Controlia</h2>
-                  <p style={{ color: "white", fontSize: '1rem' }}>
-                    Simplify your deployment process with Controlia. Our platform provides seamless, one-click deployment for all your projects, ensuring that your applications go live effortlessly and efficiently. Focus on your code while we handle the complexities of deployment.
-                  </p>
+                  <ul style={{
+                    color: "white",
+                    padding: 0,
+                    margin: 0,
+                    listStyleType: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    width: '100%',
+                  }}>
+                    <li style={{ marginBottom: "10px" }}>
+                      🚀 <span style={{ color: "#FFD700", fontWeight: "bold" }}>One-Click Deployment </span>
+                      of all your projects, reducing manual steps and ensuring that your applications go live effortlessly and efficiently.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      🛠️ <span style={{ color: "#FFD700", fontWeight: "bold" }}>Seamless Integration </span>
+                      with your existing workflows effortlessly, focusing on your code while we handle the complexities of deployment.
+                    </li>
+                    <li style={{ marginBottom: "10px" }}>
+                      ⚡ <span style={{ color: "#FFD700", fontWeight: "bold" }}>Efficient Management </span>
+                      with our intuitive platform that handles the heavy lifting, allowing you to concentrate on building and improving your projects.
+                    </li>
+                  </ul>
                 </div>
                 <div className="video-box">
                   <video
@@ -373,54 +473,51 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="d-flex card-section">
-              <div className="cards-container">
-                <div className="d-flex card-section">
-                  <div className="cards-container">
-                    {deploymentFeatures.map((info, index) => (
-                      <div key={index} className="card-bg d-flex flex-column border">
-                        <Card className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
-                          {/* Background Image with Opacity */}
-                          <div
-                            style={{
-                              backgroundImage: `${info.imgLink}`,
-                              opacity: 0.2, // Adjust this value for desired background opacity
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              zIndex: 1,
-                            }}
-                          />
-                          {/* Content on Top of the Background */}
-                          <Card.Body style={{ position: 'relative', zIndex: 2 }}>
-                            <div
-                              className="status-tag"
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'right',
-                                marginBottom: '10px',
-                              }}
-                            >
-                              {info.status === 'ready' ? (
-                                <span style={{ fontSize: '2rem' }}>✅</span>
-                              ) : (
-                                <span style={{ fontSize: '2rem' }}>🔜</span>
-                              )}
-                            </div>
-                            <Card.Title style={{ color: 'white', zIndex: 3 }}>{info.title}</Card.Title>
-                            <Card.Text style={{ color: '#B0E0E6', zIndex: 3 }}>{info.text}</Card.Text>
-                          </Card.Body>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div className="card-container">
+              {deploymentFeatures.map((info, index) => (
+                <Card key={index} className="info-box h-100" style={{ position: 'relative', overflow: 'hidden' }}>
+                  {/* Background Image with Opacity */}
+                  <div
+                    style={{
+                      backgroundImage: `${info.imgLink}`,
+                      opacity: 0.2,
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      zIndex: 1,
+                    }}
+                  />
+                  {/* Content on Top of the Background */}
+                  <Card.Body style={{ position: 'relative', zIndex: 2 }}>
+                    <div
+                      className="status-tag"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'right',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      {info.status === 'ready' ? (
+                        <span style={{ fontSize: '2rem' }}>✅</span>
+                      ) : (
+                        <span style={{ fontSize: '2rem' }}>🔜</span>
+                      )}
+                    </div>
+                    <Card.Title style={{ color: 'white' }}>{info.title}</Card.Title>
+                    <Card.Text style={{ color: '#B0E0E6' }}>{info.text}</Card.Text>
+                  </Card.Body>
+                </Card>
+              ))}
             </div>
+
+
+
+
+
             {/* footer */}
 
             <div className="d-flex card-section" style={{ backgroundImage: 'url("img/pages/codingbg.jpg")', padding: '20px', justifyContent: 'center', alignItems: 'center', color: 'white', borderRadius: '5px' }}>
@@ -533,107 +630,49 @@ export default Home;
 
 const workspaceFeatures = [
   {
-    title: 'Local-Like Development Experience',
-    text: 'Code as if you are working locally, with instant scheduling and deployment capabilities for any project. Mimicking a familiar development environment.',
-    imgLink: 'url("img/homepage/local-development.png)',
-    status: 'ready'
-  },
-  {
-    title: 'Resolve Environment Discrepancies',
-    text: 'With each workspace having an independent and isolated environment, you eliminate environment discrepancies. This guarantees that your code performs consistently across different workspaces and deployments, reducing unexpected issues and boosting productivity.',
-    imgLink: 'url("img/homepage/environment-discrepancies.jpeg")',
-    status: 'ready'
-  },
-  {
-    title: 'Minimize Context Switching',
-    text: 'Reduce productivity loss caused by frequent tool-switching. Controlia integrates all necessary tools, streamlining workflows and enhancing overall efficiency.',
-    imgLink: 'url("img/homepage/context-switching.webp")',
-    status: 'ready'
-  },
-  {
     title: 'Dynamic Resource Allocation',
     text: 'Efficiently manage your resources with the ability to dynamically adjust RAM and CPU based on current needs. Continuously scale resources to match workload requirements, for optimal performance and flexibility.',
     imgLink: 'url("img/homepage/resource-allocation.png")',
     status: 'ready'
   },
   {
-    title: 'Unlimited Workspaces and Deployments',
-    text: 'There are no limits on the number of workspaces, labs, or deployments you can create. As long as you have resources available in your cloud, scale up effortlessly, providing unmatched flexibility and scalability.',
-    imgLink: 'url("img/homepage/unlimited-workspaces.jpeg")',
-    status: 'ready'
-  },
-  {
     title: 'Two Protected Domains for Development',
-    text: 'For development needs, get two bycontrolia.com protected domains to test your projects over the network. Easily share these domains for feedback, iterate, and make improvements efficiently.',
+    text: 'For development needs, get two *.bycontrolia.com protected domains to test your projects over the network. Easily share these domains for feedback, iterate, and make improvements efficiently.',
     imgLink: 'url("img/homepage/protected-domains.jpeg")',
     status: 'ready'
   },
+  {
+    title: 'Unlimited Workspaces and Deployments',
+    text: 'There are no limits on the number of workspaces, labs, or deployments you can create. As long as you have resources available in your cloud, scale up effortlessly, providing unmatched flexibility and scalability.',
+    imgLink: 'url("img/homepage/unlimited nodes.jpeg")',
+    status: 'ready'
+  },
+
 ];
 
 
 
 const labFeatures = [
-  {
-    title: 'Cloud-Based Jupyter Lab',
-    text: 'Experience the power of Jupyter Lab in the cloud. Access a fully-featured environment that’s secure and fast, providing seamless data analysis and visualization capabilities.',
-    imgLink: 'url("img/homepage/lab-cloud.png")',
-    status: 'ready'
-  },
-  {
-    title: 'Secure and Scalable',
-    text: 'Our Jupyter Lab environment is designed with top-notch security and scalability in mind. Scale resources as needed and ensure your data and projects are protected.',
-    imgLink: 'url("img/homepage/lab-secure.jpeg")',
-    status: 'ready'
-  },
-  {
-    title: 'Instant Setup and Access',
-    text: 'Get started quickly with instant setup. No need to configure local environments; simply launch your Jupyter Lab and start working on your data science projects right away.',
-    imgLink: 'url("img/homepage/lab-instant.webp")',
-    status: 'ready'
-  },
-  {
-    title: 'Collaborative Features',
-    text: 'Work collaboratively with team members. Share your Jupyter Lab environment and projects, making it easy to collaborate and get feedback in real time.',
-    imgLink: 'url("img/homepage/lab-collaborative.jpg")',
-    status: 'ready'
-  }
+  // {
+  //   title: 'Collaborative Features',
+  //   text: 'Work collaboratively with team members. Share your Jupyter Lab environment and projects, making it easy to collaborate and get feedback in real time.',
+  //   imgLink: 'url("img/homepage/lab-collaborative.jpg")',
+  //   status: 'ready'
+  // }
 ];
 
 
 
 const runMateFeatures = [
-  {
-    title: 'Background Execution',
-    text: 'RunMate allows you to execute projects, scripts, and notebooks in the background. Ensure that your tasks continue processing while you focus on other work.',
-    imgLink: 'url("img/homepage/runmate-background.jpeg")',
-    status: 'inprogress'
-  },
-  {
-    title: 'Scheduled Tasks',
-    text: 'Automate your workflows with scheduled tasks. Set up cron jobs and background processes to run at specific times.',
-    imgLink: 'url("img/homepage/runmate-scheduled.webp")',
-    status: 'inprogress'
-  },
-  {
-    title: 'Seamless Integration',
-    text: 'Integrate RunMate smoothly with your existing tools and workflows. Ensure that background tasks and processes fit naturally into your development environment without disruptions.',
-    imgLink: 'url("img/homepage/runmate-integration.webp")',
-    status: 'inprogress'
-  }
+
 ];
 
 
 const deploymentFeatures = [
   {
-    title: 'One-Click Deployment',
-    text: 'Deploy your projects with just a single click. Streamline the process and reduce manual steps for faster and more reliable deployments.',
-    imgLink: 'url("img/homepage/deploy-oneclick.jpg")',
-    status: 'inprogress'
-  },
-  {
     title: 'Automated Rollbacks',
     text: 'Easily revert to previous versions if needed. Automated rollbacks ensure that you can quickly address issues without downtime.',
-    imgLink: 'url("img/homepage/deploy-rollbacks.png")',
+    imgLink: 'url("img/homepage/deploy-oneclick.jpg")',
     status: 'inprogress'
   },
 
@@ -644,16 +683,10 @@ const deploymentFeatures = [
     status: 'inprogress'
   },
   {
-    title: 'Robust Authentication',
-    text: 'Secure your applications with our out-of-the-box authentication layer. Implement user authentication seamlessly to protect your data and control access.',
-    imgLink: 'url("img/homepage/authentication-robust.webp")',
-    status: 'inprogress'
-  },
-  {
-    title: 'Customizable Security Settings',
-    text: 'Customize security settings to meet specific needs. Configure authentication methods, permissions, and access controls easily to ensure robust protection.',
-    imgLink: 'url("img/homepage/authentication-customizable.jpeg")',
-    status: 'inprogress'
+    "title": "Robust Authentication & Customizable Security Settings",
+    "text": "Secure your applications with our out-of-the-box authentication layer while customizing security settings to meet specific needs. ",
+    "imgLink": "url('img/homepage/authentication-robust.webp')",
+    "status": "inprogress"
   }
 ];
 

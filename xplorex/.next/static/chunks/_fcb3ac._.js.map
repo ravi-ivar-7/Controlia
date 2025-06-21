@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/ravi/Desktop/Controlia/xplorex/components/Common/ScrollUp.tsx"],"sourcesContent":["\"use client\";\n\nimport { useEffect } from \"react\";\n\nexport default function ScrollUp() {\n  useEffect(() => window.document.scrollingElement?.scrollTo(0, 0), []);\n\n  return null;\n}\n"],"names":[],"mappings":";;;AAEA;;AAFA;;AAIe,SAAS;;IACtB,CAAA,GAAA,6JAAA,CAAA,YAAS,AAAD;8BAAE,IAAM,OAAO,QAAQ,CAAC,gBAAgB,EAAE,SAAS,GAAG;6BAAI,EAAE;IAEpE,OAAO;AACT;GAJwB;KAAA"}},
-    {"offset": {"line": 28, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
-}
